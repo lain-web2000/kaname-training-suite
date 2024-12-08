@@ -413,7 +413,7 @@ dont_update_cursor:
 		lda CursorY
 		ldx SEL_INDEX
 		inx 
-		cpx #5
+		cpx #4
 		bne @no_loop_around
 		ldx #0
 		lda #SEL_START_Y-16
@@ -431,7 +431,7 @@ dont_update_cursor:
 		ldx SEL_INDEX
 		dex
 		bpl @no_underflow
-		ldx #4
+		ldx #3
 		lda #SEL_START_Y+(5*16)
 @no_underflow:
 		sec
@@ -441,9 +441,9 @@ dont_update_cursor:
 		cmp #Start_Button
 		bne exit_nmi
 		ldx SEL_INDEX
-		cpx #3
+		cpx #2
 		beq @settings
-		cpx #4
+		cpx #3
 		beq @showrecords
 		lda bank_table, x
 		jmp StartBank

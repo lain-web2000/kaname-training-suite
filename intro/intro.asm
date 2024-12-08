@@ -699,21 +699,25 @@ credits_pellsson:
 	.byte "BY: PELLSSON            "
 credits_threecreepio:
 	.byte "BY: THREECREEPIO        "
-credits_simplistic_memes:
+credits_simplistic6502:
 	.byte "BY: SIMPLISTIC6502      "
+credits_web2000:
+	.byte "BY: WEB2000             "
 credits_reset:
 	.byte "CATCH THEM WITH PRACTICE"
 credits_end:
 
 credits_length:
 	.byte credits_threecreepio-credits_pellsson
-	.byte credits_simplistic_memes-credits_threecreepio
-	.byte credits_reset-credits_simplistic_memes
+	.byte credits_simplistic6502-credits_threecreepio
+	.byte credits_web2000-credits_simplistic6502
+	.byte credits_reset-credits_web2000
 	.byte credits_end-credits_reset
 credits_offset:
 	.byte credits_pellsson-credits_start
 	.byte credits_threecreepio-credits_start
-	.byte credits_simplistic_memes-credits_start
+	.byte credits_simplistic6502-credits_start
+	.byte credits_web2000-credits_start
 	.byte credits_reset-credits_start
 
 update_credits:
@@ -741,7 +745,7 @@ update_credits:
 		sty PPU_SCROLL_REG
 		ldx CreditsIndex
 		inx
-		cpx #4
+		cpx #5
 		bne @done
 		ldx #0
 @done:

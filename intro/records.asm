@@ -120,15 +120,19 @@ ppu_world_titles:
 
 game_names:
 		.word org_name
+		.word org_ext_name
 		.word lost_name
-		.word ext_name
+		.word lost_ext_name
 org_name:
 		.byte "SUPER MARIO BROS.         "
+		.byte 0
+org_ext_name:
+		.byte "SUPER MARIO BROS. EXT     "
 		.byte 0
 lost_name:
 		.byte "SMB 2: THE LOST LEVELS    "
 		.byte 0
-ext_name:
+lost_ext_name:
 		.byte "SMB 2: THE LOST LEVELS EXT"
 		.byte 0
 
@@ -190,10 +194,20 @@ redraw_all_records:
 		sta $01
 
 		lda RECORDS_MODE
-		cmp #2
+		cmp #1
+		beq @org_ext
+		cmp #3
 		bne @next_world
-		ldy #8
+@lost_ext:
+		ldy #8 ;lost
+		bne @cont
+@org_ext:
+		ldy #8 ;org
+		lda #$09
+		bne @max_world
+@cont:
 		lda #$0D
+@max_world:
 		sta $01
 @next_world:
 		lda ppu_world_titles+1, x
@@ -219,9 +233,15 @@ redraw_all_records:
 		ldx #0
 		ldy #8*4
 		lda RECORDS_MODE
-		cmp #2
+		cmp #1
+		beq @orginal_ext
+		cmp #3
 		bne @more
-		ldy #5*4
+@ll_ext:
+		ldy #5*4 ;lost
+		bne @more
+@orginal_ext:
+		ldy #1*4 ;org
 @more:
 		lda PPU_STATUS ; Latch
 		lda ppu_record_vram+1, x
@@ -233,25 +253,34 @@ redraw_all_records:
 		tya
 	pha
 		lda RECORDS_MODE
-		bne @is_lost
+		bne @try_org_ext
 		lda WRAM_OrgTimes+1, x
 		tay
 		lda WRAM_OrgTimes, x
 		tax
 		jmp @render_it
-@is_lost:
+@try_org_ext:
 		cmp #2
-		beq @is_ext
+		bcs @try_lost
+		lda WRAM_OrgExtTimes+1, x
+		tay
+		lda WRAM_OrgExtTimes, x
+		tax
+		jmp @render_it
+@try_lost:
+		cmp #3
+		bcs @try_lost_ext
 		lda WRAM_LostTimes+1, x
 		tay
 		lda WRAM_LostTimes, x
 		tax
 		jmp @render_it
-@is_ext:
-		lda WRAM_LostTimes+(8*4*2)+1,x
+@try_lost_ext:
+		lda WRAM_ExtTimes+1,x
 		tay
-		lda WRAM_LostTimes+(8*4*2), x
+		lda WRAM_ExtTimes, x
 		tax
+		jmp @render_it
 @render_it:
 		jsr redraw_time
 	pla
@@ -365,12 +394,12 @@ run_records:
 @go_left:
 		dex
 		bmi @wrap_up
-		cpx #3
+		cpx #4
 		bne @save_mode
 		ldx #0
 		beq @save_mode
 @wrap_up:
-		ldx #2
+		ldx #3
 @save_mode:
 		stx RECORDS_MODE
 		jsr screen_off

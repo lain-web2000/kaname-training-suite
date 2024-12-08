@@ -700,7 +700,7 @@ credits_pellsson:
 credits_threecreepio:
 	.byte "BY: THREECREEPIO        "
 credits_simplistic_memes:
-	.byte "BY: SIMPLISTIC MEMES    "
+	.byte "BY: SIMPLISTIC6502      "
 credits_reset:
 	.byte "CATCH THEM WITH PRACTICE"
 credits_end:

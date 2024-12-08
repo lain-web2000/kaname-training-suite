@@ -1,3 +1,19 @@
+MMC5_PRGMode          = $5100
+MMC5_CHRMode          = $5101
+MMC5_RAMProtect1      = $5102
+MMC5_RAMProtect2      = $5103
+MMC5_ExRamMode        = $5104
+MMC5_Nametables       = $5105
+MMC5_FillTile         = $5106
+MMC5_CHRBank          = $5120
+MMC5_PRGBank          = $5113
+MMC5_VSplitMode       = $5200
+MMC5_VSplitScroll     = $5201
+MMC5_VSplitBank       = $5202
+MMC5_SLCompare        = $5203
+MMC5_SLIRQ            = $5204
+MMC5_ExRamOfs         = $3C00
+
 	.org $8000
 
 	.segment "bank7"
@@ -108,160 +124,150 @@ VRAM_Buffer_Offset:
 		.byte 0
 		.byte $40
 
-MACRO_ThrowFrameImpl
-
 NonMaskableInterrupt:
-		lda Mirror_PPU_CTRL_REG1
-		and #$7E
-		sta Mirror_PPU_CTRL_REG1
-		sta PPU_CTRL_REG1
-		; sei
-		lda Mirror_PPU_CTRL_REG2
-		and #$E6
-		ldy DisableScreenFlag
-		bne ScreenOff
-		lda Mirror_PPU_CTRL_REG2
-		ora #$1E
-ScreenOff:
-		sta Mirror_PPU_CTRL_REG2
-		and #$E7
-		sta PPU_CTRL_REG2
-		ldx PPU_STATUS
-		lda #0
-		jsr InitScroll
+   lda Mirror_PPU_CTRL_REG1      ;alter name table address to be $2800
+   and #%01111110            ;(essentially $2000) and disable another NMI
+   sta Mirror_PPU_CTRL_REG1       ;from interrupting this one
+   sta PPU_CTRL_REG1
+   sei
+   ldy DisableScreenFlag
+   bne SkipIRQ
+   lda IRQUpdateFlag
+   beq SkipIRQ
+   lda #30                   ;set interrupt scanline
+   sta MMC5_SLCompare
+   inc IRQAckFlag            ;reset flag to wait for next IRQ
+   lda #$80
+   sta MMC5_SLIRQ            ;reset IRQ
+SkipIRQ:
+   lda Mirror_PPU_CTRL_REG2
+   and #%11100110            ;disable OAM and background display by default
+   ldy DisableScreenFlag     ;if screen disabled, skip this
+   bne ScrnSwch
+   lda Mirror_PPU_CTRL_REG2       ;otherwise reenable bits and save them
+   ora #%00011110
+ScrnSwch:
+   sta Mirror_PPU_CTRL_REG2
+   and #%11100111            ;turn screen off regardless of mirror reg
+   sta PPU_CTRL_REG2
+   ldx PPU_STATUS
+   lda #$00
+   jsr InitScroll
+   lda #0
+   sta PPU_SPR_ADDR
+   lda #$02                  ;dump OAM data to PPU's sprite RAM
+   sta SPR_DMA
 
-		MACRO_RunSlowMo 4
-
-		lda #0
-		sta PPU_SPR_ADDR
-		lda #2
-		sta SPR_DMA
-
-		lda WRAM_PracticeFlags
-		and #PF_EnableInputDisplay
-		beq DrawBuffer
-		lda #<WRAM_StoredInputs
-		sta TMP_0
-		lda #>WRAM_StoredInputs
-		sta TMP_1
-		jsr UpdateScreen
+   lda WRAM_PracticeFlags
+   and #PF_EnableInputDisplay
+   beq DrawBuffer
+   lda #<WRAM_StoredInputs
+   sta TMP_0
+   lda #>WRAM_StoredInputs
+   sta TMP_1
+   jsr UpdateScreen
 DrawBuffer:
-		lda VRAM_Buffer_AddrCtrl
-		asl
-		tax
-		ldy #0
-		lda VRAM_AddrTable_DW_NEW,x
-		sta TMP_0
-		inx
-		lda VRAM_AddrTable_DW_NEW,x
-		sta TMP_1
-		jsr UpdateScreen
-		ldy #0
-		ldx VRAM_Buffer_AddrCtrl
-		cpx #6
-		bne InitBuffer
-		iny
-InitBuffer:
-		ldx VRAM_Buffer_Offset,y
-		lda #0
-		sta VRAM_Buffer1_Offset,x
-		sta VRAM_Buffer1,x
-		sta VRAM_Buffer_AddrCtrl
-		lda Mirror_PPU_CTRL_REG2
-		sta PPU_CTRL_REG2
+   lda VRAM_Buffer_AddrCtrl
+   asl
+   tax
+   lda VRAM_AddrTable_DW_NEW,x      ;get pointer to VRAM data
+   sta $00
+   inx
+   lda VRAM_AddrTable_DW_NEW,x
+   sta $01
+   jsr UpdateScreen          ;now update the screen with it
+   ldy #$00
+   ldx VRAM_Buffer_AddrCtrl
+   cpx #$06                  ;if pointer number was set to 6 (for
+   bne InitVRAMVars          ;second VRAM buffer), increment Y to get
+   iny                       ;offset for second VRAM buffer
+InitVRAMVars:
+   ldx VRAM_Buffer_Offset,y  ;get pointer to correct buffer offset
+   lda #$00                  ;erase the VRAM buffer offset, init first VRAM buffer
+   sta VRAM_Buffer1_Offset,x ;by writing end terminator at the first byte, and
+   sta VRAM_Buffer1,x        ;init address control to point at first VRAM buffer
+   sta VRAM_Buffer_AddrCtrl
+   lda Mirror_PPU_CTRL_REG2
+   sta PPU_CTRL_REG2              ;dump PPU control register 2
+   cli
 
-		jsr Enter_PracticeOnFrame
+   jsr Enter_PracticeOnFrame
 
-		lda GamePauseStatus
-		and #3
-		bne PauseSkip
-		lda TimerControl
-		beq DecTimers
-		dec TimerControl
-		bne NoDecTimers
-DecTimers:
-		ldx #$14
-		dec IntervalTimerControl
-		bpl DecTimersLoop
-		lda #$14
-		sta IntervalTimerControl
-		ldx #$23
-DecTimersLoop:
-
-		lda SelectTimer,x
-		beq SkipExpTimer
-		dec SelectTimer,x
-SkipExpTimer:
-		dex
-		bpl DecTimersLoop
-		jsr Enter_UpdateFrameRule
-NoDecTimers:
-		inc FrameCounter
-		jsr AdvanceRandom
+   lda GamePauseStatus       ;check for pause status
+   and #3
+   bne PauseSkip
+   lda TimerControl          ;if master timer control not set, branch
+   beq CheckIntervalTC       ;to decrement frame and interval timers
+   dec TimerControl          ;otherwise count this timer down
+   bne IncFrameCntr                 
+CheckIntervalTC:
+   ldx #$14                  ;set offset to decrement only frame timers
+   dec IntervalTimerControl  ;if interval timer control not expired, branch
+   bpl DecrTheTimers         ;to skip and thus decrement only frame timers
+   lda #$14
+   sta IntervalTimerControl  ;otherwise reset interval timer control to 20 frames
+   ldx #$23                  ;and load offset to decrement frame and interval timers
+DecrTheTimers:
+   lda Timers,x              ;if current timer is already expired, skip it
+   beq DTTLoop               ;otherwise decrement it
+   dec Timers,x
+DTTLoop:
+   dex                       ;loop until all timers that need to be counted down are
+   bpl DecrTheTimers
+   lda IntervalTimerControl
+   cmp #$14
+   bne IncFrameCntr
+   jsr Enter_UpdateFrameRule
+IncFrameCntr:
+   inc FrameCounter
+SeedLFSR:
+   ldx #$00
+   ldy #$07
+   lda PseudoRandomBitReg    ;get d1 of first byte
+   and #$02
+   sta $00
+   lda PseudoRandomBitReg+1  ;get d1 of second byte, XOR it with the first byte
+   and #$02
+   eor $00
+   clc
+   beq RotateLFSR            ;prepare to rotate the result in
+   sec
+RotateLFSR:
+   ror PseudoRandomBitReg,x  ;basically, rotate the operation result into d7
+   inx                       ;then rotate the entire LFSR
+   dey
+   bne RotateLFSR
 PauseSkip:
-		lda GamePauseStatus
-		and #$02
-		bne SkipSprite0
-		;
-		; hack begins
-		;
-		lda Sprite0HitDetectFlag
-		beq SkipSprite0
-Sprite0Clr:
-		lda PPU_STATUS
-		and #$40
-		bne Sprite0Clr
-		lda GamePauseStatus
-		and #3
-		bne Sprite0Hit
-		jsr MoveSpritesOffscreen
-		jsr SpriteShuffler
-Sprite0Hit:
-		lda PPU_STATUS
-		and #$40
-		beq Sprite0Hit
-		ldy #$14
-HBlankDelay:
-		dey
-		bne HBlankDelay
-SkipSprite0:
-		lda HorizontalScroll
-		sta PPU_SCROLL_REG
-		lda VerticalScroll
-		sta PPU_SCROLL_REG
-		;
-		; XXX - In smb2j-fds, this is effectively done AFTER the OperModeExecTree has ran.
-		;       If vert-/horizontalscroll is changed (and they are) in OperMode, we are showing wrong px i think
-		;
-		lda PPU_STATUS
-		lda Mirror_PPU_CTRL_REG1
-		and #$F7
-		ora UseNtBase2400
-		sta Mirror_PPU_CTRL_REG1
-		sta PPU_CTRL_REG1
-
-		; todo xxx is this retarded?
-		;lda WorldNumber
-		;cmp #9
-		;bcc NotWorld9Something
-		;jsr TerminateGame
-;NotWorld9Something:
-		lda GamePauseStatus
-		and #3
-		bne SkipMainOper
-		jsr OperModeExecutionTree
-SkipMainOper:
-		jsr Enter_RedrawUserVars
-		lda PPU_STATUS
-		lda Mirror_PPU_CTRL_REG1
-		ora #$80
-		sta Mirror_PPU_CTRL_REG1
-		sta PPU_CTRL_REG1
+   lda GamePauseStatus
+   and #$02
+   bne ExecutionTree
+   lda IRQUpdateFlag
+   beq ExecutionTree
+   lda GamePauseStatus
+   and #3
+   bne ExecutionTree
+   jsr MoveSpritesOffscreen
+   jsr SpriteShuffler
+ExecutionTree:
+   lda GamePauseStatus
+   and #3
+   bne WaitForIRQ
+   jsr OperModeExecutionTree ;run one of the program's four modes
+WaitForIRQ:
+   lda IRQAckFlag            ;wait for IRQ
+   bne WaitForIRQ
+   jsr Enter_RedrawUserVars
+   lda PPU_STATUS
+   lda Mirror_PPU_CTRL_REG1       ;reenable NMIs 
+   ora #$80
+   sta Mirror_PPU_CTRL_REG1       ;then park it at endless loop until next NMI
+   sta PPU_CTRL_REG1
 OnIRQ:
-		lda GamePauseStatus
-		and #$FD
-		sta GamePauseStatus
-		rti
+   lda GamePauseStatus
+   and #$FD
+   sta GamePauseStatus
+   rti
+
 
 SpriteShuffler:
 		ldy AreaType
@@ -2224,21 +2230,10 @@ loc_6EF5:
 		sta $6E4,x
 		dex
 		bpl loc_6EF5
-
-		ldx #3
-CopyMoreSprite0Data:
-		lda Sprite0Data, x
-		sta $200, x
-		dex
-		bpl CopyMoreSprite0Data
-
-		jsr sub_70BB
-		inc Sprite0HitDetectFlag
+		
+		inc IRQUpdateFlag
 		inc OperMode_Task
 		rts
-
-Sprite0Data:
-		.byte $18, $EE, $23, $58
 
 InitializeMemory:
 		ldx #7
@@ -2402,7 +2397,7 @@ loc_6FF8:
 PlayerLoseLife:
 		inc DisableScreenFlag
 		lda #0
-		sta Sprite0HitDetectFlag
+		sta IRQUpdateFlag
 		lda #$80
 		sta EventMusicQueue
 StillInGame:
@@ -4304,6 +4299,8 @@ loc_7B16:
 		bcc loc_7B20
 		ldy Player_X_Scroll
 loc_7B20:
+        lda IRQAckFlag
+        bne loc_7B20           ;loop if IRQ has not yet happened
 		tya
 		sta ScrollAmount
 		clc
@@ -4649,7 +4646,7 @@ sub_7D6B:
 		inc DisableScreenFlag
 		lda #0
 		sta OperMode_Task
-		sta Sprite0HitDetectFlag
+		sta IRQUpdateFlag
 locret_7D76:
 
 		rts
@@ -15604,13 +15601,13 @@ byte_C10B:
 		.byte 0
 
 PrepareFdsLoad:
-		lda #0
-		sta Mirror_PPU_CTRL_REG2
-		sta PPU_CTRL_REG2
-		sta Sprite0HitDetectFlag
-		inc DisableScreenFlag
-		lda #$1A
-		sta VRAM_Buffer_AddrCtrl
+      lda #$00
+      sta Mirror_PPU_CTRL_REG2
+      sta IRQUpdateFlag
+      ;sta PPU_CTRL_REG2
+      inc DisableScreenFlag
+      lda #$1a
+      sta VRAM_Buffer_AddrCtrl
 		jmp TitleNextTask
 
 WaitFDSReady:
@@ -16508,7 +16505,7 @@ SetEndingFrameBuffer:
 		lda #$1B
 		sta VRAM_Buffer_AddrCtrl
 		lda #0
-		sta Sprite0HitDetectFlag
+		sta IRQUpdateFlag
 		inc ScreenRoutineTask
 		rts
 
@@ -16526,7 +16523,7 @@ PrintAndPatchSoundEngine:
 		sta Left_Right_Buttons
 		sta NumberOfPlayers
 		sta DisableScreenFlag
-		inc Sprite0HitDetectFlag
+		inc IRQUpdateFlag
 		inc OperMode_Task
 		rts
 

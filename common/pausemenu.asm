@@ -44,21 +44,6 @@ pm_input_off_row:
 pm_star_row:
 	.byte $24, " GET STAR   ", $24, $24, $24
 
-pm_slowmo_off_row:
-	.byte $24, " SLOMO NONE ", $24, $24, $24
-
-pm_slowmo_min_row:
-	.byte $24, " SLOMO LOW  ", $24, $24, $24
-
-pm_slowmo_mid_row:
-	.byte $24, " SLOMO MID  ", $24, $24, $24
-
-pm_slowmo_max_row:
-	.byte $24, " SLOMO MAX  ", $24, $24, $24
-
-pm_slowmo_adv_row:
-	.byte $24, " SLOMO ADV  ", $24, $24, $24
-
 pm_restart_row:
 	.byte $24, " RESTART LEV", $24, $24, $24
 
@@ -224,59 +209,35 @@ _draw_pm_row_8:
 		row_render_data $2180, CustomRow
 		rts
 
-_draw_pm_row_9:
-		ldx WRAM_SlowMotion
-		beq @off
-		dex
-		beq @min
-		dex
-		beq @mid
-		dex
-		beq @max
-		row_render_data $21A0, pm_slowmo_adv_row
-		rts
-@max:
-		row_render_data $21A0, pm_slowmo_max_row
-		rts
-@mid:
-		row_render_data $21A0, pm_slowmo_mid_row
-		rts
-@min:
-		row_render_data $21A0, pm_slowmo_min_row
-		rts
-@off:
-		row_render_data $21A0, pm_slowmo_off_row
-		rts
-
 _draw_pm_row_10:
-		row_render_data $21C0, pm_star_row
+		row_render_data $21A0, pm_star_row
 		rts
 
 _draw_pm_row_11:
-		row_render_data $21E0, pm_restart_row
+		row_render_data $21C0, pm_restart_row
 		rts
 
 _draw_pm_row_12:
 		row_render_data $23E0, pm_attr_data
 		inc $07
 		jsr draw_prepared_row
-		row_render_data $2200, pm_save_row
+		row_render_data $21E0, pm_save_row
 		rts
 
 _draw_pm_row_13:
-		row_render_data $2220, pm_load_row
+		row_render_data $2200, pm_load_row
 		rts
 
 _draw_pm_row_14:
-		row_render_data $2240, pm_title_row
+		row_render_data $2220, pm_title_row
 		rts
 
 _draw_pm_row_15:
-		row_render_data $2260, pm_intro_row
+		row_render_data $2240, pm_intro_row
 		rts
 
 _draw_pm_row_16:
-		row_render_data $2280, pm_empty_row
+		row_render_data $2260, pm_empty_row
 		rts
 
 
@@ -290,7 +251,6 @@ pm_row_initializers:
 		.word _draw_pm_row_6
 		.word _draw_pm_row_7
 		.word _draw_pm_row_8
-		.word _draw_pm_row_9
 		.word _draw_pm_row_10
 		.word _draw_pm_row_11
 		.word _draw_pm_row_12
@@ -596,17 +556,6 @@ pm_toggle_input:
 @inputon:
         rts
 
-
-pm_slowmo:
-		ldx WRAM_SlowMotion
-		inx
-		cpx #5
-		bne @good
-		ldx #0
-@good:
-		stx WRAM_SlowMotion
-		rts
-
 pm_give_star:
 		lda #$FF
 		sta StarInvincibleTimer
@@ -656,7 +605,6 @@ pm_activation_slots:
 		.word pm_toggle_input
 		.word pm_low_user ; user
 		.word pm_low_user ;
-		.word pm_slowmo
 		.word pm_give_star
 		.word pm_restart_level
 		.word pm_save_state
@@ -754,7 +702,7 @@ do_uservar_input:
 RunPauseMenu:
 		and #$1F
 		beq @draw_cursor
-	pha
+		pha
 		sta $0
 		lda #MENU_ROW_COUNT
 		sec
@@ -763,7 +711,7 @@ RunPauseMenu:
 		lda #0
 		sta $07
 		jsr draw_prepared_row
-	pla
+		pla
 		sec
 		sbc #1
 		asl

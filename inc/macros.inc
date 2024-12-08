@@ -183,27 +183,11 @@
 		jmp SetBankFromA
 
 	SetChrBank0FromA:
-		sta $A000
-		lsr
-		sta $A000
-		lsr
-		sta $A000
-		lsr
-		sta $A000
-		lsr
-		sta $A000
+		sta $5123
 		rts
 
 	SetChrBank1FromA:
-		sta $C000
-		lsr
-		sta $C000
-		lsr
-		sta $C000
-		lsr
-		sta $C000
-		lsr
-		sta $C000
+		sta $5127
 		rts
 
 	SetChrBanksFromAX:
@@ -212,55 +196,102 @@
 		jmp SetChrBank1FromA
 
 	SetBankFromA:
-		sta $E000
-		lsr
-		sta $E000
-		lsr
-		sta $E000
-		lsr
-		sta $E000
-		lsr
-		sta $E000
+		clc
+		ora #$80
+		sta $5115
+		adc #$2
+		sta $5117
 		rts
 
 	MapperReset:
 		;
-		; Clear MMC1 state
+		; Clear MMC5 state
 		;
 		sei
+		cld
 		ldx #$FF
 		txs
-		stx $8000
-		;
-		; Set 32kb prg bank switch, 4KB chr ram switch, vertical mirroring 
-		;
-		lda #$12
-		sta $8000
-		lsr
-		sta $8000
-		lsr
-		sta $8000
-		lsr
-		sta $8000
-		lsr
-		sta $8000
-		lsr
-	StartBank:
-		;
-		; 0 Bank selected
-		;
+		lda #%01000000
+		sta $4017 ;No more APU IRQ, stinky.
+		ldx #$02
+		stx $5102 ;Enable writing to PRG-RAM
+		dex
+		stx $5103 ;Enable writing to PRG-RAM
+		stx $5101 ;Use CHR mode 1 (4K CHR Bankswitching)
+		stx $5100 ;Use PRG mode 0 (2x16K PRG Bankswitching)
+		dex
+		stx $5104
+		stx $5113
+		stx BANK_SELECTED
+		jsr SetBankFromA
+		lda #$44
+		sta $5105
+		jmp Start
+
+DelayLoop:
+	sbc #$01
+	bcs DelayLoop
+	pla
+	rts		
+DelayIRQ:
+	pha
+	lda #$0e
+	sec
+	sbc #$01
+	bcs DelayLoop
+	pla
+	rts
+
+	
+InterruptRequest:
+	sei
+	php                      ;save regs
+	pha
+	txa
+	pha
+	tya
+	pha
+	jsr DelayIRQ
+    ldy #$06                 ;delay for right part of scanline 31 (LMAO MMC5 ON EDN8 WANTS A WORD WITH YOU)
+DelS:
+	dey
+    bne DelS
+	lda $5204      		     ;disable IRQs for the rest of the frame
+	lda Mirror_PPU_CTRL_REG1
+	and #%11110110           ;mask out sprite address and nametable             
+	ora $77a      	 		 ;mask in whatever's set here
+	sta Mirror_PPU_CTRL_REG1  ;update the register and its mirror
+	sta PPU_CTRL_REG1
+	lda #$00
+	lda $5204      		     ;disable IRQs for the rest of the frame
+	lda HorizontalScroll
+	sta PPU_SCROLL_REG       ;set scroll regs for the screen under the status bar
+	lda VerticalScroll       ;to achieve the split screen effect
+	sta PPU_SCROLL_REG
+	lda #$00
+	sta $77b           		 ;indicate IRQ was acknowledged
+	pla
+	tay                      ;return regs, reenable IRQs and leave
+	pla
+	tax
+	pla
+	plp
+	cli
+	rti
+
+StartBank:
 		sta BANK_SELECTED
 		ldx #$00
 		stx PPU_CTRL_REG1
 		stx PPU_CTRL_REG2
 		jsr SetBankFromA
 		jmp Start
-
+		
 		.res $FFFA - *, $ea
 		;
 		; Interrupt table
 		;
 		.word NonMaskableInterrupt
 		.word MapperReset
-		.word MapperReset
+		.word InterruptRequest
 .endmacro

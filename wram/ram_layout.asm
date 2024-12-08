@@ -11,6 +11,8 @@ WRAM_PracticeFlags:
 	.byte $00
 WRAM_CharSet:
 	.byte $00
+WRAM_MinusWorld:
+	.byte $00
 WRAM_DelaySaveFrames:
 	.byte $00
 WRAM_DelayUserFrames:
@@ -91,6 +93,7 @@ WRAM_OrgRules:
 	.dword 0, 0, 0, 0 ; World 6
 	.dword 0, 0, 0, 0 ; World 7
 	.dword 0, 0, 0, 0 ; World 8
+	.dword 0, 0, 0, 0 ; World 9 (Minus World)
 
 WRAM_LostRules:
 	.dword 0, 0, 0, 0 ; World 1
@@ -117,6 +120,9 @@ WRAM_OrgTimes:
 	.word 0, 0, 0, 0 ; World 6
 	.word 0, 0, 0, 0 ; World 7
 	.word 0, 0, 0, 0 ; World 8
+WRAM_OrgExtTimes:
+	.word 0, 0, 0, 0 ; World 9
+WRAM_OrgExtTimesEnd:
 WRAM_OrgTimesEnd:
 
 WRAM_LostTimes:

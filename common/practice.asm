@@ -697,27 +697,7 @@ menu_input:
 		sta LevelNumber
 		rts
 @world_selected:
-		lda WorldNumber
-		clc
-		adc $00
-		ldx BANK_SELECTED
-		cpx #BANK_ORG
-		bne @world_lost
-		and #$07
-		jmp @save_world
-@world_lost:
-		cmp #$0D
-		bcc @save_world
-		lda $0
-		cmp #1 ; going right
-		beq @going_left
-		lda #$0C
-		bne @save_world
-@going_left:
-		lda #$00
-@save_world:
-		sta WorldNumber
-		rts
+		jmp ChangeWorldNumber
 @check_pups:
 		dex
 		bne @hero_selected
@@ -738,6 +718,39 @@ menu_input:
 		sta CurrentPlayer
 		jmp LL_UpdatePlayerChange
 
+ChangeWorldNumber:
+		ldx BANK_SELECTED          ; get selected game
+		ldy WorldNumber            ; and current world number
+		lda $0                     ; get input direction
+		cmp #1                     ; check for going right
+		bne @going_left            ; if not - skip to going left
+@going_right:                  ; we are going right
+		iny                        ; advance to next world
+		cpx #BANK_ORG              ; are we playing smb1?
+		bne @check_ll_r            ; nope - we have more worlds to consider
+		cpy #9                     ; yes - are we past the end of the game?
+		bcc @store                 ; no - we're done, store the world
+		ldy #0                     ; yes - wrap around to world 1
+		beq @store                 ; and store
+@check_ll_r:                   ;
+		cpy #$D                    ; we are playing LL / ANN, are we past the end of the game?
+		bcc @store                 ; no - we're done, store the world
+		ldy #0                     ; yes - wrap around to world 1
+		beq @store                 ; and store
+@going_left:                   ; we are going left
+		dey                        ; drop world number by 1		   
+		cpy #$FF                   ; have we wrapped around?
+		bne @store                 ; no - we're done, store the world
+		cpx #BANK_ORG              ; are we playing smb1?
+		bne @check_ll_l            ; nope - we have more worlds to consider
+		ldy #$08                   ; yes - wrap around to world 9
+		bne @store                 ; and store
+	@check_ll_l:                   ;
+		ldy #$0C                   ; we are playing LL / ANN, wrap to world D
+	@store:                        ;
+		sty WorldNumber            ; update selected world
+		rts                        ; and exit
+	
 next_task:
 		ldx #4*4-1
 		lda #0

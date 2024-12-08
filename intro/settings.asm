@@ -2,7 +2,7 @@
 ; This hack is just inlined into intro.asm
 ;
 SETTINGS_MENU_PPU = $1FF3
-MAX_SETTING = 14
+MAX_SETTING = 15
 
 .macro draw_simple_at at, txt
 		.local @copy
@@ -212,28 +212,38 @@ _draw_charset_opt:
 		jmp _char_org
 @native:
 		jmp _char_native
+		
+_char_fds: draw_simple_at 15, "FDS"
+_char_nes: draw_simple_at 15, "NES"
+
+_draw_minusworld_opt:
+		lda WRAM_MinusWorld
+		beq @fds
+		jmp _char_nes
+@fds:
+		jmp _char_fds
 
 _draw_button_restart_opt:
 		lda WRAM_RestartButtons
-		draw_button_opt 15
+		draw_button_opt 16
 
 _draw_button_title_opt:
 		lda WRAM_TitleButtons
-		draw_button_opt 16
+		draw_button_opt 17
 
 _draw_button_save_opt:
 		lda WRAM_SaveButtons
-		draw_button_opt 17
+		draw_button_opt 18
 
 _draw_button_load_opt:
 		lda WRAM_LoadButtons
-		draw_button_opt 18
+		draw_button_opt 19
 
 _draw_reset_records_opt:
-		draw_simple_at 19, "NO ORG LL EXT"
+		draw_simple_at 20, "NO ORG LL EXT"
 
 _draw_reset_wram_opt:
-		draw_simple_at 20, "NO YES"
+		draw_simple_at 21, "NO YES"
 
 
 settings_renderers:
@@ -246,6 +256,7 @@ settings_renderers:
 		.word _draw_userdelay_opt
 		.word _draw_savedelay_opt
 		.word _draw_charset_opt
+		.word _draw_minusworld_opt
 		.word _draw_button_restart_opt
 		.word _draw_button_title_opt
 		.word _draw_button_save_opt
@@ -341,6 +352,11 @@ _select_charset:
 		ldx #3
 @draw:
 		jmp set_selection_sprites
+		
+_select_minusworld:
+		ldx #3
+@draw:
+		jmp set_selection_sprites
 
 select_buttons:
 		ldx #7
@@ -395,6 +411,7 @@ select_option:
 		.word _select_value
 		.word _select_value
 		.word _select_charset
+		.word _select_minusworld
 		.word _select_retry_buttons
 		.word _select_title_buttons
 		.word _select_save_buttons
@@ -620,6 +637,15 @@ _charset_input:
 @nothing:
 		rts
 
+_minusworld_input:
+		and #(B_Button|A_Button)
+		beq @nothing
+		lda WRAM_MinusWorld
+		eor #1
+		sta WRAM_MinusWorld
+@nothing:
+		rts
+
 recordbuttons_input:
 		ldx RECORD_BUTTONS
 		beq @normalinput
@@ -803,6 +829,7 @@ option_inputs:
 		.word _drawdelay_input
 		.word _savedelay_input
 		.word _charset_input
+		.word _minusworld_input
 		.word _retrybuttons_input
 		.word _titlebuttons_input
 		.word _savebuttons_input

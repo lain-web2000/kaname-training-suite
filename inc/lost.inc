@@ -15,6 +15,8 @@ UseNtBase2400 = $77a			; SMB2J
 IsPlayingExtendedWorlds = $7FB	; SMB2J
 byte_7F5 = $7f5 ; what is this...?
 WorldsCompleted = $7f7 ; Moved from 7FA (think there is other shit there ;))
+IRQUpdateFlag = $722 ; Purely for 2J, SMB1 doesn't get shit
+IRQAckFlag = $077b
 
 ; ContinueWorld is killed too
 ; Old LOST timer:

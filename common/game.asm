@@ -41,8 +41,8 @@ mario_colors_peach:
 		.byte $3F, $11, $03, $16, $27, $37, $00 ; fiery
 
 mario_gfx:
-		.byte $c0, $32, $00, $A0
-		.byte $c0, $33, $00, $A8
+		.byte $c0, $3a, $00, $A0
+		.byte $c0, $37, $00, $A8
 		.byte $c8, $4f, $00, $A0
 		.byte $c8, $4f, $40, $A8
 

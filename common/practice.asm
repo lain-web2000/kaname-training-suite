@@ -414,7 +414,7 @@ RedrawFrameNumbersInner:
 		beq @rule ; force RULE if on title screen
 		lda WRAM_PracticeFlags
 		and #PF_SockMode
-		beq @dont_draw_rule
+		bne @dont_draw_rule
 @rule:	lda #$20
 		sta VRAM_Buffer1+6, y ; Offset for RULE (if any)
 		lda #$64

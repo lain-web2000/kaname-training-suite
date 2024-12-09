@@ -8,7 +8,7 @@
 		.local @dont_render
 		lda WRAM_PracticeFlags
 		and #PF_SockMode
-		bne @dont_render
+		beq @dont_render
 		lda IntervalTimerControl
 		and #3
 		cmp #2

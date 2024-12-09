@@ -11802,7 +11802,7 @@ HandleAxeMetatile:
 		sta OperMode_Task
 		lda #2
 		sta OperMode
-		jsr Enter_EndOfCastle
+		;jsr Enter_EndOfCastle
 		jsr Enter_LoadMarioPhysics
 		lda #$18
 		sta Player_X_Speed

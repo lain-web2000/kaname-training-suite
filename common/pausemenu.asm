@@ -121,7 +121,7 @@ _draw_pm_row_4:
 		row_render_data $2100, pm_show_sock_row
 		lda WRAM_PracticeFlags
 		and #PF_SockMode
-		beq @is_sock
+		bne @is_sock
 		row_render_data $2100, pm_show_rule_row
 	@is_sock:
 		rts
@@ -439,7 +439,7 @@ pm_toggle_show:
 		eor #PF_SockMode
 		sta WRAM_PracticeFlags
 		and #PF_SockMode
-		beq @SockMode
+		bne @SockMode
 		;
 		; If we change back to rule mode we must remove top sock bytes
 		;

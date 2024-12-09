@@ -44,8 +44,9 @@ InitMoreWRAM:
 Start:
 		lda #0
 		sta PPU_CTRL_REG2
-        ldx #$ff                     ;reset stack pointer
-        txs
+		; lda FdsLastWrite4025
+		; and #$F7
+		; sta FDS_CONTROL
 		lda WorldNumber
 		pha
 
@@ -16516,8 +16517,8 @@ PrintAndPatchSoundEngine:
 		;sta VOLDST_PatchSoundEngineHigh
 		;lda #$5F
 		;sta VOLDST_PatchSoundEngineLow
-		lda #1
-		sta AreaMusicQueue
+		lda #VictoryMusic
+		sta EventMusicQueue
 		lda #0
 		sta Left_Right_Buttons
 		sta NumberOfPlayers
@@ -16537,8 +16538,8 @@ AlternatePrintVictoryMessages:
 		iny
 		cpy #5
 		bne @noeventmusic
-		lda #4
-		sta EventMusicQueue
+		;lda #4
+		;sta EventMusicQueue
 @noeventmusic:
 		tya
 		clc
@@ -16675,7 +16676,7 @@ loc_C712:
 
 XXX_SomethingOrOther:
 		jsr MoveShitheads
-		lda $608
+		lda EventMusicBuffer
 		bne locret_C737
 		lda IsPlayingExtendedWorlds
 		bne RestoreSoundEngine

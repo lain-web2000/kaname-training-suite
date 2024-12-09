@@ -826,7 +826,7 @@ toggle_second_quest:
 		inx
 		inx
 		inx
-		sta VRAM_Buffer1_Offset
+		stx VRAM_Buffer1_Offset ;hi simplistic :D
 @not_org:
 		rts
 

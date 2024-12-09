@@ -87,7 +87,7 @@ First download the desired version below:
 
 - [Version 6.0 - BPS](https://github.com/lain-web2000/pellsson-irq/raw/master/pellsson-2000.bps)
 
-Then simply apply that IPS (using for instance Lunar IPS) to the an original, unmodified version of the Super Mario Bros. (US/World) ROM. *DO NOT* use The Lost Levels. The MD5 checksum for the ROM you should be using is `811b027eaf99c2def7b933c5208636de`.
+Then simply apply that BPS (using for instance Floating Lunar IPS) to the an original, unmodified version of the Super Mario Bros. (US/World) ROM. *DO NOT* use The Lost Levels. The MD5 checksum for the ROM you should be using is `811b027eaf99c2def7b933c5208636de`.
 
 <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
 	<input type="hidden" name="cmd" value="_donations" />

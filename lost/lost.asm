@@ -44,9 +44,8 @@ InitMoreWRAM:
 Start:
 		lda #0
 		sta PPU_CTRL_REG2
-		; lda FdsLastWrite4025
-		; and #$F7
-		; sta FDS_CONTROL
+        ldx #$ff                     ;reset stack pointer
+        txs
 		lda WorldNumber
 		pha
 

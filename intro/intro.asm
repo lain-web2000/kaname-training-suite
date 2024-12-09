@@ -332,12 +332,12 @@ NoChangeHead:
 		lda #$11
 		ldx #$ff
 @update_cloud_sprite:
-	pha
+		pha
 		lda ThrowDir
 		asl
 		asl
 		tay
-	pla
+		pla
 		clc
 		adc ThrowDir
  		; Cloud top left/right sprite
@@ -432,7 +432,7 @@ dont_update_cursor:
 		dex
 		bpl @no_underflow
 		ldx #3
-		lda #SEL_START_Y+(5*16)
+		lda #SEL_START_Y+(4*16)
 @no_underflow:
 		sec
 		sbc #16

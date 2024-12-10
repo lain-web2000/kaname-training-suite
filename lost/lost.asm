@@ -44,6 +44,8 @@ InitMoreWRAM:
 Start:
 		lda #0
 		sta PPU_CTRL_REG2
+        ldx #$ff                     ;reset stack pointer
+        txs
 		; lda FdsLastWrite4025
 		; and #$F7
 		; sta FDS_CONTROL

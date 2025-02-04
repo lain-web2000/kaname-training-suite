@@ -6,7 +6,7 @@ For feature requests or bug reports, please visit the [issue tracker](https://gi
 
 Looking to practice on PAL? [Try out threecreepio's independent PAL-conversion.](https://github.com/threecreepio/pallsson)
 
- **Please note this version of the Practice ROM uses the MMC5 mapper. This will not work with certain flashcarts such as KrzysioCart, or on cheap clone consoles.**
+ **Please note this version of the Practice ROM uses the MMC5 mapper, this ROM will not work with certain flashcarts such as KrzysioCart, or on cheap clone consoles.**
  
 ## Major Version 6 (Current 6.0)
 

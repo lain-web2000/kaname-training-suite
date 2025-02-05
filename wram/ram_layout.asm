@@ -153,104 +153,20 @@ WRAM_PrettyTimeSec:
 	.byte 0
 WRAM_PrettyTimeFrac:
 	.byte 0
-
+	
 ;
 ; Number of stars collected
 ;
 WRAM_LostStart:
-
-WRAM_LeafY:
-		.byte $30
-		.byte $70
-		.byte $B8
-		.byte $50
-		.byte $98
-		.byte $30
-		.byte $70
-		.byte $B8
-		.byte $50
-		.byte $98
-		.byte $30
-		.byte $70
-WRAM_LeafX:
-		.byte $30
-		.byte $30
-		.byte $30
-		.byte $60
-		.byte $60
-		.byte $A0
-		.byte $A0
-		.byte $A0
-		.byte $D0
-		.byte $D0
-		.byte $D0
-		.byte $60
-
-;
-; Player palette colors
-;
-WRAM_PlayerColors:
-		.byte $22, $16, $27, $18 ; Mario
-		.byte $22, $37, $27, $16 ; Luigi (REMOVE ME)
-
-WRAM_JumpMForceData:
-		.byte $20, $20, $1E, $28, $28, $0D, $04
-WRAM_FallMForceData:
-		.byte $70, $70, $60, $90, $90, $0A, $09
-WRAM_FrictionData:
-		.byte $E4, $98, $D0
-
-WRAM_EnemyAttributeData:
-		.byte $01, $02, $03, $02
-		.byte $22, $01, $03, $03
-		.byte $03, $01, $01, $02
-		.byte $02
-WRAM_PiranhaPlantAttributeData:
-		.byte $21
-		.byte $01, $02, $01, $01
-		.byte $02, $FF, $02, $02
-		.byte $01, $01
-WRAM_UnknownAttributeData0:
-		.byte $02
-WRAM_UnknownAttributeData1:
-		.byte $02
-WRAM_UnknownAttributeData2:
-		.byte $02
-;
-; Draw buffer for title screen with mushroom
-;
-WRAM_MushroomSelection:
-		.byte $22
-		.byte $4B
-		.byte $83
-WRAM_SelectMario:
-		.byte $CE
+	
+	GamesBeatenCount:
 		.byte $24
-WRAM_SelectLuigi:
-		.byte $24
-		.byte $00
 
-;
-; Originally patched the immediate byte of the
-; cmp instruction, but that was too much of a hack, so
-; now we just store it here directly
-;
-WRAM_PiranhaPlantDist:
-		.byte $21
-;
-; Halway stuff
-;
-WRAM_HalfwayPageNybbles:
-		.byte $66, $60
-		.byte $88, $60
-		.byte $66, $70
-		.byte $77, $60
-		.byte $D6, $00
-		.byte $77, $80
-		.byte $70, $B0
-		.byte $00, $00
-		.byte $00, $00
-
+	LeavesXPosCopy:
+		.res $0c, $00
+	LeavesYPosCopy:
+		.res $0c, $00
+	
 WRAM_LostEnd:
 
 WRAM_SaveLost:

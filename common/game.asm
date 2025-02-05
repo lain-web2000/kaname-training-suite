@@ -322,8 +322,6 @@ PlayerIsLuigiPath:
 		; stx VOLDST_PatchMovementFriction
 		ldx #$10
 @copy_more:
-		lda MarioOrLuigiPhysics,y
-		sta WRAM_JumpMForceData,x
 		dey
 		dex
 		bpl @copy_more
@@ -334,8 +332,6 @@ PlayerIsLuigiPath:
 @is_luigi:
 		ldx #3
 @copy_pal:
-		lda MarioOrLuigiColors, y
-		sta WRAM_PlayerColors, x
 		dey
 		dex
 		bpl @copy_pal

@@ -1378,6 +1378,7 @@ ProcessLevelLoad:
 @done:
 		jmp ReturnBank
 
+
 PracticeInit:
 		lda #0
 		sta WRAM_Timer
@@ -1476,10 +1477,10 @@ SetDefaultWRAM:
 		lda #>Player_Rel_XPos
 		sta WRAM_OrgUser0+1
 		sta WRAM_LostUser0+1
-		lda #<SprObject_X_MoveForce
+		lda #<Player_X_MoveForce
 		sta WRAM_OrgUser1
 		sta WRAM_LostUser1
-		lda #>SprObject_X_MoveForce
+		lda #>Player_X_MoveForce
 		sta WRAM_OrgUser1+1
 		sta WRAM_LostUser1+1
 

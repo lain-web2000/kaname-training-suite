@@ -120,26 +120,27 @@
 		jsr SetBankFromA
 		jmp LoadMarioPhysics
 
-	Enter_LL_LoadWarpzone:
-		lda #BANK_LLDATA
-		jsr SetBankFromA
-		jmp LoadWarpzone
-
 	Enter_LL_GetAreaDataAddrs:
 		lda #BANK_LLDATA
-		jsr SetBankFromA
-		jmp GetAreaDataAddrs
+		jsr Set16KBankFromA
+		jsr GetAreaDataAddrs
+		lda #BANK_SMBLL
+		jmp Set16KBankFromA
 
+	Enter_LL_GetAreaPointer:
+		lda #BANK_LLDATA
+		jsr Set16KBankFromA
+		jsr GetAreaPointer
+		lda #BANK_SMBLL
+		jmp Set16KBankFromA
+		
 	Enter_LL_LoadAreaPointer:
 		lda #BANK_LLDATA
-		jsr SetBankFromA
-		jmp LoadAreaPointer
-
-	Enter_LL_WriteHalfwayPages:
-		lda #BANK_LLDATA
-		jsr SetBankFromA
-		jmp WriteHalfwayPages
-
+		jsr Set16KBankFromA
+		jsr LoadAreaPointer
+		lda #BANK_SMBLL
+		jmp Set16KBankFromA
+		
 .endmacro
 
 
@@ -195,6 +196,12 @@
 		txa
 		jmp SetChrBank1FromA
 
+	Set16KBankFromA:
+		clc
+		ora #$80
+		sta $5115
+		rts
+		
 	SetBankFromA:
 		clc
 		ora #$80

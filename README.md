@@ -20,8 +20,9 @@ Looking to practice on PAL? [Try out threecreepio's independent PAL-conversion.]
 - 6.0 bug fixes
 	- Fixed stack overflow bug in Lost Levels.
 	- "100th Framerule" bug now fixed, thank you threecreepio.
-   	- Alternate sound vector restored by Simplistic6502 for 8-4 and D-4 of Lost Levels, no more looping game over music.
-   	- Axe metatile bug is now fixed. You will no longer fall down if you grab the axe low, thank you Simplistic6502.
+   	- Alternate sound vector restored for 8-4 and D-4 of Lost Levels, no more looping game over music.
+   	- Axe metatile bug is now fixed. You will no longer fall down if you grab the axe low.
+   	- Lost Levels codebase overhauled using Simplistic6502's MMC1 codebase, thank you Simplistic.
 - 5.6 bug fixes
 	- Fixed bug where loading state would cause a subsequent save if select was still held.
 	- Fixed sprite & WRAM corruption.

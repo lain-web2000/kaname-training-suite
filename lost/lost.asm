@@ -13320,8 +13320,11 @@ GameModeDiskRoutines:
 LoadWorlds5Thru8:
       lda WorldNumber       ;if in worlds 1-4 or A-D
       cmp #World5           ;then leave without loading anything
+      bcc ResetDiskIOTask
       lda #$01
       sta FileListNumber    ;otherwise set filelist number to load SM2DATA2
+	  lsr
+	  jsr InitializeLeaves
       lda #$00                 ; mimic FDS bios
       sta FrameCounter
 

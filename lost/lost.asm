@@ -4709,17 +4709,7 @@ FlagpoleRoutine:
            sbc #$01                  ;subtract one plus borrow to move floatey number,
            sta FlagpoleFNum_Y_Pos    ;and store vertical coordinate here
 SkipScore: jmp FPGfx                 ;jump to skip ahead and draw flag and floatey number
-GiveFPScr: ldy FlagpoleScore         ;get score offset from earlier (when player touched flagpole)
-           cpy #$05
-           bne NoEL4F                ;if set to give player an extra life, do so now
-           lda #$40
-           sta $fe
-           jmp NoSc4F
-NoEL4F:    lda FlagpoleScoreMods,y   ;get amount to award player points
-           ldx FlagpoleScoreDigits,y ;get digit with which to award points
-           sta DigitModifier,x       ;store in digit modifier
-           jsr AddToScore            ;do sub to award player points depending on height of collision
-NoSc4F:    lda #$05
+GiveFPScr: lda #$05
            sta GameEngineSubroutine  ;set to run end-of-level subroutine on next frame
 FPGfx:     jsr GetEnemyOffscreenBits ;get offscreen information
            jsr RelativeEnemyPosition ;get relative coordinates

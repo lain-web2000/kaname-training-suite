@@ -421,9 +421,9 @@ WorldBits:
 
 SetupVictoryMode:
 .else
-MushroomPal1: .byte $36, $36, $12, $36, $36, $12, $36
+MushroomPal1: .byte $36, $36, $36, $36, $36, $36, $36
 MushroomPal2: .byte $30, $30, $30, $30, $30, $30, $20
-MushroomPal3: .byte $16, $1a, $36, $16, $1a, $36, $38
+MushroomPal3: .byte $16, $1a, $12, $16, $1a, $12, $38
 
 SetupVictoryMode:
       @TempPtr = $00
@@ -478,10 +478,34 @@ SetupVictoryMode:
 W1Thru8: lda #EndOfCastleMusic
          sta EventMusicQueue     ;play win castle music
 
-LoadWorldMushroomRetainer:
 IncModeTask:
     inc OperMode_Task
     rts
+
+.ifdef ANN
+
+LoadWorldMushroomRetainer:
+      lda LevelNumber                ; get current level number
+      cmp #$03                       ; check if we're in a castle
+      bne @End                       ; if not - exit out
+	  lda WorldNumber
+      cmp #$07                       ; check if we're in a castle
+	  beq @End                       ; if not - exit out
+      ldy HardWorldFlag              ; check if we're playing hard worlds
+      bne @End                       ; if so - exit out
+	  lda WorldNumber
+	  asl
+	  clc
+	  adc #BANK_NIPPON_CHAR_L
+	  sta MMC5_CHRBank+1
+	  lda WorldNumber
+	  asl
+	  clc
+	  adc #BANK_NIPPON_CHAR_R
+	  sta MMC5_CHRBank+3
+@End:
+      jmp IncModeTask                ; yes - move on to next task
+.endif
 
 ;-------------------------------------------------------------------------------------
 
@@ -12885,8 +12909,8 @@ CheckToAnimateEnemy:
       cmp #World8
       bcs CheckDefeatedState   ;if so, leave the offset alone (use princess)
 .ifdef ANN
-	  inc ANNMushroomRetainerGfxHandler
-.endif	  
+      inc ANNMushroomRetainerGfxHandler
+.endif
       ldx #$a2                 ;otherwise, set for mushroom retainer object instead
       bne CheckDefeatedState   ;unconditional branch
 
@@ -14221,10 +14245,12 @@ LoadEnding:
         sta FileListNumber
 .ifdef ANN
 	    lda #CHR_NIPPON_VICTORY
-	    jsr SetChrBank0FromA
+	    sta MMC5_CHRBank+1
+		lda #CHR_NIPPON_VICTORY+1
+	    sta MMC5_CHRBank+2		
 .else
 	    lda #CHR_LOST_VICTORY
-	    jsr SetChrBank0FromA
+	    sta MMC5_CHRBank+1
 .endif
         jsr InitializeNameTables
         jsr ResetDiskIOTask      ;end disk subroutines

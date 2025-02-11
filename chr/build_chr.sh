@@ -8,5 +8,5 @@ cat smb/smborg-sprites.chr smb/smborg-back.chr smborg-lost-charset.chr \
 	smb/worldthreel.chr smb/worldthreer.chr smb/worldfourl.chr smb/worldfourr.chr \
 	smb/worldfivel.chr smb/worldfiver.chr smb/worldsixl.chr smb/worldsixr.chr \
 	smb/worldsevenl.chr smb/worldsevenr.chr \
-	intro/intro-bg.chr intro-sprbank0.chr smb/lost-victory.chr smb/lost-victory.chr smb/lost-victory.chr > full.chr
+	smb/peach-sprites.chr intro/intro-bg.chr intro-sprbank0.chr > full.chr
 

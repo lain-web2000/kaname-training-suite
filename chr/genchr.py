@@ -19,6 +19,7 @@ for it in leader_boards:
 
 if len(face_bank):
 	open('intro-sprbank%d.chr' % (num_face_banks), 'wb').write(make_full_bank(face_bank))
+    
 for it in ['smborg', 'lost', 'nippon']:
 	for font in ['smborg', 'lost']:
 		if it != font:

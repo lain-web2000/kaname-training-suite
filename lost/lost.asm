@@ -61,7 +61,11 @@ ColdBoot:
 		ldy WRAM_CharSet
         cpy #1
         bne @not_org
+.ifdef ANN
+        ldx #CHR_NIPPON_BG_ALTFONT
+.else
         ldx #CHR_LOST_BG_ALTFONT
+.endif
 @not_org:
 		jsr SetChrBanksFromAX
 		lda #%00001111

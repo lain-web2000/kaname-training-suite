@@ -205,10 +205,24 @@
 		jmp SetBankFromA
 
 	SetChrBank0FromA:
+		sta $5120
+		clc
+		adc #$01
+		sta $5121
+		adc #$01
+		sta $5122
+		adc #$01
 		sta $5123
 		rts
 
 	SetChrBank1FromA:
+		sta $5124
+		clc
+		adc #$01
+		sta $5125
+		adc #$01
+		sta $5126
+		adc #$01
 		sta $5127
 		rts
 
@@ -241,12 +255,13 @@
 		txs
 		lda #%01000000
 		sta $4017 ;No more APU IRQ, stinky.
-		ldx #$02
+		ldx #$03
+		stx $5101 ;Use CHR mode 3 (1K CHR Bankswitching)
+		dex
 		stx $5102 ;Enable writing to PRG-RAM
 		dex
 		stx $5103 ;Enable writing to PRG-RAM
-		stx $5101 ;Use CHR mode 1 (4K CHR Bankswitching)
-		stx $5100 ;Use PRG mode 0 (2x16K PRG Bankswitching)
+		stx $5100 ;Use PRG mode 1 (2x16K PRG) Bankswitching)
 		dex
 		stx $5104
 		stx $5113

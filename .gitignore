@@ -13,3 +13,4 @@ test.*
 smb.dbg
 chr/*.chr
 smb.tmp
+.DS_Store

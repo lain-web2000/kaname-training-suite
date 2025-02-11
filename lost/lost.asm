@@ -12594,13 +12594,21 @@ EnemyGraphicsTable:
       .byte $b9, $b8, $bb, $ba, $bc, $bc ;lakitu
       .byte $fc, $fc, $bd, $bd, $bc, $bc
       .byte $76, $79, $77, $77, $78, $78 ;princess/door to princess's room
+.ifdef ANN
+      .byte $cd, $7a, $ce, $7b, $cf, $ee ;ann retainer replacement
+.else
       .byte $cd, $cd, $ce, $ce, $cf, $cf ;mushroom retainer
+.endif
       .byte $7d, $7c, $d1, $8c, $d3, $d2 ;hammer bro
       .byte $7d, $7c, $89, $88, $8b, $8a
       .byte $d5, $d4, $e3, $e2, $d3, $d2
       .byte $d5, $d4, $e3, $e2, $8b, $8a
       .byte $e5, $e5, $e6, $e6, $eb, $eb ;piranha plant
+.ifdef ANN
       .byte $ec, $ec, $ed, $ed, $eb, $eb
+.else
+      .byte $ec, $ec, $ed, $ed, $ee, $ee
+.endif
       .byte $fc, $fc, $d0, $d0, $d7, $d7 ;podoboo
       .byte $bf, $be, $c1, $c0, $c2, $fc ;bowser front
       .byte $c4, $c3, $c6, $c5, $c8, $c7 ;bowser rear

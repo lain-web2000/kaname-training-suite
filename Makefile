@@ -5,10 +5,10 @@ OUT = build
 OBJECTS = $(OUT)/intro.o \
           $(OUT)/original.o \
           $(OUT)/common.o \
-          $(OUT)/scenarios.o \
-          $(OUT)/scenario_data.o \
           $(OUT)/lost.o \
-          $(OUT)/leveldata.o \
+          $(OUT)/nippon.o \
+          $(OUT)/ll-leveldata.o \
+          $(OUT)/ann-leveldata.o \
           $(OUT)/dummy.o \
           $(OUT)/ines.o
 
@@ -79,9 +79,15 @@ $(OUT)/scenarios.o: $(INCS) scen/scenarios.asm
 $(OUT)/lost.o: $(INCS) $(WRAM) lost/lost.asm
 	$(AS) $(AFLAGS) -l $(OUT)/lost.map lost/lost.asm -o $@
 
-$(OUT)/leveldata.o: lost/leveldata.asm
-	$(AS) $(AFLAGS) -l $(OUT)/leveldata.map lost/leveldata.asm -o $@
+$(OUT)/nippon.o: $(INCS) $(WRAM) lost/lost.asm
+	$(AS) $(AFLAGS) -l $(OUT)/nippon.map -D ANN=1 lost/lost.asm -o $@
+	
+$(OUT)/ll-leveldata.o: lost/leveldata.asm
+	$(AS) $(AFLAGS) -l $(OUT)/ll-leveldata.map lost/leveldata.asm -o $@
 
+$(OUT)/ann-leveldata.o: lost/leveldata.asm
+	$(AS) $(AFLAGS) -l $(OUT)/ann-leveldata.map -D ANN=1 lost/leveldata.asm -o $@
+	
 smb.nes: $(OBJECTS) chr/full.chr
 	$(LD) -C scripts/link.cfg \
 		$(OUT)/ines.o \
@@ -89,10 +95,10 @@ smb.nes: $(OBJECTS) chr/full.chr
 		$(OUT)/dummy.o \
 		$(OUT)/original.o \
 		$(OUT)/common.o \
-		$(OUT)/scenarios.o \
-		$(OUT)/scenario_data.o \
 		$(OUT)/lost.o \
-		$(OUT)/leveldata.o \
+		$(OUT)/nippon.o \
+		$(OUT)/ll-leveldata.o \
+		$(OUT)/ann-leveldata.o \
 		--dbgfile "smb.dbg" \
 		-o smb.tmp
 	cat smb.tmp chr/full.chr > smb.nes

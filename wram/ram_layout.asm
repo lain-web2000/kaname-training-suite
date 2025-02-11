@@ -110,6 +110,20 @@ WRAM_LostRules:
 	.dword 0, 0, 0, 0 ; World C
 	.dword 0, 0, 0, 0 ; World D
 
+WRAM_NipponRules:
+	.dword 0, 0, 0, 0 ; World 1
+	.dword 0, 0, 0, 0 ; World 2
+	.dword 0, 0, 0, 0 ; World 3
+	.dword 0, 0, 0, 0 ; World 4
+	.dword 0, 0, 0, 0 ; World 5
+	.dword 0, 0, 0, 0 ; World 6
+	.dword 0, 0, 0, 0 ; World 7
+	.dword 0, 0, 0, 0 ; World 8
+	.dword 0, 0, 0, 0 ; World 9
+	.dword 0, 0, 0, 0 ; World A
+	.dword 0, 0, 0, 0 ; World B
+	.dword 0, 0, 0, 0 ; World C
+	.dword 0, 0, 0, 0 ; World D
 
 WRAM_OrgTimes:
 	.word 0, 0, 0, 0 ; World 1

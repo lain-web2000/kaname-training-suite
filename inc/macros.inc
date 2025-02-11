@@ -140,6 +140,27 @@
 		jsr LoadAreaPointer
 		lda #BANK_SMBLL
 		jmp Set16KBankFromA
+
+	Enter_ANN_GetAreaDataAddrs:
+		lda #BANK_ANNDATA
+		jsr Set16KBankFromA
+		jsr GetAreaDataAddrs
+		lda #BANK_ANN
+		jmp Set16KBankFromA
+
+	Enter_ANN_GetAreaPointer:
+		lda #BANK_ANNDATA
+		jsr Set16KBankFromA
+		jsr GetAreaPointer
+		lda #BANK_ANN
+		jmp Set16KBankFromA
+		
+	Enter_ANN_LoadAreaPointer:
+		lda #BANK_ANNDATA
+		jsr Set16KBankFromA
+		jsr LoadAreaPointer
+		lda #BANK_ANN
+		jmp Set16KBankFromA
 		
 .endmacro
 

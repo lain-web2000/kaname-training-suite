@@ -2,6 +2,8 @@
 ;-------------------------------------------------------------------------------------
 ;DEFINES
 
+ANNMushroomRetainerGfxHandler = $77c
+
 ;NES specific hardware defines
 
 PPU_CTRL              = $2000

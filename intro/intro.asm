@@ -441,10 +441,8 @@ dont_update_cursor:
 		cmp #Start_Button
 		bne exit_nmi
 		ldx SEL_INDEX
-		cpx #2
-		beq @settings
 		cpx #3
-		beq @showrecords
+		beq @settings
 		lda bank_table, x
 		jmp StartBank
 @showrecords:
@@ -871,7 +869,7 @@ palette_star_shuffle:
 		.byte $0f, $0D, $16, $27 ; Princess cloud
 
 bank_table:
-		.byte BANK_ORG, BANK_SMBLL, BANK_SCEN
+		.byte BANK_ORG, BANK_SMBLL, BANK_ANN
 
 	.include "settings.asm"
 	.include "records.asm"

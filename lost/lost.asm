@@ -581,6 +581,7 @@ EndCastleAward:
 .endif
    lda #$30
    sta SelectTimer        ;set select timer (used for world 8 ending only)
+   jsr Enter_RedrawAll	  ;draw remainder after countdown (mod21 framerule check)
    lda #$06
    sta WorldEndTimer      ;another short delay, then on to the next task
    inc OperMode_Task

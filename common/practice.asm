@@ -41,29 +41,32 @@ prac_quick_resume:
 	sta PseudoRandomBitReg+6
 	rts
 
+BIG_FRAMES = 59
+BIG_FIRE_FRAMES = 122
 SMALL_FIRE_FRAMES = 435
 BOTH_ENDINGS = 122
 ALL_STAGES = 431
+
+PowerUpOffsets:
+	.word 0, BIG_FRAMES, BIG_FIRE_FRAMES, SMALL_FIRE_FRAMES
+CategoryOffsets:
+	.word 0, BOTH_ENDINGS, ALL_STAGES
 
 AdvanceToRule:
 		;
 		; Regardless of rule, always honor powerups
 		;
-		lda #0
 		ldy #0
 		ldx PowerUps
 		beq NoPowerups
-		lda #$3B
 		iny
 		dex
 		beq BigMarioPowerup
-		lda #$7A
 		iny 
 		dex
 		beq BigMarioPowerup
 		ldx #1
 		ldy #2
-		lda #<SMALL_FIRE_FRAMES
 		;
 		; Big mario
 		;
@@ -72,9 +75,6 @@ BigMarioPowerup:
 		sty PlayerStatus
 
 NoPowerups:
-    ldx #0
-		stx PowerUps
-		sta PowerUpFrames
 		;
 		; If Rule is 0, use title Rule
 		; 
@@ -150,22 +150,49 @@ AdvanceWithin:
 		;
 		; Advance powerup frames
 		;
-		lda PowerUpFrames
-		cmp #<SMALL_FIRE_FRAMES
-		bne StartFramePrecision
-		ldx #0
-CorrectForSmallFire:
-		jsr AdvanceRandom
-		dex
-		bne CorrectForSmallFire
-StartFramePrecision:
-		lda PowerUpFrames
+		lda PowerUps
+		asl
+		tax
+		lda PowerUpOffsets,x
+		tay
+		lda PowerUpOffsets+1,x
+		tax
 MorePowerUpFrames:
+		cpy #$00
+		bne DoPowerUpAdvance
+		cpx #$00
 		beq NoPowerUpFrames
+		dex
+DoPowerUpAdvance:
 		jsr AdvanceRandom
-		dec PowerUpFrames
+		dey
 		jmp MorePowerUpFrames
 NoPowerUpFrames:
+    	ldx #0
+		stx PowerUps
+		;
+		; Advance category frames
+		;
+		lda CategorySelect
+		asl
+		tax
+		lda CategoryOffsets,x
+		tay
+		lda CategoryOffsets+1,x
+		tax
+MoreCategoryFrames:
+		cpy #$00
+		bne DoCategoryAdvance
+		cpx #$00
+		beq NoCategoryFrames
+		dex
+DoCategoryAdvance:
+		jsr AdvanceRandom
+		dey
+		jmp MoreCategoryFrames
+NoCategoryFrames:
+    	ldx #0
+		stx CategorySelect
 		;
 		; Set the correct framecounter
 		;
@@ -726,13 +753,13 @@ toggle_second_quest:
 		stx VRAM_Buffer1_Offset
 		rts
 @is_ll:
-		ldy CategoryOffset
+		ldy CategorySelect
 		iny
 		cpy #$03
 		bcc @InRange
 		ldy #$00
 @InRange:
-		sty CategoryOffset
+		sty CategorySelect
 		ldx VRAM_Buffer1_Offset
 		tya
 		asl

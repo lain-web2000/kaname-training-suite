@@ -682,6 +682,8 @@ DecNumTimer:  dec FloateyNum_Timer,x       ;decrement value here
               bne ChkTallEnemy
               cpy #$0b                     ;check offset for $0b
               bne LoadNumTiles             ;branch ahead if not found
+              lda #Sfx_ExtraLife
+              sta Square2SoundQueue        ;and play the 1-up sound
 LoadNumTiles: jsr Enter_RedrawFrameNumbers
 ChkTallEnemy: ldy Enemy_SprDataOffset,x    ;get OAM data offset for enemy object
               lda Enemy_ID,x               ;get enemy object identifier
@@ -4046,6 +4048,7 @@ RunParser:    jsr AreaParserTaskHandler  ;update the name table with more level 
 ExitEng:      rts                        ;and after all that, we're finally done!
 
 ScrollHandler:
+			DoUpdateSockHash
             lda Player_X_Scroll       ;load value saved here
             clc
             adc Platform_X_Scroll     ;add value used by left/right platforms

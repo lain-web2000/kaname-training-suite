@@ -3683,7 +3683,6 @@ ExitEng:      rts                        ;and after all that, we're finally done
 
 ScrollHandler:
 			DoUpdateSockHash
-
             lda Player_X_Scroll       ;load value saved here
             clc
             adc Platform_X_Scroll     ;add value used by left/right platforms

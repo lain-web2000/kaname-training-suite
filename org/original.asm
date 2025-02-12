@@ -82,16 +82,16 @@ ScreenOff:     sta Mirror_PPU_CTRL_REG2  ;save bits for later but not in registe
                lda #$00
                jsr InitScroll
 
-               MACRO_RunSlowMo 3
-
                lda #0
                sta PPU_SPR_ADDR          ;reset spr-ram address register
                lda #$02                  ;perform spr-ram DMA access on $0200-$02ff
                sta SPR_DMA
 
-               lda WRAM_PracticeFlags
-               and #PF_EnableInputDisplay
-               beq DrawBuffer            ;if input display not enabled, don't print it
+			   lda WRAM_PracticeFlags
+			   and #PF_EnableInputDisplay
+			   beq DrawBuffer
+			   lda OperMode
+			   beq DrawBuffer
                lda #<WRAM_StoredInputs   ;otherwise set indirect at $00 to WRAM stored inputs
                sta $00
                lda #>WRAM_StoredInputs

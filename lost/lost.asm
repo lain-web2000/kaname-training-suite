@@ -144,6 +144,8 @@ ScrnSwch:
    lda WRAM_PracticeFlags
    and #PF_EnableInputDisplay
    beq DrawBuffer
+   lda OperMode
+   beq DrawBuffer
    lda #<WRAM_StoredInputs
    sta $00
    lda #>WRAM_StoredInputs

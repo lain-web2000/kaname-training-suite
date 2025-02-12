@@ -39,7 +39,7 @@ ColdBoot:    jsr InitializeMemory         ;clear memory using pointer in Y
              ldy WRAM_CharSet
              cpy #2
              bne @not_lost
-             lda #CHR_ORG_BG_ALTFONT
+             ldx #CHR_ORG_BG_ALTFONT
 @not_lost:
              jsr SetChrBanksFromAX
 			 

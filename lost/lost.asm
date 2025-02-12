@@ -920,7 +920,6 @@ DisplayIntermediate:
 PlayerInter:   jsr DrawPlayer_Intermediate  ;put player in appropriate place for
                lda #$01                     ;lives display, then output lives display to buffer
 OutputInter:   jsr OtherInter
-			   jsr Enter_RenderIntermediateTime
 .ifdef ANN
                jmp IncSubtask
 .else
@@ -14517,32 +14516,32 @@ TitleScreenGfxData:
 .ifdef ANN
       .byte $20,$85,$01,$44
       .byte $20,$86,$55,$48
-      .byte $20,$9B,$01,$49
-      .byte $20,$A5,$C9,$46
-      .byte $20,$BB,$C9,$4A
-      .byte $20,$A6,$15,$EC,$ED,$EE,$EF,$F3,$F4,$F5,$F6,$F7,$F8,$D0,$D1,$D8,$D8,$DE,$D1,$D0,$DA,$DE,$D1,$26
-      .byte $20,$C6,$15,$26,$26,$26,$26,$26,$26,$26,$26,$26,$26,$D2,$D3,$DB,$DB,$DB,$D9,$DB,$DC,$DB,$DF,$26
-      .byte $20,$E6,$15,$26,$26,$26,$26,$26,$26,$26,$26,$26,$26,$D4,$D5,$D4,$D9,$DB,$E2,$D4,$DA,$DB,$E0,$26
+      .byte $20,$9b,$01,$49
+      .byte $20,$a5,$c9,$46
+      .byte $20,$bb,$c9,$4a
+      .byte $20,$a6,$15,$ec,$ed,$ee,$ef,$f3,$f4,$f5,$f6,$f7,$f8,$d0,$d1,$d8,$d8,$de,$d1,$d0,$da,$de,$d1,$26
+      .byte $20,$c6,$15,$26,$26,$26,$26,$26,$26,$26,$26,$26,$26,$d2,$d3,$db,$db,$db,$d9,$db,$dc,$db,$df,$26
+      .byte $20,$e6,$15,$26,$26,$26,$26,$26,$26,$26,$26,$26,$26,$d4,$d5,$d4,$d9,$db,$e2,$d4,$da,$db,$e0,$26
       .byte $21,$06,$55,$26
-      .byte $21,$10,$0A,$D6,$D7,$D6,$D7,$E1,$26,$D6,$DD,$E1,$E1
-      .byte $21,$26,$15,$D0,$E8,$D1,$D0,$D1,$DE,$D1,$D8,$D0,$D1,$26,$DE,$D1,$DE,$D1,$D0,$D1,$D0,$D1,$26,$26
-      .byte $21,$46,$15,$DB,$42,$42,$DB,$E3,$DB,$E3,$DB,$DB,$E3,$26,$DB,$E3,$DB,$E3,$DB,$E3,$DB,$E3,$26,$26
-      .byte $21,$66,$46,$DB
-      .byte $21,$6C,$0F,$DF,$DB,$DB,$DB,$26,$DB,$DF,$DB,$DF,$DB,$DB,$D2,$E5,$26,$26      
-      .byte $21,$86,$15,$DB,$DB,$DB,$DE,$43,$DB,$DB,$DB,$DB,$DB,$26,$DB,$E3,$DB,$E3,$DB,$DB,$DB,$E3,$26,$26
-      .byte $21,$A6,$15,$DB,$DB,$DB,$DB,$DB,$DB,$DB,$DB,$D4,$D9,$26,$DB,$D9,$DB,$DB,$D4,$D9,$D4,$D9,$DA,$26
-      .byte $21,$C5,$17,$5F,$95,$95,$95,$95,$95,$95,$95,$95,$97,$98,$78,$95,$96,$95,$95,$97,$98,$97,$98,$95,$78,$7A
-      .byte $21,$EE,$0E,$CF,$01,$09,$08,$06,$24,$17,$12,$17,$1D,$0E,$17,$0D,$18
-      .byte $23,$C9,$01,$D5
-      .byte $23,$CA,$46,$F5
-      .byte $23,$D1,$47,$55
-      .byte $23,$D9,$47,$55
-      .byte $23,$CC,$43,$55
-      .byte $23,$D6,$01,$DD
-      .byte $23,$DE,$01,$5D
-      .byte $23,$E2,$04,$55,$AA,$AA,$AA
-      .byte $23,$EA,$05,$95,$AA,$AA,$AA
-      .byte $2A
+      .byte $21,$10,$0a,$d6,$d7,$d6,$d7,$e1,$26,$d6,$dd,$e1,$e1
+      .byte $21,$26,$15,$d0,$e8,$d1,$d0,$d1,$de,$d1,$d8,$d0,$d1,$26,$de,$d1,$de,$d1,$d0,$d1,$d0,$d1,$26,$26
+      .byte $21,$46,$15,$db,$42,$42,$db,$e3,$db,$e3,$db,$db,$e3,$26,$db,$e3,$db,$e3,$db,$e3,$db,$e3,$26,$26
+      .byte $21,$66,$46,$db
+      .byte $21,$6c,$0f,$df,$db,$db,$db,$26,$db,$df,$db,$df,$db,$db,$d2,$e5,$26,$26      
+      .byte $21,$86,$15,$db,$db,$db,$de,$43,$db,$db,$db,$db,$db,$26,$db,$e3,$db,$e3,$db,$db,$db,$e3,$26,$26
+      .byte $21,$a6,$15,$db,$db,$db,$db,$db,$db,$db,$db,$d4,$d9,$26,$db,$d9,$db,$db,$d4,$d9,$d4,$d9,$da,$26
+      .byte $21,$c5,$17,$5f,$95,$95,$95,$95,$95,$95,$95,$95,$97,$98,$78,$95,$96,$95,$95,$97,$98,$97,$98,$95,$78,$7a
+      .byte $21,$ee,$0e,$cf,$01,$09,$08,$06,$24,$17,$12,$17,$1d,$0e,$17,$0d,$18
+      .byte $23,$c9,$01,$d5
+      .byte $23,$ca,$46,$f5
+      .byte $23,$d1,$47,$55
+      .byte $23,$d9,$47,$55
+      .byte $23,$cc,$43,$55
+      .byte $23,$d6,$01,$dd
+      .byte $23,$de,$01,$5d
+      .byte $23,$e2,$04,$55,$aa,$aa,$aa
+      .byte $23,$ea,$05,$95,$aa,$aa,$aa
+      .byte $2a
       .byte $00
 .else
        .byte $20, $84, $01, $44

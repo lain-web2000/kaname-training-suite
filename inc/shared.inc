@@ -158,6 +158,7 @@ CHR_INTRO_SPR0 = 60
 SavedRule = $07d9
 RuleIndex = $0717 ; Previously DemoAction (can be changed to temp?)
 PowerUps = $07e3 ; Previously unused
+CategoryOffset = $07e4
 CurrentRule = $7df
 
 .ifndef RESTART_LEVEL_BUTTONS

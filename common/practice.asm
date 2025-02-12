@@ -41,7 +41,9 @@ prac_quick_resume:
 	sta PseudoRandomBitReg+6
 	rts
 
-SMALL_FIRE_FRAMES = $1b3
+SMALL_FIRE_FRAMES = 435
+BOTH_ENDINGS = 122
+ALL_STAGES = 431
 
 AdvanceToRule:
 		;
@@ -722,8 +724,56 @@ toggle_second_quest:
 		inx
 		inx
 		stx VRAM_Buffer1_Offset
-@is_ll:
 		rts
+@is_ll:
+		ldy CategoryOffset
+		iny
+		cpy #$03
+		bcc @InRange
+		ldy #$00
+@InRange:
+		sty CategoryOffset
+		ldx VRAM_Buffer1_Offset
+		tya
+		asl
+		tay
+		lda CategoryPointers,y
+		sta $00
+		lda CategoryPointers+1,y
+		sta $01
+		ldy #$00
+@VRAMBufferLoop:
+		lda ($00),y
+		cmp #$ff
+		beq @ExitTitleChange
+		sta VRAM_Buffer1,x
+		inx
+		iny
+		bne @VRAMBufferLoop
+@ExitTitleChange:
+		lda #$00
+		sta VRAM_Buffer1,x
+		lda VRAM_Buffer1_Offset
+		adc #$11
+		sta VRAM_Buffer1_Offset
+		rts
+
+CopyrightText:
+	.byte $21, $ef, $0e, $cf, $01, $09, $08, $06, $24, $17, $12, $17, $1d
+	.byte $0e, $17, $0d, $18, $ff
+	
+BothEndText:
+	.byte $21, $ef, $0e, $24, $24, $0b, $18, $1d, $11, $24, $0e, $17, $0d 
+	.byte $12, $17, $10, $1c, $ff
+	
+AllStagesText:
+	.byte $21, $ef, $0e, $24, $24, $24, $24, $0a, $15, $15, $24, $1c, $1d
+	.byte $0a, $10, $0e, $1c, $ff
+	
+CategoryPointers:
+	.word CopyrightText
+	.word BothEndText
+	.word AllStagesText
 
 nuke_timer:
 		lda #0
@@ -1561,526 +1611,6 @@ FactoryResetWRAM:
 		inx
 		bpl @copy_page
 		jmp SetDefaultWRAM
-
-EndLevel:
-		jsr EndLevelInner
-		jmp ReturnBank
-
-EndLevelInner:
-		lda WorldNumber
-		asl ; *= 2
-		asl ; *= 4
-		asl ; *= 8
-		asl ; *= 16
-		sta $00
-		lda LevelNumber
-		asl ; *= 2
-		adc $00
-		tax
-		lda BANK_SELECTED
-		cmp #BANK_ORG
-		beq @is_org
-		lda WRAM_LostTimes, x
-		sta $01
-		lda WRAM_LostTimes+1, x
-		sta $02
-		jmp @checktime
-@is_org:
-		lda WRAM_OrgTimes, x
-		sta $01
-		lda WRAM_OrgTimes+1, x
-		sta $02
-@checktime:
-		lda WRAM_Timer
-		cmp $01
-		bcc @new_record
-		beq @checklower
-		rts
-@checklower:
-		lda WRAM_Timer+1
-		cmp $02
-		bcc @new_record
-		beq @new_record
-		rts
-@new_record:
-		ldy #0
-		lda WRAM_Timer
-		sta ($01), y
-		lda WRAM_Timer+1
-		iny
-		sta ($01), y
-		dey
-		sty WRAM_Timer
-		sty WRAM_Timer+1
-		rts
-
-
-N = WRAM_Temp
-CARRY = WRAM_Temp+7
-;
-; Source div32_16_16:
-; http://www.6502.org/source/integers/ummodfix/ummodfix.htm
-;
-div32_16_16:
-		sec
-        lda N+2
-        sbc N
-        lda N+3
-        sbc N+1
-        bcs @oflo
-        ldx #$11
-@loop:
- 		rol N+4
-        rol N+5
-                        
-        dex
-        beq @end
-
-        rol N+2
-        rol N+3
-        lda #0
-        sta CARRY
-        rol CARRY
-
-        sec
-        lda N+2
-        sbc N
-        sta N+6
-        lda N+3
-        sbc N+1
-        tay
-        lda CARRY
-        sbc #0
-        bcc @loop
-
-        lda N+6
-        sta N+2
-        sty N+3
-        bcs @loop ; always
- @oflo:
- 		lda #$FF
-        sta N+2
-        sta N+3
-        sta N+4
-        sta N+5
-@end:
-		rts
-
-PROD = WRAM_Temp+$10
-MULR = WRAM_Temp+$10+8
-MULND = WRAM_Temp+$10+8+4
-
-mult64_32_32:
-		lda     #$00
-		sta     PROD+4   ;Clear upper half of
-		sta     PROD+5   ;product
-		sta     PROD+6
-		sta     PROD+7
-		ldx     #$20     ;Set binary count to 32
-SHIFT_R:
-		lsr     MULR+3   ;Shift multiplyer right
-		ror     MULR+2
-		ror     MULR+1
-		ror     MULR
-		bcc     ROTATE_R ;Go rotate right if c = 0
-		lda     PROD+4   ;Get upper half of product
-		clc              ; and add multiplicand to
-		adc     MULND    ; it
-		sta     PROD+4
-		lda     PROD+5
-		adc     MULND+1
-		sta     PROD+5
-		lda     PROD+6
-		adc     MULND+2
-		sta     PROD+6
-		lda     PROD+7
-		adc     MULND+3
-ROTATE_R:
-		ror
-		sta     PROD+7   ; right
-		ror     PROD+6
-		ror     PROD+5
-		ror     PROD+4
-		ror     PROD+3
-		ror     PROD+2
-		ror     PROD+1
-		ror     PROD
-		dex              ;Decrement bit count and
-		bne     SHIFT_R  ; loop until 32 bits are
-		rts
-
-; https://forums.nesdev.com/viewtopic.php?f=2&t=11341
-HexToBCD:
-		sta  $01
-		lsr
-		adc  $01
-		ror
-		lsr
-		lsr
-		adc  $01
-		ror
-		adc  $01
-		ror
-		lsr
-		and  #$3C
-		sta  $02
-		lsr
-		adc  $02
-		adc  $01
-		rts
-
-FrameToTime:
-		jsr FrameToTimeInner
-		jmp ReturnBank
-
-FrameToTimeInner:
-		lda #0
-		sta PROD+3
-		sta CARRY
-		sta MULR+2
-		sta MULR+3
-		sta MULND+3
-		stx MULR
-		sty MULR+1
-		lda #$a0
-		sta MULND
-		lda #$86
-		sta MULND+1
-		lda #$01
-		sta MULND+2
-		jsr mult64_32_32 ; x = frames * 100000
-
-		lda PROD+0
-		sta N+4
-		lda PROD+1
-		sta N+5
-		lda PROD+2
-		sta N+2
-		lda PROD+3
-		sta N+3
-		lda #<60098
-		sta N+0
-		lda #>60098
-		sta N+1
-		jsr div32_16_16 ; x / 60098
-
-		lda #0
-		sta N+2
-		sta N+3
-
-		sta N+1
-		lda #100
-		sta N+0
-		jsr div32_16_16 ; r = x % 100; s = x / 100
-
-		lda N+2
-		jsr HexToBCD
-		sta WRAM_PrettyTimeFrac
-
-		lda #0
-		sta N+2
-		sta N+3
-
-		sta N+1
-		lda #60
-		sta N+0
-		jsr div32_16_16 ; m = s/60 s = s%60
-
-		lda N+2
-		jsr HexToBCD
-		sta WRAM_PrettyTimeSec
-		lda N+4
-		jsr HexToBCD
-		sta WRAM_PrettyTimeMin
-
-		rts
-
-
-
-BCD_BITS = 19
-bcdNum = WRAM_Timer
-bcdResult = 2
-curDigit = 7
-b = 2
-
-TimerToDecimal:
-		lda #$80 >> ((BCD_BITS - 1) & 3)
-		sta curDigit
-		ldx #(BCD_BITS - 1) >> 2
-		ldy #BCD_BITS - 5
-@loop:
-		; Trial subtract this bit to A:b
-		sec
-		lda bcdNum
-		sbc bcdTableLo,y
-		sta b
-		lda bcdNum+1
-		sbc bcdTableHi,y
-
-		; If A:b > bcdNum then bcdNum = A:b
-		bcc @trial_lower
-		sta bcdNum+1
-		lda b
-		sta bcdNum
-@trial_lower:
-		; Copy bit from carry into digit and pick up 
-		; end-of-digit sentinel into carry
-		rol curDigit
-		dey
-		bcc @loop
-
-		; Copy digit into result
-		lda curDigit
-		sta bcdResult,x
-		lda #$10  ; Empty digit; sentinel at 4 bits
-		sta curDigit
-		; If there are digits left, do those
-		dex
-		bne @loop
-		lda bcdNum
-		sta bcdResult
-		rts
-
-bcdTableLo:
-		.byte <10, <20, <40, <80
-		.byte <100, <200, <400, <800
-		.byte <1000, <2000, <4000, <8000
-		.byte <10000, <20000, <40000
-
-bcdTableHi:
-		.byte >10, >20, >40, >80
-		.byte >100, >200, >400, >800
-		.byte >1000, >2000, >4000, >8000
-		.byte >10000, >20000, >40000
-
-DrawTimeDigit:
-	pha
-		lsr
-		lsr
-		lsr
-		lsr
-		sta VRAM_Buffer1, y
-		iny
-	pla
-		and #$0F
-		sta VRAM_Buffer1, y
-		iny
-		rts
-
-WriteTime:
-	tya
-	pha
-    ldx $00
-    ldy $01
-		jsr FrameToTimeInner
-	pla
-	tay
-		lda WRAM_PrettyTimeMin
-		and #$0F
-		sta VRAM_Buffer1, y
-		iny
-		lda #$AF ; .
-		sta VRAM_Buffer1, y
-		iny
-
-		lda WRAM_PrettyTimeSec
-		jsr DrawTimeDigit
-		lda #$AF ; .
-		sta VRAM_Buffer1, y
-		iny
-
-		lda WRAM_PrettyTimeFrac
-		jsr DrawTimeDigit
-  .if 0
-		lda #$29 ; x
-		sta VRAM_Buffer1, y
-		iny
-	tya
-	pha
-		jsr TimerToDecimal
-	pla
-	tay
-		ldx #4
-@writeframe:
-		lda bcdResult,x
-		sta VRAM_Buffer1,y
-		iny
-		dex
-		bpl @writeframe
-  .endif
-		rts
-
-PersonalBestText:
-YourTime:
-	.byte $22, $2a, $0c
-	.byte "TIME ", $fe, $ff
-YourPB:
-	.byte $22, $4a, $0c
-	.byte "PB   ", $fe, $ff
-NewRecord:
-	.byte $22, $4a, $0c
-	.byte "NEW RECORD! ", $ff
-LoadedGame:
-	.byte $22, $2a, $0c
-	.byte "SAVES USED! ", $ff
-
-PbTextOffsets:
-	.byte YourTime - PersonalBestText
-	.byte YourPB - PersonalBestText
-    .byte NewRecord - PersonalBestText
-    .byte LoadedGame - PersonalBestText
-
-WriteTimeText:
-		ldy VRAM_Buffer1_Offset
-		lda PbTextOffsets, x
-		tax
-@copy_more:
-		lda PersonalBestText, x
-		sta VRAM_Buffer1, y
-		cmp #$ff
-		beq @done
-		cmp #$fe
-		bne @no_time
-		txa
-	pha
-		jsr WriteTime
-	pla
-		tax
-		inx
-		bne @copy_more ; Always...
-@no_time:
-		iny
-		inx
-		bne @copy_more
-@done:
-		lda #0
-		sta VRAM_Buffer1, y
-		sty VRAM_Buffer1_Offset
-		rts
-
-GetPbTimeX:
-		lda WRAM_LoadedWorld
-		ldx BANK_SELECTED
-		cpx #BANK_ORG
-		beq @not_ext
-		ldx IsPlayingExtendedWorlds
-		beq @not_ext
-		and #$03
-		clc
-		adc #$09
-@not_ext:
-	    asl
-	    asl
-	    asl
-	    sta $00
-	    lda WRAM_LoadedLevel
-	    asl
-	    adc $00
-	    tax
-	    lda BANK_SELECTED
-	    cmp #BANK_ORG
-	    beq @org
-	    lda WRAM_LostTimes, x
-	    sta $00
-	    lda WRAM_LostTimes+1,x
-	    sta $01
-	    rts
-@org:
-	    lda WRAM_OrgTimes, x
-	    sta $00
-	    lda WRAM_OrgTimes+1, x
-	    sta $01
-	    rts
-
-
-RenderIntermediateTime:
-		jsr RenderIntermediateTimeInner
-		jmp ReturnBank
-
-RenderIntermediateTimeInner:
-	    lda WRAM_PracticeFlags
-	    and #PF_LevelEntrySaved
-	    bne @dontshow
-	    lda WRAM_Timer+1
-	    beq @dontshow
-	    cmp #$FF
-	    bne @no_load
-	    ldx #3
-	    jsr WriteTimeText
-	    jmp @resettimer
-@no_load:
-	    lda WRAM_Timer
-	    sta $00
-	    lda WRAM_Timer+1
-	    sta $01
-		ldx #0
-		jsr WriteTimeText
-	    jsr GetPbTimeX
-	    lda $00
-	    ora $01
-	    bne @checkisrecord
-@newrecord:
-		lda #Sfx_ExtraLife
-		sta Square2SoundQueue
-	    lda BANK_SELECTED
-	    cmp #BANK_ORG
-	    beq @save_org
-	    lda WRAM_Timer
-	    sta WRAM_LostTimes, x
-	    lda WRAM_Timer+1
-	    sta WRAM_LostTimes+1, x
-	    jmp @printrecord
-@save_org:
-	    lda WRAM_Timer
-	    sta WRAM_OrgTimes, x
-	    lda WRAM_Timer+1
-	    sta WRAM_OrgTimes+1, x
-@printrecord:
-	    ldx #2
-	    jsr WriteTimeText
-	    jmp @resettimer
-@checkisrecord:
-	    lda WRAM_Timer+1
-	    cmp $01
-	    bmi @newrecord
-	    bne @notarecord
-	    lda WRAM_Timer
-	    cmp $00
-	    bmi @newrecord
-@notarecord:
-		ldx #1
-		jsr WriteTimeText
-@resettimer:
-	    lda #0
-	    sta WRAM_Timer
-	    sta WRAM_Timer+1
-@dontshow:
-    	rts
-
-EndOfCastle:
-		lda WRAM_Timer+1
-		cmp #$EE ; FUCK HACK
-		beq @exit
-		ldx WorldNumber
-		cpx #World8
-		bne @check_ext
-@is_end:
-		PF_SetToLevelEnd_A
-		jsr RenderIntermediateTimeInner
-		lda WRAM_PracticeFlags
-		ora #PF_LevelEntrySaved
-		sta WRAM_PracticeFlags
-		lda #$EE
-		sta WRAM_Timer+1
-		bne @exit
-@check_ext:
-		lda BANK_SELECTED
-		cmp #BANK_ORG
-		beq @exit
-		lda IsPlayingExtendedWorlds
-		beq @exit
-		cpx #3 ; World D
-		beq @is_end
 @exit:
 		jmp ReturnBank
 

@@ -76,8 +76,6 @@ redraw_time:
 		stx bcdNum
 		sty bcdNum+1
 
-		jsr Enter_FrameToTime
-
 		lda WRAM_PrettyTimeMin
 		and #$0F
 		sta $2007

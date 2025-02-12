@@ -20,21 +20,6 @@
 .macro practice_callgate
 	.res $FE00 - *, $EA
 
-	Enter_EndOfCastle:
-		lda #BANK_COMMON
-		jsr SetBankFromA
-		jmp EndOfCastle
-
-	Enter_RenderIntermediateTime:
-		lda #BANK_COMMON
-		jsr SetBankFromA
-		jmp RenderIntermediateTime
-
-	Enter_FrameToTime:
-		lda #BANK_COMMON
-		jsr SetBankFromA
-		jmp FrameToTime
-
 	Enter_UpdateGameTimer:
 		lda #BANK_COMMON
 		jsr SetBankFromA

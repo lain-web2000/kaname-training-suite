@@ -632,7 +632,6 @@ PlayerInter:   jsr DrawPlayer_Intermediate  ;put player in appropriate place for
                lda #$01                     ;lives display, then output lives display to buffer
 OutputInter:   
       				jsr WriteGameText
-      				jsr Enter_RenderIntermediateTime
 
                jsr ResetScreenTimer
                lda #$00
@@ -1213,27 +1212,46 @@ BowserPaletteData:
 
 MarioThanksMessage:
 ;"THANK YOU MARIO!"
-   text_block $2548, "THANK YOU BIRDO!"
-    .byte 0
+  .byte $25, $48, $10
+  .byte $1d, $11, $0a, $17, $14, $24
+  .byte $22, $18, $1e, $24
+  .byte $16, $0a, $1b, $12, $18, $2b
+  .byte $00
 
 LuigiThanksMessage:
-    text_block $2548, "THANK YOU ERROR!"
-    .byte 0
+;"THANK YOU LUIGI!"
+  .byte $25, $48, $10
+  .byte $1d, $11, $0a, $17, $14, $24
+  .byte $22, $18, $1e, $24
+  .byte $15, $1e, $12, $10, $12, $2b
+  .byte $00
 
 MushroomRetainerSaved:
-    text_block $25C5, "BUT OUR CASTLE IS IN"
-    text_block $2605, "ANOTHER MEGAMAN!"
-    .byte 0
+;"BUT OUR PRINCESS IS IN"
+  .byte $25, $c5, $16
+  .byte $0b, $1e, $1d, $24, $18, $1e, $1b, $24
+  .byte $19, $1b, $12, $17, $0c, $0e, $1c, $1c, $24
+  .byte $12, $1c, $24, $12, $17
+;"ANOTHER CASTLE!"
+  .byte $26, $05, $0f
+  .byte $0a, $17, $18, $1d, $11, $0e, $1b, $24
+  .byte $0c, $0a, $1c, $1d, $15, $0e, $2b, $00
 
 PrincessSaved1:
 ;"YOUR QUEST IS OVER."
-  text_block $25a3, "VILKEN SNABB MARIO!"
+  .byte $25, $a7, $13
+  .byte $22, $18, $1e, $1b, $24
+  .byte $1a, $1e, $0e, $1c, $1d, $24
+  .byte $12, $1c, $24, $18, $1f, $0e, $1b, $af
   .byte $00
-
 
 PrincessSaved2:
 ;"WE PRESENT YOU A NEW QUEST."
-  text_block $25e3, "BRA JOBBAT KOMPIS!"
+  .byte $25, $e3, $1b
+  .byte $20, $0e, $24
+  .byte $19, $1b, $0e, $1c, $0e, $17, $1d, $24
+  .byte $22, $18, $1e, $24, $0a, $24, $17, $0e, $20, $24
+  .byte $1a, $1e, $0e, $1c, $1d, $af
   .byte $00
 
 WorldSelectMessage1:

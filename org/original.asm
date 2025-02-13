@@ -630,9 +630,7 @@ DisplayIntermediate:
                bne NoInter                  ;and jump to specific task, otherwise
 PlayerInter:   jsr DrawPlayer_Intermediate  ;put player in appropriate place for
                lda #$01                     ;lives display, then output lives display to buffer
-OutputInter:   
-      				jsr WriteGameText
-
+OutputInter:   jsr WriteGameText
                jsr ResetScreenTimer
                lda #$00
                sta DisableScreenFlag        ;reenable screen output
@@ -6039,6 +6037,7 @@ DrawFlagSetTimer:
 	  
 IncrementSFTask2:
       inc StarFlagTaskControl   ;move onto next task
+      rts
 
 DelayToAreaEnd:
       jsr DrawStarFlag          ;do sub to draw star flag

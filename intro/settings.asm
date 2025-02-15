@@ -2,7 +2,7 @@
 ; This hack is just inlined into intro.asm
 ;
 SETTINGS_MENU_PPU = $1FF3
-MAX_SETTING = 15
+MAX_SETTING = 14
 
 .macro draw_simple_at at, txt
 		.local @copy
@@ -239,11 +239,8 @@ _draw_button_load_opt:
 		lda WRAM_LoadButtons
 		draw_button_opt 19
 
-_draw_reset_records_opt:
-		draw_simple_at 20, "NO ORG LL EXT"
-
 _draw_reset_wram_opt:
-		draw_simple_at 21, "NO YES"
+		draw_simple_at 20, "NO YES"
 
 
 settings_renderers:
@@ -261,7 +258,6 @@ settings_renderers:
 		.word _draw_button_title_opt
 		.word _draw_button_save_opt
 		.word _draw_button_load_opt
-		.word _draw_reset_records_opt
 		.word _draw_reset_wram_opt
 
 redraw_setting:
@@ -416,7 +412,6 @@ select_option:
 		.word _select_title_buttons
 		.word _select_save_buttons
 		.word _select_load_buttons
-		.word _select_reset_records
 		.word _select_reset_wram
 
 selection_changed:
@@ -834,7 +829,6 @@ option_inputs:
 		.word _titlebuttons_input
 		.word _savebuttons_input
 		.word _loadbuttons_input
-		.word _reset_records_input
 		.word _reset_wram_input
 
 dispatch_input:

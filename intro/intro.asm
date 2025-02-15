@@ -264,7 +264,6 @@ NonMaskableInterrupt:
 		jsr run_settings
 		jmp exit_nmi
 @not_settings:
-		jsr run_records
 		jmp exit_nmi
 @run_menu:
 		;
@@ -446,9 +445,6 @@ dont_update_cursor:
 		beq @settings
 		lda bank_table, x
 		jmp StartBank
-@showrecords:
-		jsr enter_records
-		jmp exit_nmi
 @settings:
 		jsr enter_settings
 exit_nmi:
@@ -873,7 +869,6 @@ bank_table:
 		.byte BANK_ORG, BANK_SMBLL, BANK_ANN
 
 	.include "settings.asm"
-	.include "records.asm"
 	.include "smlsound.asm"
 	.include "faxsound.asm"
 

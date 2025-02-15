@@ -117,7 +117,7 @@ NonMaskableInterrupt:
    bne SkipIRQ
    lda IRQUpdateFlag
    beq SkipIRQ
-   lda #30                   ;set interrupt scanline
+   lda #31                   ;set interrupt scanline
    sta MMC5_SLCompare
    inc IRQAckFlag            ;reset flag to wait for next IRQ
    lda #$80

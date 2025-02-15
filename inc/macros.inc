@@ -262,40 +262,32 @@ DelayIRQ:
 
 	
 InterruptRequest:
-	sei
-	php                      ;save regs
-	pha
-	txa
-	pha
-	tya
-	pha
-	jsr DelayIRQ
-    ldy #$06                 ;delay for right part of scanline 31 (LMAO MMC5 ON EDN8 WANTS A WORD WITH YOU)
-DelS:
-	dey
-    bne DelS
-	lda $5204      		     ;disable IRQs for the rest of the frame
-	lda Mirror_PPU_CTRL_REG1
-	and #%11110110           ;mask out sprite address and nametable             
-	ora $77a      	 		 ;mask in whatever's set here
-	sta Mirror_PPU_CTRL_REG1  ;update the register and its mirror
-	sta PPU_CTRL_REG1
-	lda #$00
-	lda $5204      		     ;disable IRQs for the rest of the frame
-	lda HorizontalScroll
-	sta PPU_SCROLL_REG       ;set scroll regs for the screen under the status bar
-	lda VerticalScroll       ;to achieve the split screen effect
-	sta PPU_SCROLL_REG
-	lda #$00
-	sta $77b           		 ;indicate IRQ was acknowledged
-	pla
-	tay                      ;return regs, reenable IRQs and leave
-	pla
-	tax
-	pla
-	plp
-	cli
-	rti
+    sei
+    php
+    pha
+    lda $5204
+    lda Mirror_PPU_CTRL_REG1      	; waste some time to get to the end of the scanline
+    lda Mirror_PPU_CTRL_REG1      	; waste some time to get to the end of the scanline
+    lda Mirror_PPU_CTRL_REG1      	; waste some time to get to the end of the scanline
+    lda Mirror_PPU_CTRL_REG1
+    and #%11110110           		;mask out sprite address and nametable
+    ora $77a
+    sta Mirror_PPU_CTRL_REG1      	;update the register and its mirror
+    sta PPU_CTRL_REG1
+    lda HorizontalScroll
+    sta PPU_SCROLL_REG           	;set scroll regs for the screen under the status bar
+    lda #$00
+    sta PPU_SCROLL_REG
+    sta $77b           				;indicate IRQ was acknowledged
+    tya                      		; waste some time to match 2j irq
+    ldy #$18                 		; ...
+:   dey                     		; ...
+    bne :-                   		; ...
+    tay                      		; ...
+    pla
+    plp
+    cli
+    rti
 
 StartBank:
 		sta BANK_SELECTED

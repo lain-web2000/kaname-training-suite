@@ -697,6 +697,11 @@ WriteRulePointer:
 		beq @is_org
 		cpx #BANK_SMBLL
 		beq @is_lost
+@is_nippon:
+		ldx CurrentPlayer
+		cpx #$01
+		beq @is_luigi_n
+@is_mario_n:		
 		clc
 		adc #<WRAM_NipponRules
 		sta $04
@@ -704,12 +709,32 @@ WriteRulePointer:
 		adc #>WRAM_NipponRules
 		sta $05
 		rts
+@is_luigi_n:		
+		clc
+		adc #<WRAM_NipponRules_L
+		sta $04
+		lda #0
+		adc #>WRAM_NipponRules_L
+		sta $05
+		rts
 @is_lost:
+		ldx CurrentPlayer
+		cpx #$01
+		beq @is_luigi
+@is_mario:
 		clc
 		adc #<WRAM_LostRules
 		sta $04
 		lda #0
 		adc #>WRAM_LostRules
+		sta $05
+		rts
+@is_luigi:
+		clc
+		adc #<WRAM_LostRules_L
+		sta $04
+		lda #0
+		adc #>WRAM_LostRules_L
 		sta $05
 		rts
 @is_org:
@@ -1050,8 +1075,6 @@ LoadState:
 		sta GamePauseStatus
 		rts
 @do_loadstate:
-		lda #$FF
-		sta WRAM_Timer+1 ; Invalidate timer
 		ldx #$7F
 @save_wram:
 		lda WRAM_SaveWRAM, x
@@ -1503,10 +1526,6 @@ ProcessLevelLoad:
 
 PracticeInit:
 		lda #0
-		sta WRAM_Timer
-		sta WRAM_Timer+1
-		sta WRAM_SlowMotion
-		sta WRAM_SlowMotionLeft
 		sta WRAM_MenuIndex
 		;
 		; Dont reset the SaveStateBank right?

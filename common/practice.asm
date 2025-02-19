@@ -1526,6 +1526,8 @@ ProcessLevelLoad:
 
 PracticeInit:
 		lda #0
+		sta WRAM_Timer
+		sta WRAM_Timer+1
 		sta WRAM_MenuIndex
 		;
 		; Dont reset the SaveStateBank right?

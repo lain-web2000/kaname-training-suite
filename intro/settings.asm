@@ -2,7 +2,7 @@
 ; This hack is just inlined into intro.asm
 ;
 SETTINGS_MENU_PPU = $1FF3
-MAX_SETTING = 14
+MAX_SETTING = 16
 
 .macro draw_simple_at at, txt
 		.local @copy
@@ -155,16 +155,32 @@ get_uservar_ptr:
 		rts
 @try_l0:
 		dex
-		bne @do_lost1
+		bne @try_l1
 		lda #<WRAM_LostUser0
 		sta $00
 		lda #>WRAM_LostUser0
 		sta $01
 		rts
-@do_lost1:
+@try_l1:
+		dex
+		bne @try_n0
 		lda #<WRAM_LostUser1
 		sta $00
 		lda #>WRAM_LostUser1
+		sta $01
+		rts
+@try_n0:
+		dex
+		bne @do_nippon1
+		lda #<WRAM_NipponUser0
+		sta $00
+		lda #>WRAM_NipponUser0
+		sta $01
+		rts
+@do_nippon1:
+		lda #<WRAM_NipponUser1
+		sta $00
+		lda #>WRAM_NipponUser1
 		sta $01
 		rts
 
@@ -183,24 +199,32 @@ _draw_user0lost_opt:
 _draw_user1lost_opt:
 		jsr get_uservar_ptr
 		draw_hexopt_at 11, 1
+		
+_draw_user0nippon_opt:
+		jsr get_uservar_ptr
+		draw_hexopt_at 12, 1
+
+_draw_user1nippon_opt:
+		jsr get_uservar_ptr
+		draw_hexopt_at 13, 1
 
 _draw_userdelay_opt:
 		lda #<WRAM_DelayUserFrames
 		sta $00
 		lda #>WRAM_DelayUserFrames
 		sta $01
-		draw_hexopt_at 12, 0
+		draw_hexopt_at 14, 0
 
 _draw_savedelay_opt:
 		lda #<WRAM_DelaySaveFrames
 		sta $00
 		lda #>WRAM_DelaySaveFrames
 		sta $01
-		draw_hexopt_at 13, 0
+		draw_hexopt_at 15, 0
 
-_char_native: draw_simple_at 14, "NATIVE"
-_char_org: draw_simple_at 14, "ORG   "
-_char_lost: draw_simple_at 14, "LOST  "
+_char_native: draw_simple_at 16, "NATIVE"
+_char_org: draw_simple_at 16, "ORG   "
+_char_lost: draw_simple_at 16, "LOST  "
 
 _draw_charset_opt:
 		ldx WRAM_CharSet
@@ -213,8 +237,8 @@ _draw_charset_opt:
 @native:
 		jmp _char_native
 		
-_char_fds: draw_simple_at 15, "FDS"
-_char_nes: draw_simple_at 15, "NES"
+_char_fds: draw_simple_at 17, "FDS"
+_char_nes: draw_simple_at 17, "NES"
 
 _draw_minusworld_opt:
 		lda WRAM_MinusWorld
@@ -225,22 +249,22 @@ _draw_minusworld_opt:
 
 _draw_button_restart_opt:
 		lda WRAM_RestartButtons
-		draw_button_opt 16
+		draw_button_opt 18
 
 _draw_button_title_opt:
 		lda WRAM_TitleButtons
-		draw_button_opt 17
+		draw_button_opt 19
 
 _draw_button_save_opt:
 		lda WRAM_SaveButtons
-		draw_button_opt 18
+		draw_button_opt 20
 
 _draw_button_load_opt:
 		lda WRAM_LoadButtons
-		draw_button_opt 19
+		draw_button_opt 21
 
 _draw_reset_wram_opt:
-		draw_simple_at 20, "NO YES"
+		draw_simple_at 22, "NO YES"
 
 
 settings_renderers:
@@ -250,6 +274,8 @@ settings_renderers:
 		.word _draw_user1org_opt
 		.word _draw_user0lost_opt
 		.word _draw_user1lost_opt
+		.word _draw_user0nippon_opt
+		.word _draw_user1nippon_opt
 		.word _draw_userdelay_opt
 		.word _draw_savedelay_opt
 		.word _draw_charset_opt
@@ -386,20 +412,11 @@ _select_reset_wram:
 @no:
 		jmp set_selection_sprites
 
-_select_reset_records:
-		; NO ORG LL EXT
-		jsr get_setting_idx
-		txa
-		ldx #2
-		and #1
-		beq @is_two
-		inx
-@is_two:
-		jmp set_selection_sprites
-
 select_option:
 		.word _select_music
 		.word _select_sound
+		.word _select_value
+		.word _select_value
 		.word _select_value
 		.word _select_value
 		.word _select_value
@@ -749,6 +766,8 @@ _reset_wram_input:
 option_inputs:
 		.word _music_input
 		.word _sound_input
+		.word _user_input
+		.word _user_input
 		.word _user_input
 		.word _user_input
 		.word _user_input

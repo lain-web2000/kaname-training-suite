@@ -83,6 +83,10 @@ WRAM_LostUser0:
 	.word 0
 WRAM_LostUser1:
 	.word 0
+WRAM_NipponUser0:
+	.word 0
+WRAM_NipponUser1:
+	.word 0
 
 WRAM_OrgRules:
 	.dword 0, 0, 0, 0 ; World 1

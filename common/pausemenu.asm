@@ -667,7 +667,7 @@ get_user_selected:
 		ldx #>WRAM_LostUser0
 		jmp @save
 @is_org:
-		cpx #4
+		cpx #6
 		beq @is_org_0
 		lda #<WRAM_OrgUser1
 		ldx #>WRAM_OrgUser1

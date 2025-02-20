@@ -101,7 +101,7 @@ save in Zelda (without savestates), power off the system, and load (without usin
 
 First download the desired version below:
 
-- [Version 6.0 - BPS](https://github.com/lain-web2000/pellsson-rev2/raw/master/Pellsson%206.0%20(Rev%202.0).bps)
+- [Version 6.0 (Rev 2) - BPS](https://github.com/lain-web2000/pellsson-rev2/raw/master/Pellsson%206.0%20(Rev%202.0).bps)
 
 Then simply apply that BPS (using for instance Floating Lunar IPS) to the an original, unmodified version of the Super Mario Bros. (US/World) ROM. *DO NOT* use The Lost Levels. The MD5 checksum for the ROM you should be using is `811b027eaf99c2def7b933c5208636de`.
 

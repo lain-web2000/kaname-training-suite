@@ -78,7 +78,7 @@ battery-backed WRAM. Essentially, figure out how to make it so that you can
 save in Zelda (without savestates), power off the system, and load (without using save states). Then do the same for the SMB Practice ROM.
 
 ## Feature list
-- Practice both **SMB**, **SMB Lost Levels** and **All Night Nippon SMB**
+- Practice **SMB**, **SMB Lost Levels** and **All Night Nippon SMB**
 - **Start** the game from **any frame rule**
 - **Start** on **any level**.
 - Keeps **track of prefered start rule** for each level.
@@ -94,7 +94,9 @@ save in Zelda (without savestates), power off the system, and load (without usin
 - **In-game menu** with lots of stuff.
 - **Pause** completely **freezes** the game (does not advance frame rules).
 - **Advanced settings** menu in the loader.
-- Start directly on the **Second Quest** in SMB1.
+- Start directly on the **Second Quest** in SMB1 and ANN by pressing **B**.
+- Set up for Warpless wrong-warps and World 9 access from 8-4 in SMB:TLL by pressing **B**.
+- Adjust RNG offsets appropiate for specific categories by pressing **A**.
 - And a lot more...
 
 ## Download & Installation

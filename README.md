@@ -78,7 +78,7 @@ battery-backed WRAM. Essentially, figure out how to make it so that you can
 save in Zelda (without savestates), power off the system, and load (without using save states). Then do the same for the SMB Practice ROM.
 
 ## Feature list
-- Practice both **SMB** and **SMB Lost Levels**
+- Practice both **SMB**, **SMB Lost Levels** and **All Night Nippon SMB**
 - **Start** the game from **any frame rule**
 - **Start** on **any level**.
 - Keeps **track of prefered start rule** for each level.

@@ -61,8 +61,6 @@ EndlessLoop: jmp EndlessLoop              ;endless loop, need I say more?
 
 ;-----------------------------------------------------------------
 
-MACRO_ThrowFrameImpl
-
 NonMaskableInterrupt:
                lda Mirror_PPU_CTRL_REG1  ;disable NMIs in mirror reg
                and #%01111111            ;save all other bits

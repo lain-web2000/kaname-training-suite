@@ -516,7 +516,7 @@ pm_toggle_info:
 		sta VRAM_Buffer1+1,x
 		lda #$01 ; len
 		sta VRAM_Buffer1+2,x
-		lda WRAM_EntrySockTimer
+		lda WRAM_AreaSockTimer
 		sta VRAM_Buffer1+3, x
 		lda #$00
 		sta VRAM_Buffer1+4, x

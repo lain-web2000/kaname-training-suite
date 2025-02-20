@@ -462,7 +462,7 @@ enter_settings:
 		sta SND_MASTERCTRL_REG
 		write_nt "settings_data"
 		ldx #0
-		lda #0
+		lda #$ff
 @nuke_sprites:
 		sta $200, x
 		inx

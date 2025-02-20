@@ -2309,6 +2309,16 @@ PlayerLoseLife:
              sta IRQUpdateFlag
              lda #Silence             ;silence music
              sta EventMusicQueue
+.ifndef ANN
+             lda WorldNumber		  ;force a game over on life loss
+			 cmp #World9			  ;if the player is in world 9.
+			 bne StillInGame		  ;if player still has lives, branch     
+             lda #$00
+             sta OperMode_Task        ;initialize mode task,
+             lda #GameOverMode        ;switch to game over mode
+             sta OperMode             ;and leave
+             rts
+.endif
 StillInGame: lda WorldNumber          ;retrieve world number for offset
              ldy HardWorldFlag        ;check if playing worlds A-D
              beq NrmlWorlds           ;if not, use world number as-is

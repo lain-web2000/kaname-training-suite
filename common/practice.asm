@@ -776,8 +776,26 @@ toggle_second_quest:
 		inx
 		inx
 		stx VRAM_Buffer1_Offset
-@is_ll:
 		rts
+@is_ll:
+		lda CompletedWorlds
+		eor #$ff
+		sta CompletedWorlds
+		ldx VRAM_Buffer1_Offset
+		lda #$3F
+		sta VRAM_Buffer1,x
+		lda #$00
+		sta VRAM_Buffer1+1,x
+		sta VRAM_Buffer1+4,x
+		lda #$01
+		sta VRAM_Buffer1+2,x
+		lda #$0f ; Warpless color
+		ldy CompletedWorlds
+		bne @set_color
+		lda #$22 ; Lost color
+		bne @set_color
+		rts
+		
 toggle_rng_offset:
 		ldy CategorySelect
 		iny
@@ -1061,6 +1079,9 @@ DontUpdateSockHash:
 		rts
 
 ForceUpdateSockHashInner:
+		lda GameEngineSubroutine
+		cmp #$0b
+		beq skip_sock_hash
 		lda WRAM_PracticeFlags
         and #PF_DisablePracticeInfo
         bne DontUpdateSockHash
@@ -1541,6 +1562,8 @@ RestartLevel:
 		sta PlayerStatus
 		lda WRAM_LevelPlayerSize
 		sta PlayerSize
+		lda WRAM_LevelEntrancePage
+		sta EntrancePage
 		ldx #6
 @copy_random:
 		lda WRAM_LevelRandomData, x
@@ -1575,6 +1598,8 @@ ProcessLevelLoad:
 		bne @done
 		lda IntervalTimerControl
 		sta WRAM_LevelIntervalTimerControl
+		lda EntrancePage
+		sta WRAM_LevelEntrancePage
 		lda FrameCounter
 		sta WRAM_LevelFrameCounter
 		lda PlayerStatus
@@ -1590,15 +1615,49 @@ ProcessLevelLoad:
 		sta WRAM_LevelRandomData, x
 		dex
 		bpl @save_random
-
 		ldx #$3
 @save_rule:
 		lda FrameRuleData, x
 		sta WRAM_LevelFrameRuleData, x
 		dex
 		bpl @save_rule
+		lda BANK_SELECTED
+		cmp #BANK_SMBLL
+		beq @warpless_2j
 @done:
 		jmp ReturnBank
+@warpless_2j:
+		lda CompletedWorlds
+		cmp #$ff
+		bne @done
+		lda WorldNumber								 ;
+		cmp #World7									 ; Are we in World 7 or 8?
+		beq @World7Setup							 ; If yes, go and check the area number
+		cmp #World8									 ; 
+		beq @World8Setup							 ; 
+		cmp #World3									 ; Are we in World C? (ignore the label please)
+		bne @done								 	 ; No? Leave.
+@WorldCSetup:									 	 ;
+		lda HardWorldFlag							 ; Is this C-1 or 3-1?
+		beq @done									 ; get the hell out of here, 3-1 doesn't have a wrong warp.
+		lda LevelNumber								 ; Are we in C-1?
+		bne @done								 	 ; No? THEN PLEASE LEAVE I DID NOT INVITE YOU.
+		lda #$0E									 ;
+		sta EntrancePage						     ;
+		bne @done								 	 ;
+@World8Setup:										 ;	
+		lda LevelNumber								 ; Are we in 8-1?
+		bne @done								 	 ; No? Go away.
+		beq @W7W8Setup								 ; Otherwise, set up the magic warps
+@World7Setup:									 	 ;
+		lda LevelNumber								 ; Are we in 7-3 or 7-4?
+		cmp #$02									 ; Yes, set up the funny.
+		bcc @done								 	 ; No, get out.
+@W7W8Setup:										 	 ;
+		lda #$06									 ;	
+		sta EntrancePage							 ;
+		bne @done								 	 ;
+		
 
 
 PracticeInit:
@@ -1641,6 +1700,7 @@ RedrawSockTimer:
 @use_as_is:
 		lda IntervalTimerControl
 @write_it:
+		sta WRAM_AreaSockTimer
 		sta VRAM_Buffer1+3,x
 		lda #0
 		sta VRAM_Buffer1+4,x

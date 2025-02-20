@@ -35,10 +35,6 @@ WRAM_TitleButtons:
 	.byte $00
 WRAM_RestartButtons:
 	.byte $00
-WRAM_SlowMotion:
-	.byte $00
-WRAM_SlowMotionLeft:
-	.byte $00
 
 WRAM_ToSaveFile:
 WRAM_LoadedLevel:
@@ -46,6 +42,8 @@ WRAM_LoadedLevel:
 WRAM_LoadedWorld:
 	.byte $00
 WRAM_LevelAreaPointer:
+	.byte $00
+WRAM_LevelEntrancePage:
 	.byte $00
 WRAM_LevelAreaType:
 	.byte $00
@@ -58,6 +56,8 @@ WRAM_LevelPlayerStatus:
 WRAM_LevelPlayerSize:
 	.byte $00
 WRAM_EntrySockTimer:
+	.byte $00
+WRAM_AreaSockTimer:
 	.byte $00
 WRAM_LevelRandomData:
 	.res $07, $00

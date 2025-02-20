@@ -278,11 +278,16 @@ TitleScreenMode:
 IsBigWorld:
   .byte 1, 1, 0, 1, 0, 0, 1, 0, 0
 
+NoGoTime:
+    lda #0
+    sta SavedJoypad1Bits
+    jmp GameCoreRoutine
+
 RunTitleScreen:
-    jsr Enter_PracticeTitleMenu
-    lda OperMode_Task
+	jsr Enter_PracticeTitleMenu
+	lda OperMode_Task
     cmp #4
-    bne @not_running
+    bne NoGoTime
     ldx LevelNumber
     ldy WorldNumber
     lda IsBigWorld, y

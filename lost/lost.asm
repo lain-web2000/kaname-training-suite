@@ -9053,6 +9053,7 @@ GetPRCmp:  lda FrameCounter           ;get frame counter
            lda Enemy_X_Position,x
            cmp BowserOrigXPos         ;if bowser not at original horizontal position,
            bne GetDToO                ;branch to skip this part
+		   jsr Enter_RedrawFrameNumbers
            lda PseudoRandomBitReg,x
            and #%00000011             ;get pseudorandom offset
            tay

@@ -5888,6 +5888,7 @@ GiveOneCoin:
       ;sta CoinTally          ;otherwise, reinitialize coin amount
       ;lda #Sfx_ExtraLife
       ;sta Square2SoundQueue  ;play 1-up sound
+	  rts					  ;bwaaa
 CoinPoints:
 AddToScore:
 WriteScoreAndCoinTally:
@@ -6209,7 +6210,7 @@ BrickShatter:
       sta Player_Y_Speed     ;set vertical speed for player
       lda #$05
       sta DigitModifier+5    ;set digit modifier to give player 50 points
-      jsr AddToScore         ;do sub to update the score
+;      jsr AddToScore         ;do sub to update the score
       ldx SprDataOffset_Ctrl ;load control bit and leave
       rts
 

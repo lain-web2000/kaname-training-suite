@@ -5149,6 +5149,7 @@ MiscLoopBack:
 ;-------------------------------------------------------------------------------------
 
 GiveOneCoin:
+	  rts					  ;bwaaa
 AddToScore:
     jmp Enter_RedrawFrameNumbers
 
@@ -6536,7 +6537,7 @@ BrickShatter:
       sta Player_Y_Speed     ;set vertical speed for player
       lda #$05
       sta DigitModifier+5    ;set digit modifier to give player 50 points
-      jsr AddToScore         ;do sub to update the score
+;      jsr AddToScore         ;do sub to update the score
       ldx SprDataOffset_Ctrl ;load control bit and leave
       rts
 

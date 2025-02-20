@@ -776,11 +776,20 @@ toggle_second_quest:
 		inx
 		inx
 		stx VRAM_Buffer1_Offset
-		rts
 @is_ll:
+		rts
+toggle_rng_offset:
 		ldy CategorySelect
 		iny
+		lda BANK_SELECTED
+		cmp #BANK_SMBLL
+		bne @not_ll
 		cpy #$03
+		bcc @InRange
+		ldy #$00
+		beq @InRange
+@not_ll:
+		cpy #$02
 		bcc @InRange
 		ldy #$00
 @InRange:
@@ -789,11 +798,31 @@ toggle_second_quest:
 		tya
 		asl
 		tay
+		lda BANK_SELECTED
+		cmp #BANK_SMBLL
+		beq @lost_pointers
+		cmp #BANK_ANN
+		beq @nippon_pointers
+@org_pointers:
 		lda CategoryPointers,y
 		sta $00
 		lda CategoryPointers+1,y
 		sta $01
 		ldy #$00
+		beq @VRAMBufferLoop
+@lost_pointers:
+		lda CategoryPointers_L,y
+		sta $00
+		lda CategoryPointers_L+1,y
+		sta $01
+		ldy #$00
+		beq @VRAMBufferLoop
+@nippon_pointers:
+		lda CategoryPointers_N,y
+		sta $00
+		lda CategoryPointers_N+1,y
+		sta $01
+		ldy #$00		
 @VRAMBufferLoop:
 		lda ($00),y
 		cmp #$ff
@@ -810,22 +839,46 @@ toggle_second_quest:
 		sta VRAM_Buffer1_Offset
 		rts
 
-CopyrightText:
+CopyrightText1985:
+	.byte $21, $ed, $0e, $cf, $01, $09, $08, $05, $24, $17, $12, $17, $1d
+	.byte $0e, $17, $0d, $18, $ff
+		
+CopyrightText1986:
+	.byte $21, $ee, $0e, $cf, $01, $09, $08, $06, $24, $17, $12, $17, $1d
+	.byte $0e, $17, $0d, $18, $ff	
+	
+CopyrightText1986_L:
 	.byte $21, $ef, $0e, $cf, $01, $09, $08, $06, $24, $17, $12, $17, $1d
 	.byte $0e, $17, $0d, $18, $ff
 	
 BothEndText:
 	.byte $21, $ef, $0e, $24, $24, $0b, $18, $1d, $11, $24, $0e, $17, $0d 
 	.byte $12, $17, $10, $1c, $ff
+
+BothQuestText:
+	.byte $21, $ed, $0e, $24, $24, $24, $0b, $18, $1d, $11, $24, $1a, $1e 
+	.byte $0e, $1c, $1d, $1c, $ff
 	
 AllStagesText:
 	.byte $21, $ef, $0e, $24, $24, $24, $24, $0a, $15, $15, $24, $1c, $1d
 	.byte $0a, $10, $0e, $1c, $ff
 	
-CategoryPointers:
-	.word CopyrightText
+AllStagesText_N:
+	.byte $21, $ee, $0e, $24, $24, $24, $24, $0a, $15, $15, $24, $1c, $1d
+	.byte $0a, $10, $0e, $1c, $ff
+	
+CategoryPointers_L:
+	.word CopyrightText1986_L
 	.word BothEndText
 	.word AllStagesText
+	
+CategoryPointers_N:
+	.word CopyrightText1986
+	.word AllStagesText_N
+	
+CategoryPointers:
+	.word CopyrightText1985
+	.word BothQuestText
 
 nuke_timer:
 		lda #0
@@ -859,7 +912,12 @@ PracticeTitleMenu:
 		jmp @dec_timer
 @check_b:
 		cmp #B_Button
+		beq @sq
+		cmp #A_Button
 		bne @check_input
+		jsr toggle_rng_offset
+		jmp @dec_timer
+@sq:
 		jsr toggle_second_quest
 		jmp @dec_timer
 @check_input:

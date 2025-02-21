@@ -41,6 +41,8 @@ WRAM_LoadedLevel:
 	.byte $00
 WRAM_LoadedWorld:
 	.byte $00
+WRAM_FetchNewGameTimerFlag:
+	.byte $00
 WRAM_LevelAreaPointer:
 	.byte $00
 WRAM_LevelEntrancePage:

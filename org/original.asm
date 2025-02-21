@@ -301,6 +301,7 @@ RunTitleScreen:
     jsr LoadAreaPointer
     inc Hidden1UpFlag
     inc FetchNewGameTimerFlag
+	inc WRAM_FetchNewGameTimerFlag
     inc OperMode
     lda #$00
     sta OperMode_Task
@@ -634,11 +635,15 @@ DisplayIntermediate:
                bne NoInter                  ;and jump to specific task, otherwise
 PlayerInter:   jsr DrawPlayer_Intermediate  ;put player in appropriate place for
                lda #$01                     ;lives display, then output lives display to buffer
-OutputInter:   jsr WriteGameText
+OutputInter:   jsr WriteGameText	   
                jsr ResetScreenTimer
                lda #$00
                sta DisableScreenFlag        ;reenable screen output
-               rts
+			   lda WRAM_FetchNewGameTimerFlag
+			   beq @exit_inter
+			   jmp Enter_RedrawAll
+@exit_inter:
+			   rts
 GameOverInter: lda #$12                     ;set screen timer
                sta ScreenTimer
                lda #$03                     ;output game over screen to buffer
@@ -804,6 +809,7 @@ WarpNumLoop: lda WarpZoneNumbers,x  ;print warp zone numbers into the
 ResetSpritesAndScreenTimer:
          lda ScreenTimer             ;check if screen timer has expired
          bne NoReset                 ;if not, branch to leave
+		 jsr Enter_HideRemainingFrames
          jsr MoveAllSpritesOffscreen ;otherwise reset sprites now
 
 ResetScreenTimer:
@@ -1414,6 +1420,7 @@ SetStPos: lda PlayerStarting_X_Pos,y  ;load appropriate horizontal position
           lsr
           sta GameTimerDisplay+1      ;set second digit of game timer
           sta FetchNewGameTimerFlag   ;clear flag for game timer reset
+		  sta WRAM_FetchNewGameTimerFlag
           sta StarInvincibleTimer     ;clear star mario timer
 ChkOverR: ldy JoypadOverride          ;if controller bits not set, branch to skip this part
           beq ChkSwimE
@@ -5291,6 +5298,7 @@ GetWNum: ldy WarpZoneNumbers,x     ;get warp zone numbers
          sta AltEntranceControl    ;initialize mode of entry
          inc Hidden1UpFlag         ;set flag for hidden 1-up blocks
          inc FetchNewGameTimerFlag ;set flag to load new game timer
+		 inc WRAM_FetchNewGameTimerFlag
 ExPipeE: rts                       ;leave!!!
 
 ;-------------------------------------------------------------------------------------

@@ -266,16 +266,34 @@ RedrawFramesRemaningInner:
 		sta VRAM_Buffer1_Offset
 nodraw:	rts
 
+HideRemainingFrames:
+		ldy VRAM_Buffer1_Offset
+		lda #$20
+		sta VRAM_Buffer1, y
+		lda #$7E
+		sta VRAM_Buffer1+1, y
+		lda #$02
+		sta VRAM_Buffer1+2, y
+		lda #$24
+		sta VRAM_Buffer1+3, y
+		sta VRAM_Buffer1+4, y
+		lda #0
+		sta VRAM_Buffer1+5, y
+		clc
+		tya
+		adc #5
+		sta VRAM_Buffer1_Offset
+		jmp ReturnBank
+		
 RedrawAllInner:
 		jsr RedrawFramesRemaningInner
-		jsr RedrawFrameNumbersInner
-		rts
+		jmp RedrawFrameNumbersInner
 
 RedrawAll:
 		jsr RedrawFramesRemaningInner
 		jsr RedrawFrameNumbersInner
 		jmp ReturnBank
-
+		
 RedrawFrameNumbersInner:
 		lda OperMode
 		beq @draw ; slighty dumb

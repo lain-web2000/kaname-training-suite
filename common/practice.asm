@@ -1644,6 +1644,7 @@ ProcessLevelLoad:
 		bne @done								 	 ; No? THEN PLEASE LEAVE I DID NOT INVITE YOU.
 		lda #$0E									 ;
 		sta EntrancePage						     ;
+		sta WRAM_LevelEntrancePage					 ;
 		bne @done								 	 ;
 @World8Setup:										 ;	
 		lda LevelNumber								 ; Are we in 8-1?
@@ -1656,6 +1657,7 @@ ProcessLevelLoad:
 @W7W8Setup:										 	 ;
 		lda #$06									 ;	
 		sta EntrancePage							 ;
+		sta WRAM_LevelEntrancePage					 ;
 		bne @done								 	 ;
 		
 

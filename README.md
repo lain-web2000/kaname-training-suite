@@ -13,7 +13,7 @@ Looking to practice on PAL? [Try out threecreepio's independent PAL-conversion.]
 ### New Features 
 All Night Nippon Super Mario Bros added!
 
-Following RNG offsets are available by pressing A during the games title screen:
+Following RNG offsets are available by pressing A during the game's title screen:
 
 	- Both Quests (Warpless) for SMB1
 	- Both Endings & All Stages for SMB:TLL

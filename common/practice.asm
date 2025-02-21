@@ -1582,6 +1582,8 @@ RestartLevel:
 		sta PlayerSize
 		lda WRAM_LevelEntrancePage
 		sta EntrancePage
+		lda #$00
+		sta JoypadOverride
 		ldx #6
 @copy_random:
 		lda WRAM_LevelRandomData, x

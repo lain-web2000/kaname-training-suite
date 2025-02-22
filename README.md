@@ -6,8 +6,17 @@ For feature requests or bug reports, please visit the [issue tracker](https://gi
 
 Looking to practice on PAL? [Try out threecreepio's independent PAL-conversion.](https://github.com/threecreepio/pallsson)
 
-**Please note this version of the Practice ROM uses the MMC5 mapper, this ROM will not work with certain flashcarts such as KrzysioCart, or on cheap clone consoles.**
- 
+**Please note this version of the Practice ROM uses the MMC5 mapper, look at the table below to see if your flashcart is supported**
+
+
+| Flash Cart  | Supported? |
+| ------------- | ------------- |
+| EverDrive N8  | Yes *  |
+| EverDrive N8 Pro  | Yes.  |
+| PowerPak  | Untested, likely to work.  |
+| KrzysioCart | No.  |
+
+***Original Everdrive N8 has graphical glitches on the status bar, this can be mitigated by enabling the input display.**
 ## Major Version 6 (Current 6.0 Rev 2)
 
 ### New Features 

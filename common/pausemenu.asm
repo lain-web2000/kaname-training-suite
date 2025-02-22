@@ -177,12 +177,13 @@ _draw_pm_row_7:
 		lda WRAM_NipponUser0
 		ldx WRAM_NipponUser0+1
 		jmp @save
-@is_org:
-		lda WRAM_OrgUser0
-		ldx WRAM_OrgUser0+1
 @is_lost:
 		lda WRAM_LostUser0
 		ldx WRAM_LostUser0+1
+		jmp @save
+@is_org:
+		lda WRAM_OrgUser0
+		ldx WRAM_OrgUser0+1
 @save:
 		sta $00
 		stx $01
@@ -193,12 +194,15 @@ _draw_pm_row_7:
 		rts
 
 _draw_pm_row_8:
-		row_render_data $23D8, pm_attr_data
-		inc $07
-		jsr draw_prepared_row
 		lda BANK_SELECTED
 		cmp #BANK_ORG
 		beq @is_org
+		cmp #BANK_SMBLL
+		beq @is_lost
+		lda WRAM_NipponUser1
+		ldx WRAM_NipponUser1+1
+		jmp @save
+@is_lost:
 		lda WRAM_LostUser1
 		ldx WRAM_LostUser1+1
 		jmp @save
@@ -215,6 +219,9 @@ _draw_pm_row_8:
 		rts
 
 _draw_pm_row_10:
+		row_render_data $23D8, pm_attr_data
+		inc $07
+		jsr draw_prepared_row
 		row_render_data $21A0, pm_star_row
 		rts
 

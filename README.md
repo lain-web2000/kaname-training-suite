@@ -6,7 +6,7 @@ For feature requests or bug reports, please visit the [issue tracker](https://gi
 
 Looking to practice on PAL? [Try out threecreepio's independent PAL-conversion.](https://github.com/threecreepio/pallsson)
 
-**Please note this version of the Practice ROM uses the MMC5 mapper, look at the table below to see if your flashcart is supported**
+**Please note this version of the Practice ROM uses the MMC5 mapper, look at the table below to see if your flash cart is supported**
 
 
 | Flash Cart  | Supported? |

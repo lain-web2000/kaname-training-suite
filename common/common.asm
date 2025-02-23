@@ -20,7 +20,6 @@ NonMaskableInterrupt: ; Dummy
 
 	.include "utils.inc"
 	.include "sound.asm"
-	.include "sound-ll.asm"
 	.include "game.asm"
 	.include "pausemenu.asm"
 	.include "practice.asm"
@@ -36,6 +35,7 @@ NonMaskableInterrupt: ; Dummy
 	.export LoadMarioPhysics
 	.export RedrawUserVars
 	.export RedrawAll
+	.export HideRemainingFrames
 	.export UpdateFrameRule
 	.export WritePracticeTop
 	.export RedrawFrameNumbers

@@ -3,13 +3,8 @@
 ; Bank for all sound-related stuff
 ;
 SoundEngineExternal:
-		cpx #BANK_ORG
-		bne @lost_sound
 		jsr SoundEngine
 		jmp ReturnBank
-@lost_sound:
-		jsr LL_SoundEngine
-        jmp ReturnBank
 
 SoundEngine:
          lda OperMode              ;are we in title screen mode?

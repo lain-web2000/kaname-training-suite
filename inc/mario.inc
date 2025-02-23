@@ -538,6 +538,9 @@ PauseModeFlag         = $07c6
 GroundMusicHeaderOfs  = $07c7
 AltRegContentFlag     = $07ca
 
+CompletedWorlds       = $07fe
+HardWorldFlag         = $07fb
+
 ;-------------------------------------------------------------------------------------
 ;CONSTANTS
 

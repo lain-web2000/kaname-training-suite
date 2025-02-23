@@ -17,6 +17,11 @@ Looking to practice on PAL? [Try out threecreepio's independent PAL-conversion.]
 | KrzysioCart | No.  |
 
 ***Original Everdrive N8 has graphical glitches on the status bar, this can be mitigated by enabling the input display.**
+
+If you are concerned regarding the compatibility of this practice ROM then please consider trying the "lite" versions of the Practice ROM:
+- [Lite version for SMB1.](https://github.com/lain-web2000/pellsson-lite-smb1)
+- [Lite version for SMB:TLL.](https://github.com/lain-web2000/pellsson-lite-smb2j)
+
 ## Major Version 6 (Current 6.0 Rev 2)
 
 ### New Features 

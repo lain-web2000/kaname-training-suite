@@ -59,6 +59,8 @@ HEART_SPRITE = $18
 	.segment "bank1"
 
 Start:
+		lda #$00
+		sta $5204 ;disable MMC5 IRQs (I can't be bothered to add a label it's 4AM)
 		sta MirrorPPUCTRL
 		sta PPU_CTRL_REG1
 		;
@@ -262,6 +264,7 @@ NonMaskableInterrupt:
 		jsr run_settings
 		jmp exit_nmi
 @not_settings:
+		jsr run_records
 		jmp exit_nmi
 @run_menu:
 		;
@@ -411,7 +414,7 @@ dont_update_cursor:
 		lda CursorY
 		ldx SEL_INDEX
 		inx 
-		cpx #2
+		cpx #4
 		bne @no_loop_around
 		ldx #0
 		lda #SEL_START_Y-16
@@ -429,8 +432,8 @@ dont_update_cursor:
 		ldx SEL_INDEX
 		dex
 		bpl @no_underflow
-		ldx #1
-		lda #SEL_START_Y+(2*16)
+		ldx #3
+		lda #SEL_START_Y+(4*16)
 @no_underflow:
 		sec
 		sbc #16
@@ -439,10 +442,13 @@ dont_update_cursor:
 		cmp #Start_Button
 		bne exit_nmi
 		ldx SEL_INDEX
-		cpx #1
+		cpx #3
 		beq @settings
 		lda bank_table, x
 		jmp StartBank
+@showrecords:
+		jsr enter_records
+		jmp exit_nmi
 @settings:
 		jsr enter_settings
 exit_nmi:
@@ -864,9 +870,10 @@ palette_star_shuffle:
 		.byte $0f, $0D, $16, $27 ; Princess cloud
 
 bank_table:
-		.byte BANK_ORG
+		.byte BANK_ORG, BANK_SMBLL, BANK_ANN
 
 	.include "settings.asm"
+	.include "records.asm"
 	.include "smlsound.asm"
 	.include "faxsound.asm"
 

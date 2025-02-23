@@ -3255,7 +3255,28 @@ ptr_data_bc6e:
                  lda     #$80 ; ''
                  sta     $4eb
                  lda     $436
-                 jmp     loc_bb64
+                 beq     loc_bb64
+                 bmi     locret_bb63
+                 lda     $4ea
+                 sta     $4010
+                 clc
+                 lda     $4e8
+                 adc     $4ec
+                 sta     $4012
+                 lda     $4ec
+                 asl
+                 asl
+                 sta     0
+                 sec
+                 lda     $4e9
+                 sbc     0
+                 sta     $4013
+                 lda     #$80 ; ''
+                 sta     $436
+                 lda     #$f
+                 sta     $4015
+                 lda     #$1f
+                 sta     $4015
 
  locret_bb63:                            ; code xref: sub_b948+1eaj
                  rts

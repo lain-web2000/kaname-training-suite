@@ -221,7 +221,7 @@ SaveFrameCounter:
 
 TopText:
 	text_block $2044, "RULE * FRAME"
-	text_block $2051, " A   B  TIME R "
+	text_block $2051, " X   Y  TIME R "
 	.byte $20, $6b, $02, $2e, $29 ; score trailing digit and coin display
 	.byte $23, $c0, $7f, $aa ; attribute table data, clears name table 0 to palette 2
 	.byte $23, $c2, $01, $ea ; attribute table data, used for coin icon in status bar
@@ -266,34 +266,16 @@ RedrawFramesRemaningInner:
 		sta VRAM_Buffer1_Offset
 nodraw:	rts
 
-HideRemainingFrames:
-		ldy VRAM_Buffer1_Offset
-		lda #$20
-		sta VRAM_Buffer1, y
-		lda #$7E
-		sta VRAM_Buffer1+1, y
-		lda #$02
-		sta VRAM_Buffer1+2, y
-		lda #$24
-		sta VRAM_Buffer1+3, y
-		sta VRAM_Buffer1+4, y
-		lda #0
-		sta VRAM_Buffer1+5, y
-		clc
-		tya
-		adc #5
-		sta VRAM_Buffer1_Offset
-		jmp ReturnBank
-		
 RedrawAllInner:
 		jsr RedrawFramesRemaningInner
-		jmp RedrawFrameNumbersInner
+		jsr RedrawFrameNumbersInner
+		rts
 
 RedrawAll:
 		jsr RedrawFramesRemaningInner
 		jsr RedrawFrameNumbersInner
 		jmp ReturnBank
-		
+
 RedrawFrameNumbersInner:
 		lda OperMode
 		beq @draw ; slighty dumb
@@ -627,24 +609,46 @@ menu_input:
 		jmp LL_UpdatePlayerChange
 
 ChangeWorldNumber:
+	ldx BANK_SELECTED          ; get selected game
 	ldy WorldNumber            ; and current world number
 	lda $0                     ; get input direction
 	cmp #1                     ; check for going right
 	bne @going_left            ; if not - skip to going left
 @going_right:                  ; we are going right
 	iny                        ; advance to next world
+	cpx #BANK_ANN              ; are we playing ANN?
+	bne @checked_ann_r         ; no - skip ahead
 	cpy #8                     ; yes - have we selected world 9
+	bne @checked_ann_r         ; no - skip ahead
+	iny                        ; yep - advance past world 9 (it doesnt exist in ANN)
 @checked_ann_r:                ;
+	cpx #BANK_ORG              ; are we playing smb1?
+	bne @check_ll_r            ; nope - we have more worlds to consider
     cpy #9                     ; yes - are we past the end of the game?
+	bcc @store                 ; no - we're done, store the world
+	ldy #0                     ; yes - wrap around to world 1
+	beq @store                 ; and store
+@check_ll_r:                   ;
+	cpy #$D                    ; we are playing LL / ANN, are we past the end of the game?
 	bcc @store                 ; no - we're done, store the world
 	ldy #0                     ; yes - wrap around to world 1
 	beq @store                 ; and store
 @going_left:                   ; we are going left
 	dey                        ; drop world number by 1
-@checked_ann_l:                ;
-	bpl @store                 ; no - we're done, store the world
-	ldy #8                     ; yes - wrap around to world 1
-	beq @store                 ; and store
+	cpx #BANK_ANN              ; are we playing ANN?
+	bne @checked_ann_l         ; no - skip ahead
+	cpy #8                     ; yes - have we selected world 9?
+	bne @checked_ann_l         ; no - skip ahead
+	dey                        ; yep - decrement past world 9 (it doesnt exist in ANN)
+@checked_ann_l:				   ;
+	cpy #$FF                   ; have we wrapped around?
+	bne @store                 ; no - we're done, store the world
+	cpx #BANK_ORG              ; are we playing smb1?
+	bne @check_ll_l            ; nope - we have more worlds to consider
+	ldy #$08                   ; yes - wrap around to world 9
+	bne @store                 ; and store
+@check_ll_l:                   ;
+    ldy #$0C                   ; we are playing LL / ANN, wrap to world D
 @store:                        ;
 	sty WorldNumber            ; update selected world
 	rts                        ; and exit
@@ -676,6 +680,9 @@ WriteRulePointer:
 		asl ; *=16
 		cmp #(8*16)
 		bcc @store
+		ldx BANK_SELECTED
+		cpx #BANK_ANN
+		bne @store
 		sec
 		sbc #16 ;subtract offset for nippon ext, no world 9
 @store:
@@ -685,6 +692,26 @@ WriteRulePointer:
 		asl ; *=4
 		clc
 		adc $04
+		ldx BANK_SELECTED
+		cpx #BANK_ORG
+		beq @is_org
+		cpx #BANK_SMBLL
+		beq @is_lost
+		clc
+		adc #<WRAM_NipponRules
+		sta $04
+		lda #0
+		adc #>WRAM_NipponRules
+		sta $05
+		rts
+@is_lost:
+		clc
+		adc #<WRAM_LostRules
+		sta $04
+		lda #0
+		adc #>WRAM_LostRules
+		sta $05
+		rts
 @is_org:
 		clc
 		adc #<WRAM_OrgRules
@@ -696,6 +723,8 @@ WriteRulePointer:
 
 toggle_second_quest:
 		lda BANK_SELECTED
+		cmp #BANK_SMBLL
+		beq @is_ll
 		lda PrimaryHardMode
 		eor #1
 		sta PrimaryHardMode
@@ -723,8 +752,7 @@ toggle_second_quest:
 		inx
 		stx VRAM_Buffer1_Offset
 		rts
-		
-toggle_rng_offset:
+@is_ll:
 		ldy CategorySelect
 		iny
 		cpy #$03
@@ -736,13 +764,11 @@ toggle_rng_offset:
 		tya
 		asl
 		tay
-@org_pointers:
 		lda CategoryPointers,y
 		sta $00
 		lda CategoryPointers+1,y
 		sta $01
 		ldy #$00
-		beq @VRAMBufferLoop	
 @VRAMBufferLoop:
 		lda ($00),y
 		cmp #$ff
@@ -759,17 +785,22 @@ toggle_rng_offset:
 		sta VRAM_Buffer1_Offset
 		rts
 
-CopyrightText1985:
-	.byte $21, $ed, $0e, $cf, $01, $09, $08, $05, $24, $17, $12, $17, $1d
+CopyrightText:
+	.byte $21, $ef, $0e, $cf, $01, $09, $08, $06, $24, $17, $12, $17, $1d
 	.byte $0e, $17, $0d, $18, $ff
-
-BothQuestText:
-	.byte $21, $ed, $0e, $24, $24, $24, $0b, $18, $1d, $11, $24, $1a, $1e 
-	.byte $0e, $1c, $1d, $1c, $ff
+	
+BothEndText:
+	.byte $21, $ef, $0e, $24, $24, $0b, $18, $1d, $11, $24, $0e, $17, $0d 
+	.byte $12, $17, $10, $1c, $ff
+	
+AllStagesText:
+	.byte $21, $ef, $0e, $24, $24, $24, $24, $0a, $15, $15, $24, $1c, $1d
+	.byte $0a, $10, $0e, $1c, $ff
 	
 CategoryPointers:
-	.word CopyrightText1985
-	.word BothQuestText
+	.word CopyrightText
+	.word BothEndText
+	.word AllStagesText
 
 nuke_timer:
 		lda #0
@@ -803,12 +834,7 @@ PracticeTitleMenu:
 		jmp @dec_timer
 @check_b:
 		cmp #B_Button
-		beq @sq
-		cmp #A_Button
 		bne @check_input
-		jsr toggle_rng_offset
-		jmp @dec_timer
-@sq:
 		jsr toggle_second_quest
 		jmp @dec_timer
 @check_input:
@@ -876,7 +902,13 @@ PracticeOnFrameInner:
 		beq @no_queued_commands
 		jmp run_save_load
 @no_queued_commands:
+		lda BANK_SELECTED
+		cmp #BANK_ORG
+		bne @lost_sound
 		jsr SoundEngine
+		jmp @read_keypads
+@lost_sound:
+		jsr LL_SoundEngine
 @read_keypads:
 		lda SavedJoypad1Bits
 		ora JoypadBitMask
@@ -910,7 +942,18 @@ PracticeOnFrameInner:
 		cmp #GameModeValue
 		bne @exit
 		lda OperMode_Task
-        cmp #$03
+		ldy BANK_SELECTED
+:		cpy #BANK_SMBLL
+		bne :+
+        cmp #$04
+		bmi @exit
+		bpl @check_pause
+:		cpy #BANK_ANN
+		bne :+
+        cmp #$05
+		bmi @exit
+		bpl @check_pause
+:       cmp #$03
 		bmi @exit
 @check_pause:
 		; TODO RENABLE
@@ -935,9 +978,6 @@ DontUpdateSockHash:
 		rts
 
 ForceUpdateSockHashInner:
-		lda GameEngineSubroutine
-		cmp #$0b
-		beq skip_sock_hash
 		lda WRAM_PracticeFlags
         and #PF_DisablePracticeInfo
         bne DontUpdateSockHash
@@ -1010,6 +1050,8 @@ LoadState:
 		sta GamePauseStatus
 		rts
 @do_loadstate:
+		lda #$FF
+		sta WRAM_Timer+1 ; Invalidate timer
 		ldx #$7F
 @save_wram:
 		lda WRAM_SaveWRAM, x
@@ -1233,22 +1275,11 @@ SaveState:
 		stx VRAM_Buffer1+off+0
 .endmacro
 
-.macro HideRedrawUserVar off
-		lda #$24
-		sta VRAM_Buffer1+off+2
-		sta VRAM_Buffer1+off+1
-		sta VRAM_Buffer1+off+0
-.endmacro
-
 noredraw_dec:
 		dec WRAM_UserFramesLeft
 noredraw:
 		jmp UpdateStatusInput
-hide:
-		HideRedrawUserVar 3
-		HideRedrawUserVar 7
-		jmp terminate
-		
+
 RedrawUserVars:
 		lda WRAM_UserFramesLeft
 		bne noredraw_dec
@@ -1262,16 +1293,21 @@ RedrawUserVars:
 		sta VRAM_Buffer1+2
 		lda #$24
 		sta VRAM_Buffer1+6
-		lda WRAM_PracticeFlags
-        and #PF_DisablePracticeInfo
-        bne hide
+
+		lda BANK_SELECTED
+		cmp #BANK_ORG
+		beq @is_org
+		RedrawUserVar WRAM_LostUser0, 3
+		RedrawUserVar WRAM_LostUser1, 7
+		jmp @terminate
+@is_org:
 		RedrawUserVar WRAM_OrgUser0, 3
 		RedrawUserVar WRAM_OrgUser1, 7
-terminate:
+@terminate:
 		sty VRAM_Buffer1+$0A
 		lda WRAM_DelayUserFrames
 		sta WRAM_UserFramesLeft
-		
+
 UpdateStatusInput:
     lda WRAM_PracticeFlags
 	and #PF_EnableInputDisplay
@@ -1405,10 +1441,6 @@ RestartLevel:
 		sta PlayerStatus
 		lda WRAM_LevelPlayerSize
 		sta PlayerSize
-		lda WRAM_LevelEntrancePage
-		sta EntrancePage
-		lda #$00
-		sta JoypadOverride
 		ldx #6
 @copy_random:
 		lda WRAM_LevelRandomData, x
@@ -1443,8 +1475,6 @@ ProcessLevelLoad:
 		bne @done
 		lda IntervalTimerControl
 		sta WRAM_LevelIntervalTimerControl
-		lda EntrancePage
-		sta WRAM_LevelEntrancePage
 		lda FrameCounter
 		sta WRAM_LevelFrameCounter
 		lda PlayerStatus
@@ -1460,6 +1490,7 @@ ProcessLevelLoad:
 		sta WRAM_LevelRandomData, x
 		dex
 		bpl @save_random
+
 		ldx #$3
 @save_rule:
 		lda FrameRuleData, x
@@ -1468,13 +1499,14 @@ ProcessLevelLoad:
 		bpl @save_rule
 @done:
 		jmp ReturnBank
-		
 
 
 PracticeInit:
 		lda #0
 		sta WRAM_Timer
 		sta WRAM_Timer+1
+		sta WRAM_SlowMotion
+		sta WRAM_SlowMotionLeft
 		sta WRAM_MenuIndex
 		;
 		; Dont reset the SaveStateBank right?
@@ -1511,7 +1543,6 @@ RedrawSockTimer:
 @use_as_is:
 		lda IntervalTimerControl
 @write_it:
-		sta WRAM_AreaSockTimer
 		sta VRAM_Buffer1+3,x
 		lda #0
 		sta VRAM_Buffer1+4,x
@@ -1565,19 +1596,15 @@ SetDefaultWRAM:
 		lda #<Player_Rel_XPos
 		sta WRAM_OrgUser0
 		sta WRAM_LostUser0
-		sta WRAM_NipponUser0
 		lda #>Player_Rel_XPos
 		sta WRAM_OrgUser0+1
 		sta WRAM_LostUser0+1
-		sta WRAM_NipponUser0+1
 		lda #<Player_X_MoveForce
 		sta WRAM_OrgUser1
 		sta WRAM_LostUser1
-		sta WRAM_NipponUser1
 		lda #>Player_X_MoveForce
 		sta WRAM_OrgUser1+1
 		sta WRAM_LostUser1+1
-		sta WRAM_NipponUser1+1
 
 		lda #30
 		sta WRAM_DelaySaveFrames

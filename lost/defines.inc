@@ -1,11 +1,23 @@
-PPU_CTRL_REG1         = $2000
-PPU_CTRL_REG2         = $2001
+
+;-------------------------------------------------------------------------------------
+;DEFINES
+
+ANNMushroomRetainerGfxHandler = $77c
+
+;NES specific hardware defines
+
+PPU_CTRL              = $2000
+PPU_MASK              = $2001
 PPU_STATUS            = $2002
 PPU_SPR_ADDR          = $2003
 PPU_SPR_DATA          = $2004
-PPU_SCROLL_REG        = $2005
+PPU_SCROLL            = $2005
 PPU_ADDRESS           = $2006
 PPU_DATA              = $2007
+
+PPU_CTRL_REG1         = $2000
+PPU_CTRL_REG2         = $2001
+PPU_SCROLL_REG        = $2005
 
 SND_REGISTER          = $4000
 SND_SQUARE1_REG       = $4000
@@ -14,23 +26,29 @@ SND_TRIANGLE_REG      = $4008
 SND_NOISE_REG         = $400c
 SND_DELTA_REG         = $4010
 SND_MASTERCTRL_REG    = $4015
-SND_VOLENV_REG        = $4080
-SND_FDS0_REG          = $4040
-SND_FDS1_REG          = $4041
-SND_PULSE_4002_REG    = $4002
-SND_PULSE_4003_REG    = $4003
-SND_PULSE_4004_REG    = $4004
-SND_PULSE_4005_REG    = $4005
-SND_PULSE_4006_REG    = $4006
-SND_TRIANGLE_400A_REG = $400A
-SND_TRIANGLE_400B_REG = $400B
-SND_NOISE_400E_REG    = $400E
-SND_NOISE_400F_REG    = $400F
 
 SPR_DMA               = $4014
 JOYPAD_PORT           = $4016
 JOYPAD_PORT1          = $4016
 JOYPAD_PORT2          = $4017
+
+; MMC5 MAPPER DEFINES
+
+MMC5_PRGMode          = $5100
+MMC5_CHRMode          = $5101
+MMC5_RAMProtect1      = $5102
+MMC5_RAMProtect2      = $5103
+MMC5_ExRamMode        = $5104
+MMC5_Nametables       = $5105
+MMC5_FillTile         = $5106
+MMC5_CHRBank          = $5120
+MMC5_PRGBank          = $5113
+MMC5_VSplitMode       = $5200
+MMC5_VSplitScroll     = $5201
+MMC5_VSplitBank       = $5202
+MMC5_SLCompare        = $5203
+MMC5_SLIRQ            = $5204
+MMC5_ExRamOfs         = $3C00
 
 ; GAME SPECIFIC DEFINES
 
@@ -51,12 +69,21 @@ Left_Right_Buttons    = $0c
 
 GameEngineSubroutine  = $0e
 
+Mirror_PPU_CTRL       = $0778
+Mirror_PPU_MASK       = $0779
+
 Mirror_PPU_CTRL_REG1  = $0778
 Mirror_PPU_CTRL_REG2  = $0779
+Mirror_FDS_CTRL_REG   = $fa
+NameTableSelect       = $077a
+FileListNumber        = $07f7
 
 OperMode              = $0770
 OperMode_Task         = $0772
 ScreenRoutineTask     = $073c
+
+DiskIOTask            = $07fc
+NotColdFlag           = $07fd
 
 GamePauseStatus       = $0776
 GamePauseTimer        = $0777
@@ -90,6 +117,7 @@ StarInvincibleTimer   = $079f
 ScreenTimer           = $07a0
 WorldEndTimer         = $07a1
 DemoTimer             = $07a2
+FantasyW9MsgFlag      = $07f5
 
 Sprite_Data           = $0200
 
@@ -109,8 +137,16 @@ PlayerFacingDir       = $33
 DestinationPageLoc    = $34
 VictoryWalkControl    = $35
 ScrollFractional      = $0768
-PrimaryMsgCounter     = $0719
 SecondaryMsgCounter   = $0749
+MsgCounter            = $0719
+MsgFractional         = $0749
+
+EndControlCntr        = $0761
+BlueColorOfs          = $0762
+BlueDelayFlag         = $0763
+MushroomRetDelay      = $0764
+MRetainerOffset       = $0762
+CurrentFlashMRet      = $0763
 
 HorizontalScroll      = $073f
 VerticalScroll        = $0740
@@ -157,6 +193,7 @@ TopScoreDisplay       = $07d7
 ScoreAndCoinDisplay   = $07dd
 PlayerScoreDisplay    = $07dd
 GameTimerDisplay      = $07f8
+CoinDisplay           = $07e7
 DigitModifier         = $0134
 
 VerticalFlipFlag      = $0109
@@ -170,13 +207,15 @@ FlagpoleFNum_YMFDummy = $010e
 FlagpoleScore         = $010f
 FlagpoleCollisionYPos = $070f
 StompChainCounter     = $0484
+FlagpoleMusicFlag     = $07f6
 
 VRAM_Buffer1_Offset   = $0300
 VRAM_Buffer1          = $0301
 VRAM_Buffer2_Offset   = $0340
 VRAM_Buffer2          = $0341
 VRAM_Buffer_AddrCtrl  = $0773
-Sprite0HitDetectFlag  = $0722
+IRQAckFlag			  = $077b
+IRQUpdateFlag  		  = $0722
 DisableScreenFlag     = $0774
 DisableIntermediate   = $0769
 ColorRotateOffset     = $06d4
@@ -195,7 +234,6 @@ PlayerEntranceCtrl    = $0710
 GameTimerSetting      = $0715
 AltEntranceControl    = $0752
 EntrancePage          = $0751
-NumberOfPlayers       = $077a
 WarpZoneControl       = $06d6
 ChangeAreaTimer       = $06de
 
@@ -208,25 +246,16 @@ GameTimerExpiredFlag  = $0759
 PrimaryHardMode       = $076a
 SecondaryHardMode     = $06cc
 WorldSelectNumber     = $076b
-WorldSelectEnableFlag = $07fc
-ContinueWorld         = $07fd
+CompletedWorlds       = $07fe
+HardWorldFlag         = $07fb
+ContinueMenuSelect    = $07f8
 
-.define IsPlayingLuigi CurrentPlayer
-
-CurrentPlayer         = $0753
+SelectedPlayer        = $0753
 PlayerSize            = $0754
 PlayerStatus          = $0756
 
 ;OnscreenPlayerInfo    = $075a
 ;NumberofLives         = $075a ;used by current player
-HalfwayPage           = $075b
-LevelNumber           = $075c ;the actual dash number
-Hidden1UpFlag         = $075d
-CoinTally             = $075e
-WorldNumber           = $075f
-AreaNumber            = $0760 ;internal number used to find areas
-
-CoinTallyFor1Ups      = $0748
 
 OffscreenPlayerInfo   = $0761
 OffScr_NumberofLives  = $0761 ;used by offscreen player
@@ -236,6 +265,14 @@ OffScr_Hidden1UpFlag  = $0764
 OffScr_CoinTally      = $0765
 OffScr_WorldNumber    = $0766
 OffScr_AreaNumber     = $0767
+
+HalfwayPage           = $075b
+LevelNumber           = $075c ;the actual dash number
+Hidden1UpFlag         = $075d
+WorldNumber           = $075f
+AreaNumber            = $0760 ;internal number used to find areas
+
+CoinTallyFor1Ups      = $0748
 
 BalPlatformAlignment  = $03a0
 Platform_X_Scroll     = $03a1
@@ -247,6 +284,7 @@ BrickCoinTimerFlag    = $06bc
 StarFlagTaskControl   = $0746
 
 PseudoRandomBitReg    = $07a7
+WarmBootValidation    = $07ff
 
 SprShuffleAmtOffset   = $06e0
 SprShuffleAmt         = $06e1
@@ -388,6 +426,8 @@ CrouchingFlag         = $0714
 MaximumLeftSpeed      = $0450
 MaximumRightSpeed     = $0456
 
+WindFlag              = $075e
+
 SprObject_OffscrBits  = $03d0
 Player_OffscreenBits  = $03d0
 Enemy_OffscreenBits   = $03d1
@@ -521,6 +561,8 @@ AreaMusicBuffer       = $f4
 EventMusicBuffer      = $07b1
 PauseSoundBuffer      = $07b2
 
+PatternNumber         = $061d
+
 MusicData             = $f5
 MusicDataLow          = $f5
 MusicDataHigh         = $f6
@@ -614,6 +656,7 @@ JumpspringObject      = $32
 BulletBill_CannonVar  = $33
 RetainerObject        = $35
 TallEnemy             = $09
+UpsideDownPiranhaP    = $04
 
 ;other constants
 World1 = 0
@@ -624,6 +667,7 @@ World5 = 4
 World6 = 5
 World7 = 6
 World8 = 7
+World9 = 8
 Level1 = 0
 Level2 = 1
 Level3 = 2
@@ -631,7 +675,6 @@ Level4 = 3
 
 WarmBootOffset        = <$07d6
 ColdBootOffset        = <$07fe
-TitleScreenDataOffset = $1ec0
 SoundMemory           = $07b0
 
 .define SwimTileRepOffset		PlayerGraphicsTable + $9e
@@ -647,7 +690,7 @@ Down_Dir              = %00000100
 Left_Dir              = %00000010
 Right_Dir             = %00000001
 
-TitleScreenModeValue  = 0
-GameModeValue         = 1
-VictoryModeValue      = 2
-GameOverModeValue     = 3
+AttractMode           = 0
+GameMode              = 1
+VictoryMode           = 2
+GameOverMode          = 3

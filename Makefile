@@ -5,8 +5,16 @@ OUT = build
 OBJECTS = $(OUT)/intro.o \
           $(OUT)/original.o \
           $(OUT)/common.o \
+          $(OUT)/lost.o \
+          $(OUT)/nippon.o \
+          $(OUT)/ll-leveldata.o \
+          $(OUT)/ann-leveldata.o \
           $(OUT)/dummy.o \
           $(OUT)/ines.o
+
+SCENARIOS = scen/templates/1-2g_hi.json \
+			scen/templates/1-2g_lo.json \
+			scen/templates/1-1_d70.json
 
 WRAM = inc/wram.inc \
 		wram/full.bin \
@@ -44,7 +52,7 @@ wram/full.bin $(OUT)/ram_layout.map: wram/ram_layout.asm
 $(GEN_SCENARIOS): scripts/genscenarios.py $(SCENARIOS)
 	python scripts/genscenarios.py $(SCENARIOS) > $(GEN_SCENARIOS)
 
-$(OUT)/intro.o: $(INCS) intro/intro.asm intro/faxsound.asm intro/intro.inc intro/smlsound.asm intro/nt.asm intro/settings.asm
+$(OUT)/intro.o: $(INCS) intro/intro.asm intro/faxsound.asm intro/intro.inc intro/records.asm intro/smlsound.asm intro/nt.asm intro/settings.asm
 	$(AS) $(AFLAGS) -l $(OUT)/intro.map intro/intro.asm -o $@
 
 chr/full.chr: chr/build_chr.sh
@@ -59,7 +67,7 @@ $(OUT)/original.o: $(INCS) org/original.asm
 $(OUT)/ines.o: $(INCS) common/ines.asm
 	$(AS) $(AFLAGS) -l $(OUT)/ines.map common/ines.asm -o $@
 
-$(OUT)/common.o: common/common.asm common/sound.asm common/practice.asm
+$(OUT)/common.o: common/common.asm common/sound.asm common/sound-ll.asm common/practice.asm
 	$(AS) $(AFLAGS) -l $(OUT)/common.map common/common.asm -o $@
 
 $(OUT)/scenario_data.o: $(INCS) $(GEN_SCENARIOS) scen/scen_exports.asm
@@ -67,6 +75,18 @@ $(OUT)/scenario_data.o: $(INCS) $(GEN_SCENARIOS) scen/scen_exports.asm
 
 $(OUT)/scenarios.o: $(INCS) scen/scenarios.asm
 	$(AS) $(AFLAGS) -l $(OUT)/scenarios.map scen/scenarios.asm -o $@
+
+$(OUT)/lost.o: $(INCS) $(WRAM) lost/lost.asm
+	$(AS) $(AFLAGS) -l $(OUT)/lost.map lost/lost.asm -o $@
+
+$(OUT)/nippon.o: $(INCS) $(WRAM) lost/lost.asm
+	$(AS) $(AFLAGS) -l $(OUT)/nippon.map -D ANN=1 lost/lost.asm -o $@
+	
+$(OUT)/ll-leveldata.o: lost/leveldata.asm
+	$(AS) $(AFLAGS) -l $(OUT)/ll-leveldata.map lost/leveldata.asm -o $@
+
+$(OUT)/ann-leveldata.o: lost/leveldata.asm
+	$(AS) $(AFLAGS) -l $(OUT)/ann-leveldata.map -D ANN=1 lost/leveldata.asm -o $@
 	
 smb.nes: $(OBJECTS) chr/full.chr
 	$(LD) -C scripts/link.cfg \
@@ -75,6 +95,10 @@ smb.nes: $(OBJECTS) chr/full.chr
 		$(OUT)/dummy.o \
 		$(OUT)/original.o \
 		$(OUT)/common.o \
+		$(OUT)/lost.o \
+		$(OUT)/nippon.o \
+		$(OUT)/ll-leveldata.o \
+		$(OUT)/ann-leveldata.o \
 		--dbgfile "smb.dbg" \
 		-o smb.tmp
 	cat smb.tmp chr/full.chr > smb.nes

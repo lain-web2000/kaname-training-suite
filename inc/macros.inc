@@ -85,6 +85,11 @@
 		jsr SetBankFromA
 		jmp RedrawAll
 
+	Enter_HideRemainingFrames:
+		lda #BANK_COMMON
+		jsr SetBankFromA
+		jmp HideRemainingFrames
+		
 	Enter_RedrawFrameNumbers:
 		lda #BANK_COMMON
 		jsr SetBankFromA

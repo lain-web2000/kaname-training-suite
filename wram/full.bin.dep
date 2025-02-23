@@ -1,0 +1,4 @@
+build/ram_layout.o:	wram/ram_layout.asm inc/text.inc
+
+wram/ram_layout.asm inc/text.inc:
+

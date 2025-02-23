@@ -172,6 +172,12 @@ _draw_pm_row_7:
 		lda BANK_SELECTED
 		cmp #BANK_ORG
 		beq @is_org
+		cmp #BANK_SMBLL
+		beq @is_lost
+		lda WRAM_NipponUser0
+		ldx WRAM_NipponUser0+1
+		jmp @save
+@is_lost:
 		lda WRAM_LostUser0
 		ldx WRAM_LostUser0+1
 		jmp @save
@@ -181,19 +187,22 @@ _draw_pm_row_7:
 @save:
 		sta $00
 		stx $01
-		lda #$21 ; X
+		lda #$0A ; A
 		sta $02
 		jsr copy_user_row
 		row_render_data $2160, CustomRow
 		rts
 
 _draw_pm_row_8:
-		row_render_data $23D8, pm_attr_data
-		inc $07
-		jsr draw_prepared_row
 		lda BANK_SELECTED
 		cmp #BANK_ORG
 		beq @is_org
+		cmp #BANK_SMBLL
+		beq @is_lost
+		lda WRAM_NipponUser1
+		ldx WRAM_NipponUser1+1
+		jmp @save
+@is_lost:
 		lda WRAM_LostUser1
 		ldx WRAM_LostUser1+1
 		jmp @save
@@ -203,13 +212,16 @@ _draw_pm_row_8:
 @save:
 		sta $00
 		stx $01
-		lda #$22 ; Y
+		lda #$0B ; B
 		sta $02
 		jsr copy_user_row
 		row_render_data $2180, CustomRow
 		rts
 
 _draw_pm_row_10:
+		row_render_data $23D8, pm_attr_data
+		inc $07
+		jsr draw_prepared_row
 		row_render_data $21A0, pm_star_row
 		rts
 
@@ -352,10 +364,10 @@ draw_prepared_row:
 		sbc $05
 		sta $06
 @all_on_next:
-	pla
+		pla
 		eor #$04
 		sta $01
-	pla
+		pla
 		sta $00
 		lda $06
 		beq @done
@@ -511,7 +523,7 @@ pm_toggle_info:
 		sta VRAM_Buffer1+1,x
 		lda #$01 ; len
 		sta VRAM_Buffer1+2,x
-		lda WRAM_EntrySockTimer
+		lda WRAM_AreaSockTimer
 		sta VRAM_Buffer1+3, x
 		lda #$00
 		sta VRAM_Buffer1+4, x
@@ -543,9 +555,9 @@ pm_toggle_input:
 		sta VRAM_Buffer1+6, x
 		sta VRAM_Buffer1+7, x
 		sta VRAM_Buffer1+9, x
-		lda #$21 ; X
+		lda #$0a ; A
 		sta VRAM_Buffer1+4, x
-		lda #$22 ; Y
+		lda #$0b ; B
 		sta VRAM_Buffer1+8, x
 		lda #$00
 		sta VRAM_Buffer1+10, x
@@ -640,14 +652,26 @@ get_user_selected:
 		lda BANK_SELECTED
 		cmp #BANK_ORG
 		beq @is_org
+		cmp #BANK_SMBLL
+		beq @is_lost
 		cpx #6
-		bne @is_0
-		lda #<WRAM_LostUser0
-		ldx #>WRAM_LostUser0
+		beq @is_nippon_0
+		lda #<WRAM_NipponUser1
+		ldx #>WRAM_NipponUser1
 		jmp @save
-@is_0:
+@is_nippon_0:
+		lda #<WRAM_NipponUser0
+		ldx #>WRAM_NipponUser0
+		jmp @save
+@is_lost:
+		cpx #6
+		beq @is_lost_0
 		lda #<WRAM_LostUser1
 		ldx #>WRAM_LostUser1
+		jmp @save
+@is_lost_0:
+		lda #<WRAM_LostUser0
+		ldx #>WRAM_LostUser0
 		jmp @save
 @is_org:
 		cpx #6

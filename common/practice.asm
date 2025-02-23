@@ -221,7 +221,7 @@ SaveFrameCounter:
 
 TopText:
 	text_block $2044, "RULE * FRAME"
-	text_block $2051, " X   Y  TIME R "
+	text_block $2051, " A   B  TIME R "
 	.byte $20, $6b, $02, $2e, $29 ; score trailing digit and coin display
 	.byte $23, $c0, $7f, $aa ; attribute table data, clears name table 0 to palette 2
 	.byte $23, $c2, $01, $ea ; attribute table data, used for coin icon in status bar
@@ -266,16 +266,34 @@ RedrawFramesRemaningInner:
 		sta VRAM_Buffer1_Offset
 nodraw:	rts
 
+HideRemainingFrames:
+		ldy VRAM_Buffer1_Offset
+		lda #$20
+		sta VRAM_Buffer1, y
+		lda #$7E
+		sta VRAM_Buffer1+1, y
+		lda #$02
+		sta VRAM_Buffer1+2, y
+		lda #$24
+		sta VRAM_Buffer1+3, y
+		sta VRAM_Buffer1+4, y
+		lda #0
+		sta VRAM_Buffer1+5, y
+		clc
+		tya
+		adc #5
+		sta VRAM_Buffer1_Offset
+		jmp ReturnBank
+		
 RedrawAllInner:
 		jsr RedrawFramesRemaningInner
-		jsr RedrawFrameNumbersInner
-		rts
+		jmp RedrawFrameNumbersInner
 
 RedrawAll:
 		jsr RedrawFramesRemaningInner
 		jsr RedrawFrameNumbersInner
 		jmp ReturnBank
-
+		
 RedrawFrameNumbersInner:
 		lda OperMode
 		beq @draw ; slighty dumb
@@ -697,6 +715,11 @@ WriteRulePointer:
 		beq @is_org
 		cpx #BANK_SMBLL
 		beq @is_lost
+@is_nippon:
+		ldx CurrentPlayer
+		cpx #$01
+		beq @is_luigi_n
+@is_mario_n:		
 		clc
 		adc #<WRAM_NipponRules
 		sta $04
@@ -704,12 +727,32 @@ WriteRulePointer:
 		adc #>WRAM_NipponRules
 		sta $05
 		rts
+@is_luigi_n:		
+		clc
+		adc #<WRAM_NipponRules_L
+		sta $04
+		lda #0
+		adc #>WRAM_NipponRules_L
+		sta $05
+		rts
 @is_lost:
+		ldx CurrentPlayer
+		cpx #$01
+		beq @is_luigi
+@is_mario:
 		clc
 		adc #<WRAM_LostRules
 		sta $04
 		lda #0
 		adc #>WRAM_LostRules
+		sta $05
+		rts
+@is_luigi:
+		clc
+		adc #<WRAM_LostRules_L
+		sta $04
+		lda #0
+		adc #>WRAM_LostRules_L
 		sta $05
 		rts
 @is_org:
@@ -753,9 +796,36 @@ toggle_second_quest:
 		stx VRAM_Buffer1_Offset
 		rts
 @is_ll:
+		lda CompletedWorlds
+		eor #$ff
+		sta CompletedWorlds
+		ldx VRAM_Buffer1_Offset
+		lda #$3F
+		sta VRAM_Buffer1,x
+		lda #$00
+		sta VRAM_Buffer1+1,x
+		sta VRAM_Buffer1+4,x
+		lda #$01
+		sta VRAM_Buffer1+2,x
+		lda #$0f ; Warpless color
+		ldy CompletedWorlds
+		bne @set_color
+		lda #$22 ; Lost color
+		bne @set_color
+		rts
+		
+toggle_rng_offset:
 		ldy CategorySelect
 		iny
+		lda BANK_SELECTED
+		cmp #BANK_SMBLL
+		bne @not_ll
 		cpy #$03
+		bcc @InRange
+		ldy #$00
+		beq @InRange
+@not_ll:
+		cpy #$02
 		bcc @InRange
 		ldy #$00
 @InRange:
@@ -764,11 +834,31 @@ toggle_second_quest:
 		tya
 		asl
 		tay
+		lda BANK_SELECTED
+		cmp #BANK_SMBLL
+		beq @lost_pointers
+		cmp #BANK_ANN
+		beq @nippon_pointers
+@org_pointers:
 		lda CategoryPointers,y
 		sta $00
 		lda CategoryPointers+1,y
 		sta $01
 		ldy #$00
+		beq @VRAMBufferLoop
+@lost_pointers:
+		lda CategoryPointers_L,y
+		sta $00
+		lda CategoryPointers_L+1,y
+		sta $01
+		ldy #$00
+		beq @VRAMBufferLoop
+@nippon_pointers:
+		lda CategoryPointers_N,y
+		sta $00
+		lda CategoryPointers_N+1,y
+		sta $01
+		ldy #$00		
 @VRAMBufferLoop:
 		lda ($00),y
 		cmp #$ff
@@ -785,22 +875,46 @@ toggle_second_quest:
 		sta VRAM_Buffer1_Offset
 		rts
 
-CopyrightText:
+CopyrightText1985:
+	.byte $21, $ed, $0e, $cf, $01, $09, $08, $05, $24, $17, $12, $17, $1d
+	.byte $0e, $17, $0d, $18, $ff
+		
+CopyrightText1986:
+	.byte $21, $ee, $0e, $cf, $01, $09, $08, $06, $24, $17, $12, $17, $1d
+	.byte $0e, $17, $0d, $18, $ff	
+	
+CopyrightText1986_L:
 	.byte $21, $ef, $0e, $cf, $01, $09, $08, $06, $24, $17, $12, $17, $1d
 	.byte $0e, $17, $0d, $18, $ff
 	
 BothEndText:
 	.byte $21, $ef, $0e, $24, $24, $0b, $18, $1d, $11, $24, $0e, $17, $0d 
 	.byte $12, $17, $10, $1c, $ff
+
+BothQuestText:
+	.byte $21, $ed, $0e, $24, $24, $24, $0b, $18, $1d, $11, $24, $1a, $1e 
+	.byte $0e, $1c, $1d, $1c, $ff
 	
 AllStagesText:
 	.byte $21, $ef, $0e, $24, $24, $24, $24, $0a, $15, $15, $24, $1c, $1d
 	.byte $0a, $10, $0e, $1c, $ff
 	
-CategoryPointers:
-	.word CopyrightText
+AllStagesText_N:
+	.byte $21, $ee, $0e, $24, $24, $24, $24, $0a, $15, $15, $24, $1c, $1d
+	.byte $0a, $10, $0e, $1c, $ff
+	
+CategoryPointers_L:
+	.word CopyrightText1986_L
 	.word BothEndText
 	.word AllStagesText
+	
+CategoryPointers_N:
+	.word CopyrightText1986
+	.word AllStagesText_N
+	
+CategoryPointers:
+	.word CopyrightText1985
+	.word BothQuestText
 
 nuke_timer:
 		lda #0
@@ -834,7 +948,12 @@ PracticeTitleMenu:
 		jmp @dec_timer
 @check_b:
 		cmp #B_Button
+		beq @sq
+		cmp #A_Button
 		bne @check_input
+		jsr toggle_rng_offset
+		jmp @dec_timer
+@sq:
 		jsr toggle_second_quest
 		jmp @dec_timer
 @check_input:
@@ -978,6 +1097,9 @@ DontUpdateSockHash:
 		rts
 
 ForceUpdateSockHashInner:
+		lda GameEngineSubroutine
+		cmp #$0b
+		beq skip_sock_hash
 		lda WRAM_PracticeFlags
         and #PF_DisablePracticeInfo
         bne DontUpdateSockHash
@@ -1050,8 +1172,6 @@ LoadState:
 		sta GamePauseStatus
 		rts
 @do_loadstate:
-		lda #$FF
-		sta WRAM_Timer+1 ; Invalidate timer
 		ldx #$7F
 @save_wram:
 		lda WRAM_SaveWRAM, x
@@ -1275,11 +1395,22 @@ SaveState:
 		stx VRAM_Buffer1+off+0
 .endmacro
 
+.macro HideRedrawUserVar off
+		lda #$24
+		sta VRAM_Buffer1+off+2
+		sta VRAM_Buffer1+off+1
+		sta VRAM_Buffer1+off+0
+.endmacro
+
 noredraw_dec:
 		dec WRAM_UserFramesLeft
 noredraw:
 		jmp UpdateStatusInput
-
+hide:
+		HideRedrawUserVar 3
+		HideRedrawUserVar 7
+		jmp terminate
+		
 RedrawUserVars:
 		lda WRAM_UserFramesLeft
 		bne noredraw_dec
@@ -1293,21 +1424,29 @@ RedrawUserVars:
 		sta VRAM_Buffer1+2
 		lda #$24
 		sta VRAM_Buffer1+6
-
+		lda WRAM_PracticeFlags
+        and #PF_DisablePracticeInfo
+        bne hide
 		lda BANK_SELECTED
 		cmp #BANK_ORG
 		beq @is_org
+		cmp #BANK_ANN
+		beq @is_nippon
 		RedrawUserVar WRAM_LostUser0, 3
 		RedrawUserVar WRAM_LostUser1, 7
-		jmp @terminate
+		jmp terminate
 @is_org:
 		RedrawUserVar WRAM_OrgUser0, 3
 		RedrawUserVar WRAM_OrgUser1, 7
-@terminate:
+		jmp terminate
+@is_nippon:
+		RedrawUserVar WRAM_NipponUser0, 3
+		RedrawUserVar WRAM_NipponUser1, 7
+terminate:
 		sty VRAM_Buffer1+$0A
 		lda WRAM_DelayUserFrames
 		sta WRAM_UserFramesLeft
-
+		
 UpdateStatusInput:
     lda WRAM_PracticeFlags
 	and #PF_EnableInputDisplay
@@ -1441,6 +1580,10 @@ RestartLevel:
 		sta PlayerStatus
 		lda WRAM_LevelPlayerSize
 		sta PlayerSize
+		lda WRAM_LevelEntrancePage
+		sta EntrancePage
+		lda #$00
+		sta JoypadOverride
 		ldx #6
 @copy_random:
 		lda WRAM_LevelRandomData, x
@@ -1475,6 +1618,8 @@ ProcessLevelLoad:
 		bne @done
 		lda IntervalTimerControl
 		sta WRAM_LevelIntervalTimerControl
+		lda EntrancePage
+		sta WRAM_LevelEntrancePage
 		lda FrameCounter
 		sta WRAM_LevelFrameCounter
 		lda PlayerStatus
@@ -1490,23 +1635,57 @@ ProcessLevelLoad:
 		sta WRAM_LevelRandomData, x
 		dex
 		bpl @save_random
-
 		ldx #$3
 @save_rule:
 		lda FrameRuleData, x
 		sta WRAM_LevelFrameRuleData, x
 		dex
 		bpl @save_rule
+		lda BANK_SELECTED
+		cmp #BANK_SMBLL
+		beq @warpless_2j
 @done:
 		jmp ReturnBank
+@warpless_2j:
+		lda CompletedWorlds
+		cmp #$ff
+		bne @done
+		lda WorldNumber								 ;
+		cmp #World7									 ; Are we in World 7 or 8?
+		beq @World7Setup							 ; If yes, go and check the area number
+		cmp #World8									 ; 
+		beq @World8Setup							 ; 
+		cmp #World3									 ; Are we in World C? (ignore the label please)
+		bne @done								 	 ; No? Leave.
+@WorldCSetup:									 	 ;
+		lda HardWorldFlag							 ; Is this C-1 or 3-1?
+		beq @done									 ; get the hell out of here, 3-1 doesn't have a wrong warp.
+		lda LevelNumber								 ; Are we in C-1?
+		bne @done								 	 ; No? THEN PLEASE LEAVE I DID NOT INVITE YOU.
+		lda #$0E									 ;
+		sta EntrancePage						     ;
+		sta WRAM_LevelEntrancePage					 ;
+		bne @done								 	 ;
+@World8Setup:										 ;	
+		lda LevelNumber								 ; Are we in 8-1?
+		bne @done								 	 ; No? Go away.
+		beq @W7W8Setup								 ; Otherwise, set up the magic warps
+@World7Setup:									 	 ;
+		lda LevelNumber								 ; Are we in 7-3 or 7-4?
+		cmp #$02									 ; Yes, set up the funny.
+		bcc @done								 	 ; No, get out.
+@W7W8Setup:										 	 ;
+		lda #$06									 ;	
+		sta EntrancePage							 ;
+		sta WRAM_LevelEntrancePage					 ;
+		bne @done								 	 ;
+		
 
 
 PracticeInit:
 		lda #0
 		sta WRAM_Timer
 		sta WRAM_Timer+1
-		sta WRAM_SlowMotion
-		sta WRAM_SlowMotionLeft
 		sta WRAM_MenuIndex
 		;
 		; Dont reset the SaveStateBank right?
@@ -1543,6 +1722,7 @@ RedrawSockTimer:
 @use_as_is:
 		lda IntervalTimerControl
 @write_it:
+		sta WRAM_AreaSockTimer
 		sta VRAM_Buffer1+3,x
 		lda #0
 		sta VRAM_Buffer1+4,x
@@ -1596,15 +1776,19 @@ SetDefaultWRAM:
 		lda #<Player_Rel_XPos
 		sta WRAM_OrgUser0
 		sta WRAM_LostUser0
+		sta WRAM_NipponUser0
 		lda #>Player_Rel_XPos
 		sta WRAM_OrgUser0+1
 		sta WRAM_LostUser0+1
+		sta WRAM_NipponUser0+1
 		lda #<Player_X_MoveForce
 		sta WRAM_OrgUser1
 		sta WRAM_LostUser1
+		sta WRAM_NipponUser1
 		lda #>Player_X_MoveForce
 		sta WRAM_OrgUser1+1
 		sta WRAM_LostUser1+1
+		sta WRAM_NipponUser1+1
 
 		lda #30
 		sta WRAM_DelaySaveFrames

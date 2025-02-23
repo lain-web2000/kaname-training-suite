@@ -61,8 +61,6 @@ EndlessLoop: jmp EndlessLoop              ;endless loop, need I say more?
 
 ;-----------------------------------------------------------------
 
-MACRO_ThrowFrameImpl
-
 NonMaskableInterrupt:
                lda Mirror_PPU_CTRL_REG1  ;disable NMIs in mirror reg
                and #%01111111            ;save all other bits
@@ -278,11 +276,16 @@ TitleScreenMode:
 IsBigWorld:
   .byte 1, 1, 0, 1, 0, 0, 1, 0, 0
 
+NoGoTime:
+    lda #0
+    sta SavedJoypad1Bits
+    jmp GameCoreRoutine
+
 RunTitleScreen:
-    jsr Enter_PracticeTitleMenu
-    lda OperMode_Task
+	jsr Enter_PracticeTitleMenu
+	lda OperMode_Task
     cmp #4
-    bne @not_running
+    bne NoGoTime
     ldx LevelNumber
     ldy WorldNumber
     lda IsBigWorld, y
@@ -298,6 +301,7 @@ RunTitleScreen:
     jsr LoadAreaPointer
     inc Hidden1UpFlag
     inc FetchNewGameTimerFlag
+	inc WRAM_FetchNewGameTimerFlag
     inc OperMode
     lda #$00
     sta OperMode_Task
@@ -436,6 +440,7 @@ PlayerEndWorld:
                sta AreaNumber             ;otherwise initialize area number used as offset
                sta LevelNumber            ;and level number control to start at area 1
                sta OperMode_Task          ;initialize secondary mode of operation
+			   PF_SetToLevelEnd_A
                inc WorldNumber            ;increment world number to move onto the next world
                jsr LoadAreaPointer        ;get area address offset for the next area
                inc FetchNewGameTimerFlag  ;set flag to load game timer from header
@@ -630,11 +635,15 @@ DisplayIntermediate:
                bne NoInter                  ;and jump to specific task, otherwise
 PlayerInter:   jsr DrawPlayer_Intermediate  ;put player in appropriate place for
                lda #$01                     ;lives display, then output lives display to buffer
-OutputInter:   jsr WriteGameText
+OutputInter:   jsr WriteGameText	   
                jsr ResetScreenTimer
                lda #$00
                sta DisableScreenFlag        ;reenable screen output
-               rts
+			   lda WRAM_FetchNewGameTimerFlag
+			   beq @exit_inter
+			   jmp Enter_RedrawAll
+@exit_inter:
+			   rts
 GameOverInter: lda #$12                     ;set screen timer
                sta ScreenTimer
                lda #$03                     ;output game over screen to buffer
@@ -800,6 +809,7 @@ WarpNumLoop: lda WarpZoneNumbers,x  ;print warp zone numbers into the
 ResetSpritesAndScreenTimer:
          lda ScreenTimer             ;check if screen timer has expired
          bne NoReset                 ;if not, branch to leave
+		 jsr Enter_HideRemainingFrames
          jsr MoveAllSpritesOffscreen ;otherwise reset sprites now
 
 ResetScreenTimer:
@@ -1410,6 +1420,7 @@ SetStPos: lda PlayerStarting_X_Pos,y  ;load appropriate horizontal position
           lsr
           sta GameTimerDisplay+1      ;set second digit of game timer
           sta FetchNewGameTimerFlag   ;clear flag for game timer reset
+		  sta WRAM_FetchNewGameTimerFlag
           sta StarInvincibleTimer     ;clear star mario timer
 ChkOverR: ldy JoypadOverride          ;if controller bits not set, branch to skip this part
           beq ChkSwimE
@@ -4177,6 +4188,7 @@ NextArea: inc AreaNumber            ;increment area number used for address load
           inc FetchNewGameTimerFlag ;set flag to load new game timer
           jsr ChgAreaMode           ;do sub to set secondary mode, disable screen and sprite 0
           sta HalfwayPage           ;reset halfway page to 0 (beginning)
+		  PF_SetToLevelEnd_A
           lda #Silence
           sta EventMusicQueue       ;silence music and leave
 ExitNA:   rts
@@ -5144,6 +5156,7 @@ MiscLoopBack:
 ;-------------------------------------------------------------------------------------
 
 GiveOneCoin:
+	  rts					  ;bwaaa
 AddToScore:
     jmp Enter_RedrawFrameNumbers
 
@@ -5275,6 +5288,7 @@ GetWNum: ldy WarpZoneNumbers,x     ;get warp zone numbers
 @storepointer:
          sta AreaPointer           ;store area offset here to be used to change areas
          sta WRAM_LevelAreaPointer
+		 PF_SetToLevelEnd_A
          lda #Silence
          sta EventMusicQueue       ;silence music
          lda #$00
@@ -5284,6 +5298,7 @@ GetWNum: ldy WarpZoneNumbers,x     ;get warp zone numbers
          sta AltEntranceControl    ;initialize mode of entry
          inc Hidden1UpFlag         ;set flag for hidden 1-up blocks
          inc FetchNewGameTimerFlag ;set flag to load new game timer
+		 inc WRAM_FetchNewGameTimerFlag
 ExPipeE: rts                       ;leave!!!
 
 ;-------------------------------------------------------------------------------------
@@ -6530,7 +6545,7 @@ BrickShatter:
       sta Player_Y_Speed     ;set vertical speed for player
       lda #$05
       sta DigitModifier+5    ;set digit modifier to give player 50 points
-      jsr AddToScore         ;do sub to update the score
+;      jsr AddToScore         ;do sub to update the score
       ldx SprDataOffset_Ctrl ;load control bit and leave
       rts
 
@@ -8817,6 +8832,7 @@ GetPRCmp:  lda FrameCounter           ;get frame counter
            lda Enemy_X_Position,x
            cmp BowserOrigXPos         ;if bowser not at original horizontal position,
            bne GetDToO                ;branch to skip this part
+		   jsr Enter_RedrawFrameNumbers
            lda PseudoRandomBitReg,x
            and #%00000011             ;get pseudorandom offset
            tay

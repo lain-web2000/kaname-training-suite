@@ -617,7 +617,8 @@ ExEWA:
 EndWorld1Thru7:
            lda WorldEndTimer         ;skip this until world end timer expires
            bne EndExit
-NextWorld: lda #$00
+NextWorld: PF_SetToLevelEnd_A
+		   lda #$00
            sta AreaNumber            ;reset area/level numbers to start the next world
            sta LevelNumber
            sta OperMode_Task
@@ -897,7 +898,11 @@ OtherInter:
           jsr ResetScreenTimer
           lda #$00
           sta DisableScreenFlag
-          rts
+		  lda WRAM_FetchNewGameTimerFlag
+		  beq @exit_inter
+		  jmp Enter_RedrawAll
+@exit_inter:
+		  rts
 
 IncSubtaskby2:
       inc ScreenRoutineTask
@@ -1107,6 +1112,7 @@ WZMLoop: iny
 ResetSpritesAndScreenTimer:
          lda ScreenTimer             ;check if screen timer has expired
          bne NoReset                 ;if not, branch to leave
+		 jsr Enter_HideRemainingFrames
          jsr MoveAllSpritesOffscreen ;otherwise reset sprites now
 
 ResetScreenTimer:
@@ -2249,6 +2255,7 @@ SetStPos: lda PlayerStarting_X_Pos,y  ;load appropriate horizontal position
           lsr
           sta GameTimerDisplay+1      ;set second digit of game timer
           sta FetchNewGameTimerFlag   ;clear flag for game timer reset
+		  sta WRAM_FetchNewGameTimerFlag
           sta StarInvincibleTimer     ;clear star mario timer
 ChkOverR: ldy JoypadOverride          ;if controller bits not set, branch to skip this part
           beq ChkSwimE
@@ -2308,6 +2315,16 @@ PlayerLoseLife:
              sta IRQUpdateFlag
              lda #Silence             ;silence music
              sta EventMusicQueue
+.ifndef ANN
+             lda WorldNumber		  ;force a game over on life loss
+			 cmp #World9			  ;if the player is in world 9.
+			 bne StillInGame		  ;if player still has lives, branch     
+             lda #$00
+             sta OperMode_Task        ;initialize mode task,
+             lda #GameOverMode        ;switch to game over mode
+             sta OperMode             ;and leave
+             rts
+.endif
 StillInGame: lda WorldNumber          ;retrieve world number for offset
              ldy HardWorldFlag        ;check if playing worlds A-D
              beq NrmlWorlds           ;if not, use world number as-is
@@ -4559,6 +4576,7 @@ NotW9:
           inc FetchNewGameTimerFlag ;set flag to load new game timer
           jsr ChgAreaMode           ;do sub to set secondary mode, disable screen and sprite 0
           sta HalfwayPage           ;reset halfway page to 0 (beginning)
+		  PF_SetToLevelEnd_A
           lda #Silence
           sta EventMusicQueue       ;silence music and leave
 ExitNA:   rts
@@ -5876,6 +5894,7 @@ GiveOneCoin:
       ;sta CoinTally          ;otherwise, reinitialize coin amount
       ;lda #Sfx_ExtraLife
       ;sta Square2SoundQueue  ;play 1-up sound
+	  rts					  ;bwaaa
 CoinPoints:
 AddToScore:
 WriteScoreAndCoinTally:
@@ -6197,7 +6216,7 @@ BrickShatter:
       sta Player_Y_Speed     ;set vertical speed for player
       lda #$05
       sta DigitModifier+5    ;set digit modifier to give player 50 points
-      jsr AddToScore         ;do sub to update the score
+;      jsr AddToScore         ;do sub to update the score
       ldx SprDataOffset_Ctrl ;load control bit and leave
       rts
 
@@ -9051,6 +9070,7 @@ GetPRCmp:  lda FrameCounter           ;get frame counter
            lda Enemy_X_Position,x
            cmp BowserOrigXPos         ;if bowser not at original horizontal position,
            bne GetDToO                ;branch to skip this part
+		   jsr Enter_RedrawFrameNumbers
            lda PseudoRandomBitReg,x
            and #%00000011             ;get pseudorandom offset
            tay
@@ -11286,6 +11306,7 @@ SetWDest: tay
           sta AltEntranceControl    ;initialize mode of entry
           inc Hidden1UpFlag         ;set flag for hidden 1-up blocks
           inc FetchNewGameTimerFlag ;set flag to load new game timer
+		  inc WRAM_FetchNewGameTimerFlag
 ExPipeE:  rts                       ;leave!!!
 
 ImpedePlayerMove:
@@ -14169,6 +14190,7 @@ NoLoadHW:
 .endif
 NoCHWP:  inc Hidden1UpFlag
          inc FetchNewGameTimerFlag
+		 inc WRAM_FetchNewGameTimerFlag
          inc OperMode
          lda #$00
          sta DiskIOTask

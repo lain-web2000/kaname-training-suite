@@ -52,7 +52,7 @@ wram/full.bin $(OUT)/ram_layout.map: wram/ram_layout.asm
 $(GEN_SCENARIOS): scripts/genscenarios.py $(SCENARIOS)
 	python scripts/genscenarios.py $(SCENARIOS) > $(GEN_SCENARIOS)
 
-$(OUT)/intro.o: $(INCS) intro/intro.asm intro/faxsound.asm intro/intro.inc intro/records.asm intro/smlsound.asm intro/nt.asm intro/settings.asm
+$(OUT)/intro.o: $(INCS) intro/intro.asm intro/faxsound.asm intro/intro.inc intro/smlsound.asm intro/nt.asm intro/settings.asm
 	$(AS) $(AFLAGS) -l $(OUT)/intro.map intro/intro.asm -o $@
 
 chr/full.chr: chr/build_chr.sh

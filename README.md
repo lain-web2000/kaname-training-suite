@@ -1,5 +1,10 @@
 # SMB, SMB2J & ANN Practice ROM
 
+**UPDATE: 12/03/25: This fork of the Practice ROM has been discontinued in favour of the "lite" builds. Please download those builds instead rather than this one**
+- [Lite version for SMB1.](https://github.com/lain-web2000/pellsson-lite-smb1)
+- [Lite version for SMB:TLL.](https://github.com/lain-web2000/pellsson-lite-smb2j)
+- [Lite version for ANN SMB.](https://github.com/threecreepio/pannsson)
+
 A speedrun practice ROM for Super Mario Bros., Super Mario Bros 2 - The Lost Levels. and All Night Nippon Super Mario Bros.
 
 For feature requests or bug reports, please visit the [issue tracker](https://github.com/lain-web2000/pellsson-rev2/issues).

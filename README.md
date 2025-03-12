@@ -1,6 +1,6 @@
 # SMB, SMB2J & ANN Practice ROM
 
-**UPDATE: 12/03/25: This fork of the Practice ROM has been discontinued in favour of the "lite" builds. Please download those builds instead rather than this one**
+**UPDATE: 12/03/25: This fork of the Practice ROM has been discontinued in favour of the "lite" builds. Please download those builds instead rather than this one.**
 - [Lite version for SMB1.](https://github.com/lain-web2000/pellsson-lite-smb1)
 - [Lite version for SMB:TLL.](https://github.com/lain-web2000/pellsson-lite-smb2j)
 - [Lite version for ANN SMB.](https://github.com/threecreepio/pannsson)

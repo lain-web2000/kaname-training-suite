@@ -2,7 +2,11 @@
 ; This hack is just inlined into intro.asm
 ;
 SETTINGS_MENU_PPU = $1FF3
-MAX_SETTING = 16
+.ifndef ORG
+	MAX_SETTING = 10
+.else
+	MAX_SETTING = 11
+.endif
 
 .macro draw_simple_at at, txt
 		.local @copy
@@ -139,48 +143,35 @@ get_uservar_ptr:
 		dex
 		bne @try_o1
 		; org0
+.ifdef ORG
 		lda #<WRAM_OrgUser0
 		sta $00
 		lda #>WRAM_OrgUser0
-		sta $01
-		rts
-@try_o1:
-		dex
-		bne @try_l0
-		; org1
-		lda #<WRAM_OrgUser1
-		sta $00
-		lda #>WRAM_OrgUser1
-		sta $01
-		rts
-@try_l0:
-		dex
-		bne @try_l1
+.elseif .defined(LOST)
 		lda #<WRAM_LostUser0
 		sta $00
 		lda #>WRAM_LostUser0
-		sta $01
-		rts
-@try_l1:
-		dex
-		bne @try_n0
-		lda #<WRAM_LostUser1
-		sta $00
-		lda #>WRAM_LostUser1
-		sta $01
-		rts
-@try_n0:
-		dex
-		bne @do_nippon1
+.else
 		lda #<WRAM_NipponUser0
 		sta $00
 		lda #>WRAM_NipponUser0
+.endif
 		sta $01
 		rts
-@do_nippon1:
+@try_o1:
+.ifdef ORG
+		lda #<WRAM_OrgUser1
+		sta $00
+		lda #>WRAM_OrgUser1
+.elseif .defined(LOST)
+		lda #<WRAM_LostUser1
+		sta $00
+		lda #>WRAM_LostUser1
+.else
 		lda #<WRAM_NipponUser1
 		sta $00
 		lda #>WRAM_NipponUser1
+.endif
 		sta $01
 		rts
 
@@ -192,79 +183,70 @@ _draw_user1org_opt:
 		jsr get_uservar_ptr
 		draw_hexopt_at 9, 1
 
-_draw_user0lost_opt:
-		jsr get_uservar_ptr
-		draw_hexopt_at 10, 1
-
-_draw_user1lost_opt:
-		jsr get_uservar_ptr
-		draw_hexopt_at 11, 1
-		
-_draw_user0nippon_opt:
-		jsr get_uservar_ptr
-		draw_hexopt_at 12, 1
-
-_draw_user1nippon_opt:
-		jsr get_uservar_ptr
-		draw_hexopt_at 13, 1
-
 _draw_userdelay_opt:
 		lda #<WRAM_DelayUserFrames
 		sta $00
 		lda #>WRAM_DelayUserFrames
 		sta $01
-		draw_hexopt_at 14, 0
+		draw_hexopt_at 10, 0
 
 _draw_savedelay_opt:
 		lda #<WRAM_DelaySaveFrames
 		sta $00
 		lda #>WRAM_DelaySaveFrames
 		sta $01
-		draw_hexopt_at 15, 0
+		draw_hexopt_at 11, 0
 
-_char_native: draw_simple_at 16, "NATIVE"
-_char_org: draw_simple_at 16, "ORG   "
-_char_lost: draw_simple_at 16, "LOST  "
+.ifdef ORG
+	_char_fds: draw_simple_at 12, "FDS"
+	_char_nes: draw_simple_at 12, "NES"
 
-_draw_charset_opt:
-		ldx WRAM_CharSet
-		beq @native
-		dex
-		beq @org
-		jmp _char_lost
-@org:
-		jmp _char_org
-@native:
-		jmp _char_native
+	_draw_minusworld_opt:
+			lda WRAM_MinusWorld
+			beq @fds
+			jmp _char_nes
+	@fds:
+			jmp _char_fds
+.endif
 		
-_char_fds: draw_simple_at 17, "FDS"
-_char_nes: draw_simple_at 17, "NES"
-
-_draw_minusworld_opt:
-		lda WRAM_MinusWorld
-		beq @fds
-		jmp _char_nes
-@fds:
-		jmp _char_fds
-
 _draw_button_restart_opt:
 		lda WRAM_RestartButtons
-		draw_button_opt 18
+.ifndef ORG
+		draw_button_opt 12
+.else
+		draw_button_opt 13
+.endif
 
 _draw_button_title_opt:
 		lda WRAM_TitleButtons
-		draw_button_opt 19
+.ifndef ORG
+		draw_button_opt 13
+.else
+		draw_button_opt 14
+.endif
 
 _draw_button_save_opt:
 		lda WRAM_SaveButtons
-		draw_button_opt 20
+.ifndef ORG
+		draw_button_opt 14
+.else
+		draw_button_opt 15
+.endif
 
 _draw_button_load_opt:
 		lda WRAM_LoadButtons
-		draw_button_opt 21
+.ifndef ORG
+		draw_button_opt 15
+.else
+		draw_button_opt 16
+.endif
 
 _draw_reset_wram_opt:
-		draw_simple_at 22, "NO YES"
+.ifndef ORG
+		draw_simple_at 16, "NO YES"
+.else
+		draw_simple_at 17, "NO YES"
+.endif
 
 
 settings_renderers:
@@ -272,14 +254,11 @@ settings_renderers:
 		.word _draw_sound_opt
 		.word _draw_user0org_opt
 		.word _draw_user1org_opt
-		.word _draw_user0lost_opt
-		.word _draw_user1lost_opt
-		.word _draw_user0nippon_opt
-		.word _draw_user1nippon_opt
 		.word _draw_userdelay_opt
 		.word _draw_savedelay_opt
-		.word _draw_charset_opt
+.ifdef ORG
 		.word _draw_minusworld_opt
+.endif
 		.word _draw_button_restart_opt
 		.word _draw_button_title_opt
 		.word _draw_button_save_opt
@@ -363,14 +342,9 @@ _select_value:
 		jmp set_selection_sprites
 
 _select_charset:
-		ldx #6
+		ldx #4
 		lda WRAM_CharSet
 		beq @draw
-		cmp #1
-		beq @draw_org
-		ldx #4
-		jmp set_selection_sprites
-@draw_org:
 		ldx #3
 @draw:
 		jmp set_selection_sprites
@@ -419,12 +393,9 @@ select_option:
 		.word _select_value
 		.word _select_value
 		.word _select_value
-		.word _select_value
-		.word _select_value
-		.word _select_value
-		.word _select_value
-		.word _select_charset
+.ifdef ORG
 		.word _select_minusworld
+.endif
 		.word _select_retry_buttons
 		.word _select_title_buttons
 		.word _select_save_buttons
@@ -635,28 +606,17 @@ _savedelay_input:
 		lda #>WRAM_DelaySaveFrames
 		sta $01
 		jmp byte_input
-
-_charset_input:
-		and #(B_Button|A_Button)
-		beq @nothing
-		ldx WRAM_CharSet
-		inx
-		cpx #3
-		bne @save
-		ldx #0
-@save:
-		stx WRAM_CharSet
-@nothing:
-		rts
-
-_minusworld_input:
-		and #(B_Button|A_Button)
-		beq @nothing
-		lda WRAM_MinusWorld
-		eor #1
-		sta WRAM_MinusWorld
-@nothing:
-		rts
+		
+.ifdef ORG
+	_minusworld_input:
+			and #(B_Button|A_Button)
+			beq @nothing
+			lda WRAM_MinusWorld
+			eor #1
+			sta WRAM_MinusWorld
+	@nothing:
+			rts
+.endif
 
 recordbuttons_input:
 		ldx RECORD_BUTTONS
@@ -768,14 +728,11 @@ option_inputs:
 		.word _sound_input
 		.word _user_input
 		.word _user_input
-		.word _user_input
-		.word _user_input
-		.word _user_input
-		.word _user_input
 		.word _drawdelay_input
 		.word _savedelay_input
-		.word _charset_input
+.ifdef ORG
 		.word _minusworld_input
+.endif
 		.word _retrybuttons_input
 		.word _titlebuttons_input
 		.word _savebuttons_input

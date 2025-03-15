@@ -2215,12 +2215,3 @@ L_WaterArea9:
   .byte $fe, $02, $75, $e0, $fe, $01, $0c, $87, $9a, $60, $a9, $61, $b8, $62, $c7, $63
   .byte $ce, $0f, $d5, $0d, $6d, $ca, $7d, $47, $fd
 .endif
-
-;-------------------------------------------------------------------------------------
-NonMaskableInterrupt:
-Start:
-	rti ; TODO this is dumb as shit.
-	
-practice_callgate
-control_bank
-

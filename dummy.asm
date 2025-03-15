@@ -62,8 +62,9 @@
 ;                            #%%%%%%%%#                              %%%%%%%%%                       
 
 
-
+.ifdef ORG
 Start:
 NonMaskableInterrupt:
 	control_bank
+.endif
 

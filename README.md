@@ -1,57 +1,21 @@
-# SMB, SMB2J & ANN Practice ROM
+# SMB & SMB2J Practice ROM
 
-**UPDATE: 12/03/25: This fork of the Practice ROM has been discontinued in favour of the "lite" builds. Please download those builds instead rather than this one.**
-- [Lite version for SMB1.](https://github.com/lain-web2000/pellsson-lite-smb1)
-- [Lite version for SMB:TLL.](https://github.com/lain-web2000/pellsson-lite-smb2j)
-- [Lite version for ANN SMB.](https://github.com/threecreepio/pannsson)
+A speedrun practice ROM for Super Mario Bros. and Super Mario Bros 2 - The Lost Levels.
 
-A speedrun practice ROM for Super Mario Bros., Super Mario Bros 2 - The Lost Levels. and All Night Nippon Super Mario Bros.
-
-For feature requests or bug reports, please visit the [issue tracker](https://github.com/lain-web2000/pellsson-rev2/issues).
+For feature requests or bug reports, please visit the [issue tracker](https://github.com/lain-web2000/pellsson-irq/issues).
 
 Looking to practice on PAL? [Try out threecreepio's independent PAL-conversion.](https://github.com/threecreepio/pallsson)
 
-**Please note this version of the Practice ROM uses the MMC5 mapper, look at the table below to see if your flash cart is supported**
-
-
-| Flash Cart  | Supported? |
-| ------------- | ------------- |
-| EverDrive N8  | Yes *  |
-| EverDrive N8 Pro  | Yes.  |
-| PowerPak  | Untested, likely to work.  |
-| KrzysioCart | No.  |
-
-***Original Everdrive N8 has graphical glitches on the status bar, this can be mitigated by enabling the input display.**
-
-If you are concerned regarding the compatibility of this practice ROM then please consider trying the "lite" versions of the Practice ROM. These builds use more widely supported mappers and are supported on all flashcarts:
-- [Lite version for SMB1.](https://github.com/lain-web2000/pellsson-lite-smb1)
-- [Lite version for SMB:TLL.](https://github.com/lain-web2000/pellsson-lite-smb2j)
-- [Lite version for ANN SMB.](https://github.com/threecreepio/pannsson)
-
-## Major Version 6 (Current 6.0 Rev 2)
+ **Please note this version of the Practice ROM uses the MMC5 mapper, this ROM will not work with certain flashcarts such as KrzysioCart, or on cheap clone consoles.**
+ 
+## Major Version 6 (Current 6.0)
 
 ### New Features 
-All Night Nippon Super Mario Bros added!
+- Lost Levels now uses IRQ handling rather than Sprite 0, meaning there will be less lag frames!
+- Every 100th framerule is no longer broken, all framerules are now functional.
+- FDS Minus World and NES Minus World added for those wanting to practice "Minus World Ending" and "Minus World NES". You can toggle between them in the settting menu.
+- Input Display added.
 
-Following RNG offsets are available by pressing A during the game's title screen:
-
-	- Both Quests (Warpless) for SMB1
-	- Both Endings & All Stages for SMB:TLL
-	- All Stages for ANN
-
-Disabled frame numbers when collecting a coin or shattering a brick.
-
-Pressing B on the Lost Levels title screen sets 8-1/C-1 wrong-warp and allows World 9 access from 8-4. (Any death during World 9 will take you to the game over screen.)
-
-Separate framerule numbers are saved for Mario and Luigi in Lost Levels and Nippon.
-
-Changed user variable names from **X** and **Y** to **A** and **B** to mitigate any confusion.
-
-Coinflash has been re-enabled on the SMB1 title screen to simulate start press for runs.
-
-Frame number is updated when Bowser starts moving.
-
-Timer and Records have been removed.
 ### Bug Fixes
 - 6.0 bug fixes
 	- Fixed stack overflow bug in Lost Levels.
@@ -98,7 +62,7 @@ battery-backed WRAM. Essentially, figure out how to make it so that you can
 save in Zelda (without savestates), power off the system, and load (without using save states). Then do the same for the SMB Practice ROM.
 
 ## Feature list
-- Practice **SMB**, **SMB Lost Levels** and **All Night Nippon SMB**
+- Practice both **SMB** and **SMB Lost Levels**
 - **Start** the game from **any frame rule**
 - **Start** on **any level**.
 - Keeps **track of prefered start rule** for each level.
@@ -114,16 +78,15 @@ save in Zelda (without savestates), power off the system, and load (without usin
 - **In-game menu** with lots of stuff.
 - **Pause** completely **freezes** the game (does not advance frame rules).
 - **Advanced settings** menu in the loader.
-- Start directly on the **Second Quest** in SMB1 and ANN by pressing **B**.
-- Set up for Warpless wrong-warps and World 9 access from 8-4 in SMB:TLL by pressing **B**.
-- Adjust RNG offsets appropiate for specific categories by pressing **A**.
+- **Real-time** counter for each level, and persistent records.
+- Start directly on the **Second Quest** in SMB1.
 - And a lot more...
 
 ## Download & Installation
 
 First download the desired version below:
 
-- [Version 6.0 (Rev 2) - BPS](https://github.com/lain-web2000/pellsson-rev2/raw/master/Pellsson%206.0%20(Rev%202.0).bps)
+- [Version 6.0 - BPS](https://github.com/lain-web2000/pellsson-irq/raw/master/pellsson-2000.bps)
 
 Then simply apply that BPS (using for instance Floating Lunar IPS) to the an original, unmodified version of the Super Mario Bros. (US/World) ROM. *DO NOT* use The Lost Levels. The MD5 checksum for the ROM you should be using is `811b027eaf99c2def7b933c5208636de`.
 

@@ -36,16 +36,7 @@ ColdBoot:    jsr InitializeMemory         ;clear memory using pointer in Y
              lda #CHR_PEACH_SPR
 @not_peach:
              ldx #CHR_ORG_BG
-             ldy WRAM_CharSet
-             cpy #2
-             bne @not_lost
-             ldx #CHR_ORG_BG_ALTFONT
-@not_lost:
              jsr SetChrBanksFromAX
-			 
-			 lda #CHR_ORG_SPR+3
-			 sta $5123
-			 
              lda #%00001111
              sta SND_MASTERCTRL_REG       ;enable all sound channels except dmc
              lda #%00000110

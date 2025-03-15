@@ -199,9 +199,6 @@ NoCategoryFrames:
 		ldy #$0e
 		ldx #$a2
 
-		lda BANK_SELECTED
-		cmp #BANK_ORG
-		beq @is_org
 		dex
 		dex
 		dey
@@ -322,7 +319,11 @@ RedrawFrameNumbersInner:
 		beq @rule ; force RULE if on title screen
 		lda WRAM_PracticeFlags
 		and #PF_SockMode
+	.ifndef ORG
 		bne @dont_draw_rule
+	.else
+		beq @dont_draw_rule
+	.endif
 @rule:	lda #$20
 		sta VRAM_Buffer1+6, y ; Offset for RULE (if any)
 		lda #$64
@@ -367,9 +368,7 @@ NotEvenFrameRule:
 		jmp ReturnBank
 
 PrintableWorldNumber:
-		lda BANK_SELECTED
-		cmp #BANK_ORG
-		bne @get_ll_world
+		jmp @get_ll_world
 @org_world:
 		lda WorldNumber
 		jmp @to_print
@@ -627,49 +626,67 @@ menu_input:
 		jmp LL_UpdatePlayerChange
 
 ChangeWorldNumber:
-	ldx BANK_SELECTED          ; get selected game
-	ldy WorldNumber            ; and current world number
-	lda $0                     ; get input direction
-	cmp #1                     ; check for going right
-	bne @going_left            ; if not - skip to going left
-@going_right:                  ; we are going right
-	iny                        ; advance to next world
-	cpx #BANK_ANN              ; are we playing ANN?
-	bne @checked_ann_r         ; no - skip ahead
-	cpy #8                     ; yes - have we selected world 9
-	bne @checked_ann_r         ; no - skip ahead
-	iny                        ; yep - advance past world 9 (it doesnt exist in ANN)
-@checked_ann_r:                ;
-	cpx #BANK_ORG              ; are we playing smb1?
-	bne @check_ll_r            ; nope - we have more worlds to consider
-    cpy #9                     ; yes - are we past the end of the game?
-	bcc @store                 ; no - we're done, store the world
-	ldy #0                     ; yes - wrap around to world 1
-	beq @store                 ; and store
-@check_ll_r:                   ;
-	cpy #$D                    ; we are playing LL / ANN, are we past the end of the game?
-	bcc @store                 ; no - we're done, store the world
-	ldy #0                     ; yes - wrap around to world 1
-	beq @store                 ; and store
-@going_left:                   ; we are going left
-	dey                        ; drop world number by 1
-	cpx #BANK_ANN              ; are we playing ANN?
-	bne @checked_ann_l         ; no - skip ahead
-	cpy #8                     ; yes - have we selected world 9?
-	bne @checked_ann_l         ; no - skip ahead
-	dey                        ; yep - decrement past world 9 (it doesnt exist in ANN)
-@checked_ann_l:				   ;
-	cpy #$FF                   ; have we wrapped around?
-	bne @store                 ; no - we're done, store the world
-	cpx #BANK_ORG              ; are we playing smb1?
-	bne @check_ll_l            ; nope - we have more worlds to consider
-	ldy #$08                   ; yes - wrap around to world 9
-	bne @store                 ; and store
-@check_ll_l:                   ;
-    ldy #$0C                   ; we are playing LL / ANN, wrap to world D
+		ldx BANK_SELECTED          ; get selected game
+		ldy WorldNumber            ; and current world number
+		lda $0                     ; get input direction
+		cmp #1                     ; check for going right
+		bne @going_left            ; if not - skip to going left
+	@going_right:                  ; we are going right
+		iny                        ; advance to next world
+.ifdef ORG
+		cpy #8                     ; yes - have we selected world 9
+	@checked_ann_r:                ;
+		cpy #9                     ; yes - are we past the end of the game?
+		bcc @store                 ; no - we're done, store the world
+		ldy #0                     ; yes - wrap around to world 1
+		beq @store                 ; and store
+	@going_left:                   ; we are going left
+		dey                        ; drop world number by 1
+	@checked_ann_l:                ;
+		bpl @store                 ; no - we're done, store the world
+		ldy #8                     ; yes - wrap around to world 1
+		beq @store                 ; and store
+.elseif .defined(LOST)
+		cpy #8                     ; yes - have we selected world 9
+	@checked_ann_r:                ;
+		cpy #$D                    ; we are playing LL / ANN, are we past the end of the game?
+		bcc @store                 ; no - we're done, store the world
+		ldy #0                     ; yes - wrap around to world 1
+		beq @store                 ; and store
+	@going_left:                   ; we are going left
+		dey                        ; drop world number by 1
+	@checked_ann_l:                ;
+		bpl @store                 ; no - we're done, store the world
+		ldy #8                     ; yes - wrap around to world 1
+		beq @store                 ; and store
+		ldy #$0C                   ; we are playing LL / ANN, wrap to world D		
+.else
+		cpx #BANK_ANN              ; are we playing ANN?
+		bne @checked_ann_r         ; no - skip ahead
+		cpy #8                     ; yes - have we selected world 9
+		bne @checked_ann_r         ; no - skip ahead
+		iny                        ; yep - advance past world 9 (it doesnt exist in ANN)
+	@checked_ann_r:                ;
+		cpy #$D                    ; we are playing LL / ANN, are we past the end of the game?
+		bcc @store                 ; no - we're done, store the world
+		ldy #0                     ; yes - wrap around to world 1
+		beq @store                 ; and store
+	@going_left:                   ; we are going left
+		dey                        ; drop world number by 1
+		cpx #BANK_ANN              ; are we playing ANN?
+		bne @checked_ann_l         ; no - skip ahead
+		cpy #8                     ; yes - have we selected world 9?
+		bne @checked_ann_l         ; no - skip ahead
+		dey                        ; yep - decrement past world 9 (it doesnt exist in ANN)
+	@checked_ann_l:				   ;
+		cpy #$FF                   ; have we wrapped around?
+		bne @store                 ; no - we're done, store the world
+	@check_ll_l:                   ;
+		ldy #$0C                   ; we are playing LL / ANN, wrap to world D		
+.endif
 @store:                        ;
-	sty WorldNumber            ; update selected world
-	rts                        ; and exit
+		sty WorldNumber            ; update selected world
+		rts                        ; and exit
 	
 next_task:
 		ldx #4*4-1
@@ -698,9 +715,6 @@ WriteRulePointer:
 		asl ; *=16
 		cmp #(8*16)
 		bcc @store
-		ldx BANK_SELECTED
-		cpx #BANK_ANN
-		bne @store
 		sec
 		sbc #16 ;subtract offset for nippon ext, no world 9
 @store:
@@ -710,64 +724,104 @@ WriteRulePointer:
 		asl ; *=4
 		clc
 		adc $04
-		ldx BANK_SELECTED
-		cpx #BANK_ORG
-		beq @is_org
-		cpx #BANK_SMBLL
-		beq @is_lost
-@is_nippon:
-		ldx CurrentPlayer
-		cpx #$01
-		beq @is_luigi_n
-@is_mario_n:		
-		clc
-		adc #<WRAM_NipponRules
-		sta $04
-		lda #0
-		adc #>WRAM_NipponRules
-		sta $05
-		rts
-@is_luigi_n:		
-		clc
-		adc #<WRAM_NipponRules_L
-		sta $04
-		lda #0
-		adc #>WRAM_NipponRules_L
-		sta $05
-		rts
-@is_lost:
+.ifndef ORG
 		ldx CurrentPlayer
 		cpx #$01
 		beq @is_luigi
+.endif
 @is_mario:
+		ldx PowerUps
+		cpx #$02
+		bcc @is_fire_m
 		clc
-		adc #<WRAM_LostRules
-		sta $04
-		lda #0
-		adc #>WRAM_LostRules
-		sta $05
-		rts
-@is_luigi:
-		clc
-		adc #<WRAM_LostRules_L
-		sta $04
-		lda #0
-		adc #>WRAM_LostRules_L
-		sta $05
-		rts
-@is_org:
-		clc
+		
+	.ifdef ORG
 		adc #<WRAM_OrgRules
+	.elseif .defined(LOST)
+		adc #<WRAM_LostRules
+	.else
+		adc #<WRAM_NipponRules
+	.endif
+	
 		sta $04
 		lda #0
+		
+	.ifdef ORG
 		adc #>WRAM_OrgRules
+	.elseif .defined(LOST)
+		adc #>WRAM_LostRules
+	.else
+		adc #>WRAM_NipponRules
+	.endif
+	
 		sta $05
 		rts
+		
+@is_fire_m:
+		clc
+		
+	.ifdef ORG
+		adc #<WRAM_FireRules
+	.elseif .defined(LOST)
+		adc #<WRAM_FireLostRules
+	.else
+		adc #<WRAM_Fire_NipponRules
+	.endif
+	
+		sta $04
+		lda #0
+		
+	.ifdef ORG
+		adc #>WRAM_FireRules
+	.elseif .defined(LOST)
+		adc #>WRAM_FireLostRules
+	.else
+		adc #>WRAM_Fire_NipponRules
+	.endif
+	
+		sta $05
+		rts
+		
+.ifndef ORG
+	@is_luigi:
+			ldx PowerUps
+			cpx #$02
+			bcc @is_fire_l
+			clc
+		.ifdef LOST
+			adc #<WRAM_LostRules_L
+		.else
+			adc #<WRAM_NipponRules_L
+		.endif
+			sta $04
+			lda #0
+		.ifdef LOST
+			adc #>WRAM_LostRules_L
+		.else
+			adc #>WRAM_NipponRules_L
+		.endif
+			sta $05
+			rts
+	@is_fire_l:
+			clc
+		.ifdef LOST
+			adc #<WRAM_FireLostRules_L
+		.else
+			adc #<WRAM_Fire_NipponRules_L
+		.endif
+			sta $04
+			lda #0
+		.ifdef LOST
+			adc #>WRAM_FireLostRules_L
+		.else
+			adc #>WRAM_Fire_NipponRules_L
+		.endif
+			sta $05
+			rts
+.endif
 
 toggle_second_quest:
-		lda BANK_SELECTED
-		cmp #BANK_SMBLL
-		beq @is_ll
+.ifndef LOST
 		lda PrimaryHardMode
 		eor #1
 		sta PrimaryHardMode
@@ -782,19 +836,12 @@ toggle_second_quest:
 		lda #$05 ; Hardmode color
 		ldy PrimaryHardMode
 		bne @set_color
-		lda #$22 ; Original color
-		ldy BANK_SELECTED
-		cpy #BANK_ORG
-		beq @set_color
+	.ifdef ANN
 		lda #$0f ; Nippon color
-@set_color:
-		sta VRAM_Buffer1+3,x
-		inx
-		inx
-		inx
-		inx
-		stx VRAM_Buffer1_Offset
-		rts
+	.else
+		lda #$22 ; Original color
+	.endif
+.else
 @is_ll:
 		lda CompletedWorlds
 		eor #$ff
@@ -813,19 +860,24 @@ toggle_second_quest:
 		lda #$22 ; Lost color
 		bne @set_color
 		rts
+.endif
+@set_color:
+		sta VRAM_Buffer1+3,x
+		inx
+		inx
+		inx
+		inx
+		stx VRAM_Buffer1_Offset
+		rts
 		
 toggle_rng_offset:
 		ldy CategorySelect
 		iny
-		lda BANK_SELECTED
-		cmp #BANK_SMBLL
-		bne @not_ll
-		cpy #$03
-		bcc @InRange
-		ldy #$00
-		beq @InRange
-@not_ll:
+	.ifndef LOST
 		cpy #$02
+	.else
+		cpy #$03
+	.endif
 		bcc @InRange
 		ldy #$00
 @InRange:
@@ -834,31 +886,13 @@ toggle_rng_offset:
 		tya
 		asl
 		tay
-		lda BANK_SELECTED
-		cmp #BANK_SMBLL
-		beq @lost_pointers
-		cmp #BANK_ANN
-		beq @nippon_pointers
 @org_pointers:
 		lda CategoryPointers,y
 		sta $00
 		lda CategoryPointers+1,y
 		sta $01
 		ldy #$00
-		beq @VRAMBufferLoop
-@lost_pointers:
-		lda CategoryPointers_L,y
-		sta $00
-		lda CategoryPointers_L+1,y
-		sta $01
-		ldy #$00
-		beq @VRAMBufferLoop
-@nippon_pointers:
-		lda CategoryPointers_N,y
-		sta $00
-		lda CategoryPointers_N+1,y
-		sta $01
-		ldy #$00		
+		beq @VRAMBufferLoop	
 @VRAMBufferLoop:
 		lda ($00),y
 		cmp #$ff
@@ -875,46 +909,49 @@ toggle_rng_offset:
 		sta VRAM_Buffer1_Offset
 		rts
 
-CopyrightText1985:
+.ifdef ORG
+	CopyrightText1985:
 	.byte $21, $ed, $0e, $cf, $01, $09, $08, $05, $24, $17, $12, $17, $1d
 	.byte $0e, $17, $0d, $18, $ff
-		
-CopyrightText1986:
-	.byte $21, $ee, $0e, $cf, $01, $09, $08, $06, $24, $17, $12, $17, $1d
-	.byte $0e, $17, $0d, $18, $ff	
-	
-CopyrightText1986_L:
-	.byte $21, $ef, $0e, $cf, $01, $09, $08, $06, $24, $17, $12, $17, $1d
-	.byte $0e, $17, $0d, $18, $ff
-	
-BothEndText:
-	.byte $21, $ef, $0e, $24, $24, $0b, $18, $1d, $11, $24, $0e, $17, $0d 
-	.byte $12, $17, $10, $1c, $ff
 
-BothQuestText:
-	.byte $21, $ed, $0e, $24, $24, $24, $0b, $18, $1d, $11, $24, $1a, $1e 
-	.byte $0e, $1c, $1d, $1c, $ff
+	BothQuestText:
+		.byte $21, $ed, $0e, $24, $24, $24, $0b, $18, $1d, $11, $24, $1a, $1e 
+		.byte $0e, $1c, $1d, $1c, $ff
+.elseif .defined(LOST)
+	CopyrightText1986_L:
+		.byte $21, $ef, $0e, $cf, $01, $09, $08, $06, $24, $17, $12, $17, $1d
+		.byte $0e, $17, $0d, $18, $ff
+
+	BothEndText:
+		.byte $21, $ef, $0e, $24, $24, $0b, $18, $1d, $11, $24, $0e, $17, $0d 
+		.byte $12, $17, $10, $1c, $ff
+		
+	AllStagesText:
+		.byte $21, $ef, $0e, $24, $24, $24, $24, $0a, $15, $15, $24, $1c, $1d
+		.byte $0a, $10, $0e, $1c, $ff
+.else
+	CopyrightText1986:
+		.byte $21, $ee, $0e, $cf, $01, $09, $08, $06, $24, $17, $12, $17, $1d
+		.byte $0e, $17, $0d, $18, $ff	
+		
+	AllStagesText:
+		.byte $21, $ee, $0e, $24, $24, $24, $24, $0a, $15, $15, $24, $1c, $1d
+		.byte $0a, $10, $0e, $1c, $ff
+.endif
 	
-AllStagesText:
-	.byte $21, $ef, $0e, $24, $24, $24, $24, $0a, $15, $15, $24, $1c, $1d
-	.byte $0a, $10, $0e, $1c, $ff
-	
-AllStagesText_N:
-	.byte $21, $ee, $0e, $24, $24, $24, $24, $0a, $15, $15, $24, $1c, $1d
-	.byte $0a, $10, $0e, $1c, $ff
-	
-CategoryPointers_L:
+CategoryPointers:
+
+.ifdef ORG
+	.word CopyrightText1985
+	.word BothQuestText
+.elseif .defined(LOST)
 	.word CopyrightText1986_L
 	.word BothEndText
 	.word AllStagesText
-	
-CategoryPointers_N:
+.else
 	.word CopyrightText1986
-	.word AllStagesText_N
-	
-CategoryPointers:
-	.word CopyrightText1985
-	.word BothQuestText
+	.word AllStagesText
+.endif
 
 nuke_timer:
 		lda #0
@@ -981,8 +1018,15 @@ begin_save:
 		sta WRAM_PracticeFlags
 		inc DisableScreenFlag
 		lda WRAM_DelaySaveFrames
-		sta WRAM_SaveFramesLeft
+		sta SaveFramesLeft
+.ifndef ORG 						;SMB1 uses a sprite 0 hit for status bar split.
+		lda IRQUpdateFlag
+		sta WRAM_IRQUpdateFlag
+.endif
 		lda #0
+.ifndef ORG 
+		sta IRQUpdateFlag
+.endif
 		sta SND_MASTERCTRL_REG
 		rts
 
@@ -998,8 +1042,11 @@ begin_load:
 		sta WRAM_PracticeFlags
 		inc DisableScreenFlag
 		lda WRAM_DelaySaveFrames
-		sta WRAM_SaveFramesLeft
+		sta SaveFramesLeft
 		lda #$00
+.ifndef ORG
+		sta IRQUpdateFlag
+.endif
 		sta SND_MASTERCTRL_REG
 @invalid_save:
 		rts
@@ -1021,13 +1068,11 @@ PracticeOnFrameInner:
 		beq @no_queued_commands
 		jmp run_save_load
 @no_queued_commands:
-		lda BANK_SELECTED
-		cmp #BANK_ORG
-		bne @lost_sound
+.ifdef ORG
 		jsr SoundEngine
-		jmp @read_keypads
-@lost_sound:
+.else
 		jsr LL_SoundEngine
+.endif
 @read_keypads:
 		lda SavedJoypad1Bits
 		ora JoypadBitMask
@@ -1061,18 +1106,7 @@ PracticeOnFrameInner:
 		cmp #GameModeValue
 		bne @exit
 		lda OperMode_Task
-		ldy BANK_SELECTED
-:		cpy #BANK_SMBLL
-		bne :+
-        cmp #$04
-		bmi @exit
-		bpl @check_pause
-:		cpy #BANK_ANN
-		bne :+
-        cmp #$05
-		bmi @exit
-		bpl @check_pause
-:       cmp #$03
+        cmp #$03
 		bmi @exit
 @check_pause:
 		; TODO RENABLE
@@ -1165,7 +1199,7 @@ ForceUpdateSockHash:
 		jmp ReturnBank
 
 LoadState:
-		dec WRAM_SaveFramesLeft
+		dec SaveFramesLeft
 		beq @do_loadstate
 		lda GamePauseStatus
 		ora #02
@@ -1274,13 +1308,17 @@ LoadState:
 		sta WRAM_PracticeFlags
 		lda #0
 		sta DisableScreenFlag
+.ifndef ORG
+		lda WRAM_IRQUpdateFlag
+		sta IRQUpdateFlag
+.endif
 		; Controllers will be read again this frame. Reset them (very buggy otherwise ;)).
 		sta SavedJoypad1Bits
 		sta JoypadBitMask
 		rts
 
 SaveState:
-		dec WRAM_SaveFramesLeft
+		dec SaveFramesLeft
 		beq @do_savestate
 		lda GamePauseStatus
 		ora #02
@@ -1378,6 +1416,10 @@ SaveState:
 		sta WRAM_PracticeFlags
 		lda #0
 		sta DisableScreenFlag
+.ifndef ORG
+		lda WRAM_IRQUpdateFlag
+		sta IRQUpdateFlag
+.endif
 		rts
 
 
@@ -1403,7 +1445,7 @@ SaveState:
 .endmacro
 
 noredraw_dec:
-		dec WRAM_UserFramesLeft
+		dec UserFramesLeft
 noredraw:
 		jmp UpdateStatusInput
 hide:
@@ -1412,7 +1454,7 @@ hide:
 		jmp terminate
 		
 RedrawUserVars:
-		lda WRAM_UserFramesLeft
+		lda UserFramesLeft
 		bne noredraw_dec
 		ldy VRAM_Buffer1_Offset
 		bne noredraw
@@ -1427,25 +1469,22 @@ RedrawUserVars:
 		lda WRAM_PracticeFlags
         and #PF_DisablePracticeInfo
         bne hide
-		lda BANK_SELECTED
-		cmp #BANK_ORG
-		beq @is_org
-		cmp #BANK_ANN
-		beq @is_nippon
-		RedrawUserVar WRAM_LostUser0, 3
-		RedrawUserVar WRAM_LostUser1, 7
-		jmp terminate
-@is_org:
+		
+.ifdef ORG
 		RedrawUserVar WRAM_OrgUser0, 3
 		RedrawUserVar WRAM_OrgUser1, 7
-		jmp terminate
-@is_nippon:
+.elseif .defined(LOST)
+		RedrawUserVar WRAM_LostUser0, 3
+		RedrawUserVar WRAM_LostUser1, 7
+.else
 		RedrawUserVar WRAM_NipponUser0, 3
 		RedrawUserVar WRAM_NipponUser1, 7
+.endif
+
 terminate:
 		sty VRAM_Buffer1+$0A
 		lda WRAM_DelayUserFrames
-		sta WRAM_UserFramesLeft
+		sta UserFramesLeft
 		
 UpdateStatusInput:
     lda WRAM_PracticeFlags
@@ -1641,11 +1680,15 @@ ProcessLevelLoad:
 		sta WRAM_LevelFrameRuleData, x
 		dex
 		bpl @save_rule
+		
+.ifdef LOST
 		lda BANK_SELECTED
 		cmp #BANK_SMBLL
 		beq @warpless_2j
+.endif
 @done:
 		jmp ReturnBank
+.ifdef LOST
 @warpless_2j:
 		lda CompletedWorlds
 		cmp #$ff
@@ -1679,7 +1722,7 @@ ProcessLevelLoad:
 		sta EntrancePage							 ;
 		sta WRAM_LevelEntrancePage					 ;
 		bne @done								 	 ;
-		
+.endif		
 
 
 PracticeInit:
@@ -1774,21 +1817,37 @@ SetDefaultWRAM:
 		sta WRAM_Magic+3
 
 		lda #<Player_Rel_XPos
+	.ifdef ORG
 		sta WRAM_OrgUser0
+	.elseif .defined(LOST)
 		sta WRAM_LostUser0
+	.else
 		sta WRAM_NipponUser0
+	.endif
 		lda #>Player_Rel_XPos
+	.ifdef ORG
 		sta WRAM_OrgUser0+1
+	.elseif .defined(LOST)
 		sta WRAM_LostUser0+1
+	.else
 		sta WRAM_NipponUser0+1
+	.endif
 		lda #<Player_X_MoveForce
+	.ifdef ORG
 		sta WRAM_OrgUser1
+	.elseif .defined(LOST)
 		sta WRAM_LostUser1
+	.else
 		sta WRAM_NipponUser1
+	.endif
 		lda #>Player_X_MoveForce
+	.ifdef ORG
 		sta WRAM_OrgUser1+1
+	.elseif .defined(LOST)
 		sta WRAM_LostUser1+1
+	.else
 		sta WRAM_NipponUser1+1
+	.endif
 
 		lda #30
 		sta WRAM_DelaySaveFrames

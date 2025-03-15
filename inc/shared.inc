@@ -1,5 +1,8 @@
 BANK_SELECTED = $07ff
 
+SaveFramesLeft = $013a
+UserFramesLeft = $013b
+
 .define PF_SockMode $01 ; Todo move elsewhere...
 .define PF_SaveState $02
 .define PF_LoadState $04
@@ -128,32 +131,48 @@ ThrowFrame:
 
 TITLE_INIT		= $01
 
-BANK_LOADER		= 0
-BANK_CHR		= 4
-BANK_ORG		= 8
-BANK_COMMON		= 12
-BANK_SMBLL		= 16
-BANK_ANN		= 20
-BANK_LLDATA		= 24
-BANK_ANNDATA	= 28
+	BANK_LOADER		= 0
+.ifdef ORG
+	BANK_CHR		= 2
+	BANK_ORG		= 4
+	BANK_COMMON		= 6
+	BANK_ANN		= 12
+.elseif .defined(LOST)
+	BANK_COMMON		= 4
+	BANK_LLDATA		= 8
+	BANK_SMBLL		= 12
+.else
+	BANK_COMMON		= 4
+	BANK_ANNDATA	= 8
+	BANK_ANN		= 12
+.endif
 
+.ifdef ORG
+	CHR_ORG_SPR = 0
+	CHR_ORG_BG = 1
+	CHR_ORG_BG_ALTFONT = 2
+	CHR_LOST_SPR = 3
+	CHR_LOST_BG = 4
+	CHR_PEACH_SPR = 5
+	CHR_INTRO_BG = 6
+	CHR_INTRO_SPR0 = 7
+.elseif .defined(LOST)
+	CHR_LOST_SPR = 0
+	CHR_LOST_BG = 4
+	CHR_LOST_VICTORY = 8
+	CHR_LOST_BG_ALTFONT = 10
+.else
+	CHR_NIPPON_SPR = 0
+	CHR_NIPPON_BG = 4
+	CHR_NIPPON_VICTORY = 8
+	BANK_NIPPON_CHAR_L = 10
+	BANK_NIPPON_CHAR_R = 11
+.endif
 
-CHR_ORG_SPR = 0
-CHR_ORG_BG = 4
-CHR_ORG_BG_ALTFONT = 8
-CHR_LOST_SPR = 12
-CHR_LOST_BG = 16
-CHR_LOST_VICTORY = 20
-CHR_LOST_BG_ALTFONT = 21
-CHR_NIPPON_SPR = 25
-CHR_NIPPON_BG = 29
-CHR_NIPPON_VICTORY = 33
-CHR_NIPPON_BG_ALTFONT = 35
-BANK_NIPPON_CHAR_L = 39
-BANK_NIPPON_CHAR_R = 40
-CHR_PEACH_SPR = 53
-CHR_INTRO_BG = 56
-CHR_INTRO_SPR0 = 60
+.ifndef ORG
+	CHR_INTRO_BG = 24
+	CHR_INTRO_SPR0 = 28
+.endif
 
 SavedRule = $07d9
 RuleIndex = $0717 ; Previously DemoAction (can be changed to temp?)

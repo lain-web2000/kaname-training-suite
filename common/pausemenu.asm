@@ -102,11 +102,6 @@ _draw_pm_row_2:
 		rts
 
 _draw_pm_row_3:
-		lda WRAM_IsContraMode
-		beq @checkplayer
-		row_render_data $20E0, pm_hero_peach_row
-		rts
-@checkplayer:
 		row_render_data $20E0, pm_hero_mario_row
 		lda CurrentPlayer
 		beq @is_mario
@@ -121,7 +116,11 @@ _draw_pm_row_4:
 		row_render_data $2100, pm_show_sock_row
 		lda WRAM_PracticeFlags
 		and #PF_SockMode
+	.ifndef ORG
 		bne @is_sock
+	.else
+		beq @is_sock
+	.endif
 		row_render_data $2100, pm_show_rule_row
 	@is_sock:
 		rts
@@ -169,21 +168,16 @@ _draw_pm_row_6:
 		rts
 
 _draw_pm_row_7:
-		lda BANK_SELECTED
-		cmp #BANK_ORG
-		beq @is_org
-		cmp #BANK_SMBLL
-		beq @is_lost
-		lda WRAM_NipponUser0
-		ldx WRAM_NipponUser0+1
-		jmp @save
-@is_lost:
-		lda WRAM_LostUser0
-		ldx WRAM_LostUser0+1
-		jmp @save
-@is_org:
+.ifdef ORG
 		lda WRAM_OrgUser0
 		ldx WRAM_OrgUser0+1
+.elseif .defined(LOST)
+		lda WRAM_LostUser0
+		ldx WRAM_LostUser0+1
+.else
+		lda WRAM_NipponUser0
+		ldx WRAM_NipponUser0+1
+.endif
 @save:
 		sta $00
 		stx $01
@@ -194,21 +188,16 @@ _draw_pm_row_7:
 		rts
 
 _draw_pm_row_8:
-		lda BANK_SELECTED
-		cmp #BANK_ORG
-		beq @is_org
-		cmp #BANK_SMBLL
-		beq @is_lost
-		lda WRAM_NipponUser1
-		ldx WRAM_NipponUser1+1
-		jmp @save
-@is_lost:
-		lda WRAM_LostUser1
-		ldx WRAM_LostUser1+1
-		jmp @save
-@is_org:
+.ifdef ORG
 		lda WRAM_OrgUser1
 		ldx WRAM_OrgUser1+1
+.elseif .defined(LOST)
+		lda WRAM_LostUser1
+		ldx WRAM_LostUser1+1
+.else
+		lda WRAM_NipponUser1
+		ldx WRAM_NipponUser1+1
+.endif
 @save:
 		sta $00
 		stx $01
@@ -282,12 +271,11 @@ prepare_draw_row:
 
 draw_prepared_row:
 		lda $00
-	pha
+		pha
 		lda Mirror_PPU_CTRL_REG1
-		ldx BANK_SELECTED
-		cpx #BANK_ORG
-		beq @okok
+.ifndef ORG
         lda UseNtBase2400
+.endif
 @okok:
 		and #3
 		beq @ntbase_selected
@@ -296,7 +284,7 @@ draw_prepared_row:
 		sta $01
 @ntbase_selected:
 		lda $01
-	pha
+		pha
 		lda HorizontalScroll
 		lsr
 		lsr
@@ -451,7 +439,11 @@ pm_toggle_show:
 		eor #PF_SockMode
 		sta WRAM_PracticeFlags
 		and #PF_SockMode
+	.ifndef ORG
 		bne @SockMode
+	.else
+		beq @SockMode
+	.endif
 		;
 		; If we change back to rule mode we must remove top sock bytes
 		;
@@ -649,39 +641,30 @@ pause_menu_activate:
 
 get_user_selected:
 		ldx WRAM_MenuIndex
-		lda BANK_SELECTED
-		cmp #BANK_ORG
-		beq @is_org
-		cmp #BANK_SMBLL
-		beq @is_lost
-		cpx #6
-		beq @is_nippon_0
-		lda #<WRAM_NipponUser1
-		ldx #>WRAM_NipponUser1
-		jmp @save
-@is_nippon_0:
-		lda #<WRAM_NipponUser0
-		ldx #>WRAM_NipponUser0
-		jmp @save
-@is_lost:
-		cpx #6
-		beq @is_lost_0
-		lda #<WRAM_LostUser1
-		ldx #>WRAM_LostUser1
-		jmp @save
-@is_lost_0:
-		lda #<WRAM_LostUser0
-		ldx #>WRAM_LostUser0
-		jmp @save
-@is_org:
 		cpx #6
 		beq @is_org_0
+.ifdef ORG
 		lda #<WRAM_OrgUser1
 		ldx #>WRAM_OrgUser1
+.elseif .defined(LOST)
+		lda #<WRAM_LostUser1
+		ldx #>WRAM_LostUser1
+.else
+		lda #<WRAM_NipponUser1
+		ldx #>WRAM_NipponUser1
+.endif
 		jmp @save
 @is_org_0:
+.ifdef ORG
 		lda #<WRAM_OrgUser0
 		ldx #>WRAM_OrgUser0
+.elseif .defined(LOST)
+		lda #<WRAM_LostUser0
+		ldx #>WRAM_LostUser0
+.else
+		lda #<WRAM_NipponUser0
+		ldx #>WRAM_NipponUser0
+.endif
 @save:
 		sta $00
 		stx $01

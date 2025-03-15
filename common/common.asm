@@ -19,8 +19,11 @@ Start:	; Dummy
 NonMaskableInterrupt: ; Dummy
 
 	.include "utils.inc"
+.ifdef ORG
 	.include "sound.asm"
+.else
 	.include "sound-ll.asm"
+.endif
 	.include "game.asm"
 	.include "pausemenu.asm"
 	.include "practice.asm"
@@ -30,7 +33,9 @@ NonMaskableInterrupt: ; Dummy
 	.export ForceUpdateSockHash
 	.export PracticeOnFrame
 	.export PracticeTitleMenu
+.ifdef ORG
 	.export SoundEngineExternal
+.endif
 	.export ProcessLevelLoad
 	.export LoadPhysicsData
 	.export LoadMarioPhysics
@@ -45,5 +50,9 @@ NonMaskableInterrupt: ; Dummy
 	.export FactoryResetWRAM
 	.export UpdateGameTimer
 
-practice_callgate
-control_bank
+.ifndef ORG
+	.res $C000 - *, $FF
+.else
+	practice_callgate
+	control_bank
+.endif

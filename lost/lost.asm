@@ -52,21 +52,12 @@ ColdBoot:
 
         jsr Enter_PracticeInit
 .ifdef ANN
-		lda #CHR_NIPPON_SPR
 		ldx #CHR_NIPPON_BG
+		lda #CHR_NIPPON_SPR
 .else
-		lda #CHR_LOST_SPR
 		ldx #CHR_LOST_BG
+		lda #CHR_LOST_SPR
 .endif
-		ldy WRAM_CharSet
-        cpy #1
-        bne @not_org
-.ifdef ANN
-        ldx #CHR_NIPPON_BG_ALTFONT
-.else
-        ldx #CHR_LOST_BG_ALTFONT
-.endif
-@not_org:
 		jsr SetChrBanksFromAX
 		lda #%00001111
 		sta SND_MASTERCTRL_REG      ;enable all sound channels except dmc
@@ -107,27 +98,17 @@ VRAM_Buffer_Offset:
 
 ;-------------------------------------------------------------------------------------
 
-NonMaskableInterrupt:
-   lda Mirror_PPU_CTRL_REG1      ;alter name table address to be $2800
+NMIHandler:
+   lda Mirror_PPU_CTRL       ;alter name table address to be $2800
    and #%01111110            ;(essentially $2000) and disable another NMI
-   sta Mirror_PPU_CTRL_REG1       ;from interrupting this one
-   sta PPU_CTRL_REG1
+   sta Mirror_PPU_CTRL       ;from interrupting this one
+   sta PPU_CTRL
    sei
-   ldy DisableScreenFlag
-   bne SkipIRQ
-   lda IRQUpdateFlag
-   beq SkipIRQ
-   lda #31                   ;set interrupt scanline
-   sta MMC5_SLCompare
-   inc IRQAckFlag            ;reset flag to wait for next IRQ
-   lda #$80
-   sta MMC5_SLIRQ            ;reset IRQ
-SkipIRQ:
-   lda Mirror_PPU_CTRL_REG2
+   lda Mirror_PPU_MASK
    and #%11100110            ;disable OAM and background display by default
    ldy DisableScreenFlag     ;if screen disabled, skip this
    bne ScrnSwch
-   lda Mirror_PPU_CTRL_REG2       ;otherwise reenable bits and save them
+   lda Mirror_PPU_MASK       ;otherwise reenable bits and save them
    ora #%00011110
 ScrnSwch:
    sta Mirror_PPU_CTRL_REG2
@@ -175,7 +156,14 @@ InitVRAMVars:
    lda Mirror_PPU_CTRL_REG2
    sta PPU_CTRL_REG2              ;dump PPU control register 2
    cli
-
+   lda IRQUpdateFlag
+   beq SkipIRQ
+   lda #31                   ;count 31 scanlines (plus the pre-render scanline)
+   sta MMC3_IRQLatch
+   sta MMC3_IRQReload
+   sta MMC3_IRQEnable
+   inc IRQAckFlag            ;reset flag to wait for next IRQ
+SkipIRQ:
    jsr Enter_PracticeOnFrame
 
    lda GamePauseStatus       ;check for pause status
@@ -1804,8 +1792,8 @@ JumpEngine:
 InitializeNameTables:
               lda PPU_STATUS            ;reset flip-flop
               lda Mirror_PPU_CTRL       ;load mirror of first ppu control reg
-              ora #%00010000            ;set sprites for first 4k and background for second 4k
-              and #%11110000            ;clear rest of lower nybble, leave higher alone
+              ora #%00001000            ;set background for first 4k and sprites for second 4k
+              and #%11101000            ;clear rest of lower nybble, leave higher alone
               jsr WritePPUReg1
               lda #$24                  ;set vram address to start of name table 1
               jsr WriteNTAddr
@@ -2270,6 +2258,8 @@ ChkOverR: ldy JoypadOverride          ;if controller bits not set, branch to ski
           jsr Setup_Vine              ;do a sub to grow vine
 ChkSwimE: ldy AreaType                ;if level not water-type,
           bne SetPESub                ;skip this subroutine
+		  ldy #$6f
+		  sty $07					  ;fix bubbles
           jsr SetupBubble             ;otherwise, execute sub to set up air bubbles
 SetPESub: lda #$07                    ;set to run player entrance subroutine
           sta GameEngineSubroutine    ;on the next frame of game engine
@@ -14216,11 +14206,11 @@ LoadWorlds1Thru4:
 LW14Files: lda #$00              ;set filelist number to reload SM2MAIN, SM2CHAR1 and SM2SAVE
            sta FileListNumber
 .ifdef ANN
-		   lda #CHR_NIPPON_SPR
-		   jsr SetChrBank0FromA
+		   lda #CHR_NIPPON_SPR+1
+		   jsr SwitchSPR_CHR1
 .else
-		   lda #CHR_LOST_SPR
-		   jsr SetChrBank0FromA
+		   lda #CHR_LOST_SPR+1
+		   jsr SwitchSPR_CHR1
 .endif
 InitWorldPos:
            lda #$01              ;set flag to check player's world info
@@ -14284,7 +14274,7 @@ LoadEnding:
 	    sta MMC5_CHRBank+2		
 .else
 	    lda #CHR_LOST_VICTORY
-	    sta MMC5_CHRBank+1
+	    jsr SwitchSPR_CHR1
 .endif
         jsr InitializeNameTables
         jsr ResetDiskIOTask      ;end disk subroutines
@@ -14299,11 +14289,13 @@ DiskScreenPalette:
 DiskScreen:
       lda #$00
       sta Mirror_PPU_MASK
-      ;sta PPU_MASK
+      sta PPU_MASK
+      sta IRQAckFlag        ;acknowledge IRQ to prevent infinite loop
       sta IRQUpdateFlag
       inc DisableScreenFlag
       lda #$1b
       sta VRAM_Buffer_AddrCtrl
+      sta MMC3_IRQDisable   ;disable MMC3 IRQ and acknowledge pending interrupts
       inc DiskIOTask        ;move on to next subtask involving the disk drive
       rts
 
@@ -15333,5 +15325,297 @@ SuperPlayerMsg:
 
 .include "utils.inc"
 
-practice_callgate
-control_bank
+.res $F000 - *, $EA
+
+.export StartBank
+.export ReturnBank
+.export SetChrBanksFromAX
+.export Enter_InitializeWRAM
+.export Enter_FactoryResetWRAM
+
+
+	Enter_UpdateGameTimer:
+		lda #BANK_COMMON
+		jsr SetBankFromA
+		jmp UpdateGameTimer
+
+	Enter_InitializeWRAM:
+		lda #BANK_COMMON
+		jsr SetBankFromA
+		jmp InitializeWRAM
+
+	Enter_SetDefaultWRAM:
+		lda #BANK_COMMON
+		jsr SetBankFromA
+		jmp SetDefaultWRAM
+
+	Enter_FactoryResetWRAM:
+		lda #BANK_COMMON
+		jsr SetBankFromA
+		jmp FactoryResetWRAM
+
+	Enter_RedrawSockTimer:
+		lda #BANK_COMMON
+		jsr SetBankFromA
+		jmp RedrawSockTimer
+
+	Enter_PracticeInit:
+		lda #BANK_COMMON
+		jsr SetBankFromA
+		jmp PracticeInit
+
+	Enter_ForceUpdateSockHash:
+		lda #BANK_COMMON
+		jsr SetBankFromA
+		jmp ForceUpdateSockHash
+
+	Enter_PracticeOnFrame:
+		lda #BANK_COMMON
+		jsr SetBankFromA
+		jmp PracticeOnFrame
+
+	Enter_PracticeTitleMenu:
+		lda #BANK_COMMON
+		jsr SetBankFromA
+		jmp PracticeTitleMenu
+
+	Enter_UpdateFrameRule:
+		lda #BANK_COMMON
+		jsr SetBankFromA
+		jmp UpdateFrameRule
+
+	Enter_WritePracticeTop:
+		lda #BANK_COMMON
+		jsr SetBankFromA
+		jmp WritePracticeTop
+
+	Enter_RedrawUserVars:
+		lda #BANK_COMMON
+		jsr SetBankFromA
+		jmp RedrawUserVars
+
+	Enter_RedrawAll:
+		lda #BANK_COMMON
+		jsr SetBankFromA
+		jmp RedrawAll
+
+	Enter_HideRemainingFrames:
+		lda #BANK_COMMON
+		jsr SetBankFromA
+		jmp HideRemainingFrames
+		
+	Enter_RedrawFrameNumbers:
+		lda #BANK_COMMON
+		jsr SetBankFromA
+		jmp RedrawFrameNumbers
+
+	Enter_ProcessLevelLoad:
+		lda #BANK_COMMON
+		jsr SetBankFromA
+		jmp ProcessLevelLoad
+.ifdef LOST
+	Enter_LL_GetAreaDataAddrs:
+			lda #BANK_LLDATA
+			jsr Set16KBankFromA
+			jsr GetAreaDataAddrs
+			lda #BANK_SMBLL
+			jmp Set16KBankFromA
+
+		Enter_LL_GetAreaPointer:
+			lda #BANK_LLDATA
+			jsr Set16KBankFromA
+			jsr GetAreaPointer
+			lda #BANK_SMBLL
+			jmp Set16KBankFromA
+			
+		Enter_LL_LoadAreaPointer:
+			lda #BANK_LLDATA
+			jsr Set16KBankFromA
+			jsr LoadAreaPointer
+			lda #BANK_SMBLL
+			jmp Set16KBankFromA
+.else
+		Enter_ANN_GetAreaDataAddrs:
+			lda #BANK_ANNDATA
+			jsr Set16KBankFromA
+			jsr ANN_GetAreaDataAddrs
+			lda #BANK_ANN
+			jmp Set16KBankFromA
+
+		Enter_ANN_GetAreaPointer:
+			lda #BANK_ANNDATA
+			jsr Set16KBankFromA
+			jsr ANN_GetAreaPointer
+			lda #BANK_ANN
+			jmp Set16KBankFromA
+			
+		Enter_ANN_LoadAreaPointer:
+			lda #BANK_ANNDATA
+			jsr Set16KBankFromA
+			jsr ANN_LoadAreaPointer
+			lda #BANK_ANN
+			jmp Set16KBankFromA
+.endif
+		
+
+;
+; Lower banks
+; 
+	.res $F200 - *, $EA
+
+.import NonMaskableInterrupt
+
+NonMaskableInterrupt_Fixed:
+		lda BANK_SELECTED
+		bne @2j_nmi
+		jmp NonMaskableInterrupt
+@2j_nmi:
+		jmp NMIHandler
+
+	ReturnBank:
+		lda BANK_SELECTED
+		jmp SetBankFromA
+
+	SetChrBanksFromAX:
+		clc
+		jsr SwitchSPR_CHR0
+		adc #$01
+		jsr SwitchSPR_CHR1
+		adc #$01
+		jsr SwitchSPR_CHR2
+		adc #$01
+		jsr SwitchSPR_CHR3
+		inx
+		txa
+		jsr SwitchBG_CHR0
+		adc #$02
+		jmp SwitchBG_CHR1
+
+	Set16KBankFromA:
+	SetBankFromA:
+		clc
+		pha
+		lda #%00000110
+		sta MMC3_BankSelect
+		pla
+		sta MMC3_BankData
+		adc #%00000001
+		pha
+		lda #%00000111
+		sta MMC3_BankSelect
+		pla
+		sta MMC3_BankData
+		rts
+
+SwitchBG_CHR1:
+		pha
+		lda #%00000001
+		sta MMC3_BankSelect
+		pla
+		sta MMC3_BankData
+		rts
+SwitchBG_CHR0:
+		pha
+		lda #%00000000
+		sta MMC3_BankSelect
+		pla
+		sta MMC3_BankData
+		rts
+		
+SwitchSPR_CHR3:
+		pha
+		lda #%00000101
+		sta MMC3_BankSelect
+		pla
+		sta MMC3_BankData
+		rts
+SwitchSPR_CHR2:
+		pha
+		lda #%00000100
+		sta MMC3_BankSelect
+		pla
+		sta MMC3_BankData
+		rts
+SwitchSPR_CHR1:
+		pha
+		lda #%00000011
+		sta MMC3_BankSelect
+		pla
+		sta MMC3_BankData
+		rts
+SwitchSPR_CHR0:
+		pha
+		lda #%00000010
+		sta MMC3_BankSelect
+		pla
+		sta MMC3_BankData
+		rts
+		
+	MapperReset:
+		;
+		; Clear MMC5 state
+		;
+		sei
+		cld
+		ldx #$ff
+		txs
+		lda #$00
+		sta MMC3_Mirroring          ; vertical mirroring
+		lda #%10000000
+		sta MMC3_PRGRAMProtect      ; enable PRG-RAM
+		lda #$00
+		sta MMC3_IRQDisable
+		inx
+		stx BANK_SELECTED
+		jsr SetBankFromA
+		jmp Start_I
+
+	
+InterruptRequest:
+		sei
+		php                      ;save regs
+		pha
+		txa
+		pha
+		tya
+		pha        
+		ldy #$06                 ;delay for right part of scanline 31
+DelS: 	dey
+		bne DelS
+		lda Mirror_PPU_CTRL_REG1
+		and #$ef                 ;mask out sprite address high reg of ctrl reg mirror
+		ora $77a      			 ;mask in whatever's set here
+		sta Mirror_PPU_CTRL_REG1 ;update the register and its mirror
+		sta PPU_CTRL_REG1
+		lda #$00
+		sta MMC3_IRQDisable      ;disable IRQs for the rest of the frame
+		lda HorizontalScroll
+		sta PPU_SCROLL_REG       ;set scroll regs for the screen under the status bar
+		lda VerticalScroll       ;to achieve the split screen effect
+		sta PPU_SCROLL_REG
+		lda #$00
+		sta $77b           		 ;indicate IRQ was acknowledged
+		pla
+		tay                      ;return regs, reenable IRQs and leave
+		pla
+		tax
+		pla
+		plp
+		cli
+		rti
+
+StartBank:
+		sta BANK_SELECTED
+		ldx #$00
+		stx PPU_CTRL_REG1
+		stx PPU_CTRL_REG2
+		jsr SetBankFromA
+		jmp Start
+		
+		.res $FFFA - *, $ea
+		;
+		; Interrupt table
+		;
+		.word NonMaskableInterrupt_Fixed
+		.word MapperReset
+		.word InterruptRequest

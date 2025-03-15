@@ -713,10 +713,12 @@ WriteRulePointer:
 		asl ; *=4
 		asl ; *=8
 		asl ; *=16
+.ifdef ANN
 		cmp #(8*16)
 		bcc @store
 		sec
 		sbc #16 ;subtract offset for nippon ext, no world 9
+.endif
 @store:
 		sta $04
 		lda LevelNumber

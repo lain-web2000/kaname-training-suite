@@ -150,22 +150,25 @@ hang:
 		jmp hang
 
 CreditsTextYadaYada:
-	.byte $20, $cc, "CREDITS", $FF
-	.byte $20, $e8, "---------------", $FF
-	.byte $21, $2b, "PELLSSON", $FF
-	.byte $21, $69, "THREECREEPIO", $FF
-	.byte $21, $a8, "SIMPLISTIC6502", $FF
-	.byte $21, $ec, "WEB2000", $FF
-	.byte $22, $6a, "FORKED FROM", $FF
-	.byte $22, $88, "---------------", $FF
-	.byte $22, $c1, "HTTP://GITHUB.COM/PELLSSON/SMB", $FF
+	.byte $20, $6a, "DEVELOPERS", $FF
+	.byte $20, $88, "--------------", $FF
+	.byte $20, $cc, "WEB2000", $FF
+	.byte $21, $08, "SIMPLISTIC6502", $FF
+	.byte $21, $89, "ORIGINAL DEVS", $FF
+	.byte $21, $a8, "---------------", $FF
+	.byte $21, $eb, "PELLSSON", $FF
+	.byte $22, $29, "THREECREEPIO", $FF
 
-	.byte $3f, $00, $0f, $30, $ff
+
+	.byte $22, $aa, "FORKED FROM", $FF
+	.byte $22, $c8, "---------------", $FF
+	.byte $23, $01, "HTTP://GITHUB.COM/PELLSSON/SMB", $FF
+
+	.byte $3f, $00, $0f, $30, $fe
 
 PracticeCredits:
 			  jsr screen_off
 			  jsr InitializeNameTables
-			  ldy #10
 			  ldx #$00
 DoAnotherLineDawg:
 			  lda CreditsTextYadaYada,x
@@ -178,11 +181,12 @@ MoreTextColonD:
 			  lda CreditsTextYadaYada,x
 			  inx
 			  cmp #$ff
-			  beq Nahhhh
+			  beq DoAnotherLineDawg
+			  cmp #$fe
+			  beq wedone
 			  sta PPU_DATA
 			  bne MoreTextColonD
-Nahhhh:		  dey
-			  bne DoAnotherLineDawg
+wedone:
 			  lda #$00
 			  sta PPU_SCROLL_REG
 			  sta PPU_SCROLL_REG

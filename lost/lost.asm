@@ -859,6 +859,7 @@ WriteTopStatusLine:
 		jmp IncSubtask
 
 WriteBottomStatusLine:
+		jsr WriteScoreAndCoinTally 
 		jsr Enter_RedrawSockTimer
 		jmp IncSubtask
 
@@ -5872,23 +5873,24 @@ MiscLoopBack:
 ;-------------------------------------------------------------------------------------
 
 GiveOneCoin:
-      ;lda #$01               ;set digit modifier to add 1 coin
-      ;sta DigitModifier+5    ;to the current player's coin tally
-      ;ldy #$11               ;set offset for coin tally
-      ;jsr DigitsMathRoutine  ;update the coin tally
-      ;inc CoinTally          ;increment onscreen player's coin amount
-      ;lda CoinTally
-      ;cmp #100               ;does player have 100 coins yet?
-      ;bne CoinPoints         ;if not, skip all of this
-      ;lda #$00
-      ;sta CoinTally          ;otherwise, reinitialize coin amount
-      ;lda #Sfx_ExtraLife
-      ;sta Square2SoundQueue  ;play 1-up sound
-	  rts					  ;bwaaa
+      lda #$01               ;set digit modifier to add 1 coin
+      sta DigitModifier+5    ;to the current player's coin tally
+      ldy #$11               ;set offset for coin tally
+      jsr DigitsMathRoutine  ;update the coin tally
+      inc OffScr_CoinTally   ;increment onscreen player's coin amount
+      lda OffScr_CoinTally
+      cmp #100               ;does player have 100 coins yet?
+      bne CoinPoints         ;if not, skip all of this
+      lda #$00
+      sta OffScr_CoinTally   ;otherwise, reinitialize coin amount
+      lda #Sfx_ExtraLife
+      sta Square2SoundQueue  ;play 1-up sound
 CoinPoints:
 AddToScore:
 WriteScoreAndCoinTally:
+		lda #$a1
 WriteDigits:
+        jmp PrintStatusBarNumbers ;print status bar numbers based on nybbles, whatever they be
 		jmp Enter_RedrawFrameNumbers
 
 ;-------------------------------------------------------------------------------------
@@ -6693,8 +6695,13 @@ FindLoop: dey
           lda Player_State          ;check to see if the player is
           cmp #$00                  ;on solid ground (i.e. not jumping or falling)
           bne WrongChk              ;if not, player fails to pass loop, and loopback
+          lda #Sfx_CoinGrab			;play if player goes through correct path
           inc MultiLoopCorrectCntr  ;increment counter for correct progression
-WrongChk: inc MultiLoopPassCntr     ;increment master multi-part counter
+		  bne skipFailSound
+WrongChk: lda #Sfx_TimerTick		;play if player goes through incorrect path
+skipFailSound:
+          sta Square2SoundQueue
+		  inc MultiLoopPassCntr     ;increment master multi-part counter
           lda MultiLoopPassCntr     ;have we done all parts?
           cmp MultiLoopCount,y
           bne InitLCmd              ;if not, skip this part

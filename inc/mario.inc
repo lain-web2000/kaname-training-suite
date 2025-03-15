@@ -157,6 +157,7 @@ TopScoreDisplay       = $07d7
 ScoreAndCoinDisplay   = $07dd
 PlayerScoreDisplay    = $07dd
 GameTimerDisplay      = $07f8
+CoinDisplay           = $07e7
 DigitModifier         = $0134
 
 VerticalFlipFlag      = $0109

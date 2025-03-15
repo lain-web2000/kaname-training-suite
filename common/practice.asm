@@ -14,32 +14,32 @@ resume_5: .byte $11, $C5, $50, $1E, $74, $3F, $3D, $3A, $11, $16, $3E, $72, $3E,
 resume_6: .byte $C9, $D6, $88, $E2, $E2, $AD, $3D, $06, $31, $14, $E2, $8C, $0C, $43, $19, $80, $30, $8C, $55, $32, $58, $10, $59, $3A, $0C, $07, $79, $86, $54, $8F, $03, $47, $02, $E8, $65, $69, $BE, $E2, $6C, $6F, $BC, $FB, $1D, $4B, $7D, $D1, $E7, $85, $CC, $85, $72, $01, $04, $49, $E9, $29, $26, $A4, $C6, $76, $90, $73, $31, $D6, $FB, $52, $DB, $46, $E6, $C2, $73, $A2, $05, $3D, $5B, $9D, $F9, $55, $F0, $41, $CE, $8E, $3F, $F3, $45, $3A, $A8, $04, $80, $00, $CA, $A2, $87, $99, $2F, $09, $EA, $07, $13
 
 prac_quick_resume:
-	;
-	; Get the top two digits of target rule (1234 -> 12)
-	;
-	lda TopScoreDisplay+2
-	jsr MulByTen
-	clc
-	adc TopScoreDisplay+3
-	tax
-	ldy #0
-	sty TopScoreDisplay+2 ; clear (1234 - > 34)
-	sty TopScoreDisplay+3 ; clear
-	lda resume_0,x
-	sta PseudoRandomBitReg+0
-	lda resume_1,x
-	sta PseudoRandomBitReg+1
-	lda resume_2,x
-	sta PseudoRandomBitReg+2
-	lda resume_3,x
-	sta PseudoRandomBitReg+3
-	lda resume_4,x
-	sta PseudoRandomBitReg+4
-	lda resume_5,x
-	sta PseudoRandomBitReg+5
-	lda resume_6,x
-	sta PseudoRandomBitReg+6
-	rts
+		;
+		; Get the top two digits of target rule (1234 -> 12)
+		;
+		lda TopScoreDisplay+2
+		jsr MulByTen
+		clc
+		adc TopScoreDisplay+3
+		tax
+		ldy #0
+		sty TopScoreDisplay+2 ; clear (1234 - > 34)
+		sty TopScoreDisplay+3 ; clear
+		lda resume_0,x
+		sta PseudoRandomBitReg+0
+		lda resume_1,x
+		sta PseudoRandomBitReg+1
+		lda resume_2,x
+		sta PseudoRandomBitReg+2
+		lda resume_3,x
+		sta PseudoRandomBitReg+3
+		lda resume_4,x
+		sta PseudoRandomBitReg+4
+		lda resume_5,x
+		sta PseudoRandomBitReg+5
+		lda resume_6,x
+		sta PseudoRandomBitReg+6
+		rts
 
 BIG_FRAMES = 59
 BIG_FIRE_FRAMES = 122
@@ -198,11 +198,12 @@ NoCategoryFrames:
 		;
 		ldy #$0e
 		ldx #$a2
-
+.ifndef ORG
 		dex
 		dex
 		dey
 		dey
+.endif
 @is_org:
 		lda LevelNumber
 		bne SaveFrameCounter
@@ -217,8 +218,8 @@ SaveFrameCounter:
 		rts
 
 TopText:
-	text_block $2044, "RULE * FRAME"
-	text_block $2051, " A   B  TIME R "
+	text_block $2044, "RULE * F*"
+	text_block $2051, " A   B  TIME"
 	.byte $20, $6b, $02, $2e, $29 ; score trailing digit and coin display
 	.byte $23, $c0, $7f, $aa ; attribute table data, clears name table 0 to palette 2
 	.byte $23, $c2, $01, $ea ; attribute table data, used for coin icon in status bar
@@ -229,37 +230,30 @@ WritePracticeTop:
 	jmp ReturnBank
 
 RedrawFramesRemaningInner:
-        lda WRAM_PracticeFlags
-        and #PF_DisablePracticeInfo
-        beq @draw
-		lda StarFlagTaskControl
-		cmp #$04
-		beq @draw ; force remainder if flagpole end
-		lda OperMode
-		cmp #$02
-		beq @draw ; force remainder if castle end
-		lda WarpZoneControl
-		beq nodraw
-		lda GameEngineSubroutine
-		cmp #$03
-		bne nodraw ; force remainder if warp zone
-@draw:	ldy VRAM_Buffer1_Offset
+		lda WRAM_PracticeFlags
+		and #PF_DisablePracticeInfo
+		bne nodraw
+		ldy VRAM_Buffer1_Offset
 		lda #$20
 		sta VRAM_Buffer1, y
-		lda #$7E
+		lda #$59
 		sta VRAM_Buffer1+1, y
-		lda #$02
+		lda #$04
 		sta VRAM_Buffer1+2, y
+		lda #$1B
+		sta VRAM_Buffer1+3, y
+		lda #$29
+		sta VRAM_Buffer1+4, y
 		lda IntervalTimerControl
 		jsr DivByTen
-		sta VRAM_Buffer1+4, y
+		sta VRAM_Buffer1+6, y
 		txa
-		sta VRAM_Buffer1+3, y
-		lda #0
 		sta VRAM_Buffer1+5, y
+		lda #0
+		sta VRAM_Buffer1+7, y
 		clc
 		tya
-		adc #5
+		adc #7
 		sta VRAM_Buffer1_Offset
 nodraw:	rts
 
@@ -267,18 +261,23 @@ HideRemainingFrames:
 		ldy VRAM_Buffer1_Offset
 		lda #$20
 		sta VRAM_Buffer1, y
-		lda #$7E
+		lda #$59
 		sta VRAM_Buffer1+1, y
-		lda #$02
+		lda #$04
 		sta VRAM_Buffer1+2, y
-		lda #$24
+		lda #$1d
 		sta VRAM_Buffer1+3, y
+		lda #$12
 		sta VRAM_Buffer1+4, y
-		lda #0
+		lda #$16
 		sta VRAM_Buffer1+5, y
+		lda #$0e
+		sta VRAM_Buffer1+6, y
+		lda #0
+		sta VRAM_Buffer1+7, y
 		clc
 		tya
-		adc #5
+		adc #7
 		sta VRAM_Buffer1_Offset
 		jmp ReturnBank
 		
@@ -300,7 +299,7 @@ RedrawFrameNumbersInner:
 @draw:	ldy VRAM_Buffer1_Offset
 		lda #$20
 		sta VRAM_Buffer1, y
-		lda #$6d
+		lda #$4d
 		sta VRAM_Buffer1+1, y
 		lda #$03
 		sta VRAM_Buffer1+2, y
@@ -1607,6 +1606,12 @@ RequestRestartLevel:
 		sta AreaPointer
 		lda WRAM_LevelAreaType
 		sta AreaType ; Probably not needed but whatever
+		lda WRAM_CoinTally
+		sta OffScr_CoinTally
+		lda WRAM_CoinDisplay
+		sta CoinDisplay
+		lda WRAM_CoinDisplay+1
+		sta CoinDisplay+1
 		inc FetchNewGameTimerFlag
 		rts
 
@@ -1667,6 +1672,12 @@ ProcessLevelLoad:
 		sta WRAM_LevelPlayerStatus
 		lda PlayerSize
 		sta WRAM_LevelPlayerSize
+		lda OffScr_CoinTally
+		sta WRAM_CoinTally
+		lda CoinDisplay
+		sta WRAM_CoinDisplay
+		lda CoinDisplay+1
+		sta WRAM_CoinDisplay+1
 		lda WRAM_PracticeFlags
 		ora #PF_LevelEntrySaved
 		sta WRAM_PracticeFlags

@@ -63,6 +63,10 @@ WRAM_EntrySockTimer:
 	.byte $00
 WRAM_AreaSockTimer:
 	.byte $00
+WRAM_CoinTally:
+	.byte $00
+WRAM_CoinDisplay:
+	.byte $00, $00
 WRAM_LevelRandomData:
 	.res $07, $00
 WRAM_LevelFrameRuleData:

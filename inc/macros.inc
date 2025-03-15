@@ -228,7 +228,7 @@ MMC3_IRQEnable		  = $e001
 			stx PPU_CTRL_REG1
 			stx PPU_CTRL_REG2
 			jsr SetBankFromA
-			jmp Start_I
+			jmp Start
 
 			.res $FFFA - *, $ea
 			;

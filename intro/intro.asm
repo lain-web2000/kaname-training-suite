@@ -64,6 +64,9 @@ HEART_SPRITE = $18
 
 .export Start_I
 
+.ifdef ORG
+Start:
+.endif
 Start_I:
 		sta MirrorPPUCTRL
 		sta PPU_CTRL_REG1
@@ -118,6 +121,14 @@ dont_wipe_bank_selection:
 		bne @NoCredits
 		jmp PracticeCredits
 @NoCredits:
+.ifdef ORG
+		jsr ReadJoypads
+		cmp #A_Button+B_Button
+		bne @No_InputLog
+		lda #$02
+		jsr StartBank
+.endif
+@No_InputLog:		
 		jsr enter_loader
 
 		ldx #$00

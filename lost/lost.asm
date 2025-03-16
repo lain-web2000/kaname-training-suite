@@ -1045,7 +1045,7 @@ EndGameText:   lda #$00                  ;put null terminator at end
                tax
                dex                       ;if printing anything else besides world/lives display
                bne ExWGT                 ;then branch to leave
-               ldy #$ce                  ;next to the difference...strange things happen if
+               ldy #$9f                  ;next to the difference...strange things happen if
                sty VRAM_Buffer1+7        ;the number of lives exceeds 19
 PutLives:      jsr GetWorldNumForDisplay ;get world number or letter
                sta VRAM_Buffer1+19
@@ -5891,7 +5891,6 @@ WriteScoreAndCoinTally:
 		lda #$a1
 WriteDigits:
         jmp PrintStatusBarNumbers ;print status bar numbers based on nybbles, whatever they be
-		jmp Enter_RedrawFrameNumbers
 
 ;-------------------------------------------------------------------------------------
 
@@ -9343,21 +9342,21 @@ RunStarFlagObj:
       .word DelayToAreaEnd
 
 GameTimerFireworks:
-;         lda GameTimerDisplay+2 ;check to see if last digit of timer matches
-;         cmp CoinDisplay+1      ;the last digit in the coin tally
-;         bne NoFWks             ;if not, skip the fireworks
-;         and #$01
-;         beq EvenDgs            ;if so, check to see if they are both odd or even
-;         ldy #$03
-;         lda #$03               ;if they are both odd, set state and counter
-;         bne SetFWC             ;for 3 fireworks to go off
-;EvenDgs: ldy #$00               ;if they are both even, set state and counter
-;         lda #$06               ;for 6 fireworks to go off
-;         bne SetFWC
-;NoFWks:  ldy #$00
-;         lda #$ff               ;otherwise set value for no fireworks
-;SetFWC:  sta FireworksCounter   ;set fireworks counter here
-;         sty Enemy_State,x      ;set whatever state we have in star flag object
+         lda GameTimerDisplay+2 ;check to see if last digit of timer matches
+         cmp CoinDisplay+1      ;the last digit in the coin tally
+         bne NoFWks             ;if not, skip the fireworks
+         and #$01
+         beq EvenDgs            ;if so, check to see if they are both odd or even
+         ldy #$03
+         lda #$03               ;if they are both odd, set state and counter
+         bne SetFWC             ;for 3 fireworks to go off
+EvenDgs: ldy #$00               ;if they are both even, set state and counter
+         lda #$06               ;for 6 fireworks to go off
+         bne SetFWC
+NoFWks:  ldy #$00
+         lda #$ff               ;otherwise set value for no fireworks
+SetFWC:  sta FireworksCounter   ;set fireworks counter here
+         sty Enemy_State,x      ;set whatever state we have in star flag object
 
 IncrementSFTask1:
       inc StarFlagTaskControl  ;increment star flag object task number

@@ -481,7 +481,7 @@ pm_toggle_info:
 		sta VRAM_Buffer1,x
 		lda #$62 ; addr
 		sta VRAM_Buffer1+1,x
-		lda #$0e ; len
+		lda #$08 ; len
 		sta VRAM_Buffer1+2,x
 		lda #$24 ; blank
 		sta VRAM_Buffer1+3, x
@@ -492,19 +492,21 @@ pm_toggle_info:
 		sta VRAM_Buffer1+8, x
 		sta VRAM_Buffer1+9, x
 		sta VRAM_Buffer1+10, x
+		lda #$20
 		sta VRAM_Buffer1+11, x
+		lda #$4d
+		sta VRAM_Buffer1+12, x
+		lda #$03
+		sta VRAM_Buffer1+13, x
+		lda #$24
 		sta VRAM_Buffer1+14, x
 		sta VRAM_Buffer1+15, x
 		sta VRAM_Buffer1+16, x
-		lda #$2e ; coin icon
-		sta VRAM_Buffer1+12, x
-		lda #$29 ; cross symbol
-		sta VRAM_Buffer1+13, x
-		lda #$00
+		lda #0
 		sta VRAM_Buffer1+17, x
 		lda VRAM_Buffer1_Offset
 		clc
-		adc #$11
+		adc #17
 		sta VRAM_Buffer1_Offset
 		rts
 @keepinfo:

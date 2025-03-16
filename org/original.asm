@@ -1283,7 +1283,7 @@ StatusBarData:
       .byte $7a, $03 ; game timer
 
 StatusBarOffset:
-      .byte $06, $0c, $12, $18, $1e, $24
+      .byte $06, $0c, $12, $12, $1e, $24
 
 PrintStatusBarNumbers:
       sta $00            ;store player-specific offset
@@ -4437,20 +4437,14 @@ MiscLoopBack:
 
 ;-------------------------------------------------------------------------------------
 
-CoinTallyOffsets:
-      .byte $17, $1d
-
 ScoreOffsets:
       .byte $0b, $11
-
-StatusBarNybbles:
-      .byte $a2, $a3
 
 GiveOneCoin:
       lda #$01               ;set digit modifier to add 1 coin
       sta DigitModifier+5    ;to the current player's coin tally
       ldx CurrentPlayer      ;get current player on the screen
-      ldy CoinTallyOffsets,x ;get offset for player's coin tally
+      ldy #$11               ;get offset for player's coin tally
       jsr DigitsMathRoutine  ;update the coin tally
       inc OffScr_CoinTally   ;increment onscreen player's coin amount
       lda OffScr_CoinTally
@@ -4462,22 +4456,21 @@ GiveOneCoin:
       sta Square2SoundQueue  ;play 1-up sound
 
 CoinPoints:
-      lda #$02               ;set digit modifier to award
-      sta DigitModifier+4    ;200 points to the player
+      ;lda #$02               ;set digit modifier to award
+      ;sta DigitModifier+4    ;200 points to the player
 
 AddToScore:
-      ldx CurrentPlayer      ;get current player
-      ldy ScoreOffsets,x     ;get offset for player's score
-      jsr DigitsMathRoutine  ;update the score internally with value in digit modifier
+      ;ldx CurrentPlayer      ;get current player
+      ;ldy ScoreOffsets,x     ;get offset for player's score
+      ;jsr DigitsMathRoutine  ;update the score internally with value in digit modifier
 
 GetSBNybbles:
-      ldy CurrentPlayer      ;get current player
-      lda StatusBarNybbles,y ;get nybbles based on player, use to update score and coins
+      lda #$a2                ;get nybbles used to update score and coins
 
 UpdateNumber:
         jsr PrintStatusBarNumbers ;print status bar numbers based on nybbles, whatever they be
-		ldx ObjectOffset
-		rts
+        ldx ObjectOffset
+        rts
 
 HandlePipeEntry:
          lda Up_Down_Buttons       ;check saved controller bits from earlier

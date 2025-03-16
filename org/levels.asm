@@ -112,8 +112,10 @@ StoreStyle: sta AreaStyle
 ADataLoop:  lda (AreaData),y         ;store area data into region of RAM
             sta WRAM_LevelData,y
             iny                      ;increment Y for next byte
+			beq @exit_a
             cmp #$fd                 ;did we just store a $fd byte?
             bne ADataLoop            ;if not, we aren't done storing area data yet
+@exit_a:
             lda #>WRAM_LevelData     ;now move area data pointers to RAM
             sta AreaDataHigh
             lda #<WRAM_LevelData
@@ -122,8 +124,10 @@ ADataLoop:  lda (AreaData),y         ;store area data into region of RAM
 EDataLoop:  lda (EnemyData),y        ;store enemy data into region of RAM
             sta WRAM_EnemyData,y
             iny                      ;increment Y for next byte
+			beq @exit_e
             cmp #$ff                 ;did we just store a $ff byte?
             bne EDataLoop            ;if not, we aren't done storing enemy data yet
+@exit_e:
             lda #>WRAM_EnemyData     ;now move enemy data pointers to RAM
             sta EnemyDataHigh
             lda #<WRAM_EnemyData
@@ -966,7 +970,6 @@ L_WaterArea3:
       .byte $6e, $88, $9e, $02, $0d, $04, $2e, $0b, $45, $09
       .byte $4e, $0f, $ed, $47
       .byte $fd
-
 ;-------------------------------------------------------------------------------------
 
 	.res $C000 - *, $FF

@@ -1,5 +1,3 @@
-BANK_SELECTED = $07ff
-
 SaveFramesLeft = $013a
 UserFramesLeft = $013b
 
@@ -139,11 +137,13 @@ TITLE_INIT		= $01
 	BANK_ORG		= 12
 .elseif .defined(LOST)
 	BANK_COMMON		= 4
-	BANK_LLDATA		= 8
+	BANK_CHR		= 8
+	BANK_LLDATA		= 10
 	BANK_SMBLL		= 12
 .else
 	BANK_COMMON		= 4
-	BANK_ANNDATA	= 8
+	BANK_CHR		= 8
+	BANK_ANNDATA	= 10
 	BANK_ANN		= 12
 .endif
 

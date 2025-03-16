@@ -13,12 +13,14 @@ OBJECTS-L = $(OUT)/intro-l.o \
           $(OUT)/lost.o \
           $(OUT)/ll-leveldata.o \
           $(OUT)/common-l.o \
+		  $(OUT)/dummy.o \
           $(OUT)/ines.o
 		  
 OBJECTS-N = $(OUT)/intro-n.o \
           $(OUT)/nippon.o \
           $(OUT)/ann-leveldata.o \
           $(OUT)/common-n.o \
+		  $(OUT)/dummy.o \
           $(OUT)/ines.o
 
 WRAM = inc/wram.inc \
@@ -94,6 +96,7 @@ smb2.nes: $(OBJECTS-L) chr/full.chr
 	$(LD) -C scripts/smb2.cfg \
 		$(OUT)/ines.o \
 		$(OUT)/intro-l.o \
+		$(OUT)/dummy.o \
         $(OUT)/lost.o \
         $(OUT)/ll-leveldata.o \
 		$(OUT)/common-l.o \
@@ -119,6 +122,7 @@ nippon.nes: $(OBJECTS-N) chr/full.chr
 	$(LD) -C scripts/nippon.cfg \
 		$(OUT)/ines.o \
 		$(OUT)/intro-n.o \
+		$(OUT)/dummy.o \
         $(OUT)/nippon.o \
         $(OUT)/ann-leveldata.o \
 		$(OUT)/common-n.o \

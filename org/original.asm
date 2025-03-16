@@ -13238,13 +13238,19 @@ NoHammer: ldx ObjectOffset         ;get original enemy object offset
 	.res $F200 - *, $EA
 
 .import NonMaskableInterrupt
+.import INP_NMI
 
 NonMaskableInterrupt_Fixed:
 		lda BANK_SELECTED
-		bne @org_nmi
+		cmp #BANK_ORG
+		beq @org_nmi
+		cmp #BANK_CHR
+		beq @inplog_nmi
 		jmp NonMaskableInterrupt
 @org_nmi:
 		jmp NMIHandler
+@inplog_nmi:
+		jmp INP_NMI
 
 	ReturnBank:
 		lda BANK_SELECTED

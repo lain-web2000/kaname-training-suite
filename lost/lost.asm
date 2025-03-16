@@ -12,22 +12,6 @@
 	.include "wram.inc"
 	.include "text.inc"
 
-	FDS_Delay132:
-	FDS_LoadFiles:
-		jmp FDS_LoadFiles
-
-WRAM_DefaultState:
-		.incbin "wram-init.bin"
-
-Initialize_WRAM:
-		ldx #(Initialize_WRAM-WRAM_DefaultState)
-InitMoreWRAM:
-		lda WRAM_DefaultState - 1, x
-		sta WRAM_LostStart - 1, x
-		dex
-		bne InitMoreWRAM
-		rts
-
 Start:
 		lda #%00010000               ;init PPU control register 1
 		sta PPU_CTRL_REG1
@@ -74,6 +58,21 @@ EndlessLoop:
 		lda $00                     ;endless loop
 		jmp EndlessLoop
 
+FDS_Delay132:
+FDS_LoadFiles:
+		jmp FDS_LoadFiles
+
+WRAM_DefaultState:
+		.incbin "wram-init.bin"
+
+Initialize_WRAM:
+		ldx #(Initialize_WRAM-WRAM_DefaultState)
+InitMoreWRAM:
+		lda WRAM_DefaultState - 1, x
+		sta WRAM_LostStart - 1, x
+		dex
+		bne InitMoreWRAM
+		rts
 ;-------------------------------------------------------------------------------------
 
 VRAM_AddrTable:
@@ -15477,10 +15476,19 @@ SuperPlayerMsg:
 
 NonMaskableInterrupt_Fixed:
 		lda BANK_SELECTED
-		bne @2j_nmi
+.ifdef ANN
+		cmp #BANK_ANN
+.else
+		cmp #BANK_SMBLL
+.endif
+		beq @2j_nmi
+		cmp #BANK_CHR
+		beq @inplog_nmi
 		jmp NonMaskableInterrupt
 @2j_nmi:
 		jmp NMIHandler
+@inplog_nmi:
+		jmp INP_NMI
 
 	ReturnBank:
 		lda BANK_SELECTED

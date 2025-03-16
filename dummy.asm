@@ -1,3 +1,5 @@
+.export INP_NMI
+
 	.include "mario.inc"
 	.include "shared.inc"
 	.include "macros.inc"
@@ -41,7 +43,7 @@ checkforinput:
     lda #%00001000
     sta PPU_CTRL_REG2
     ; enable NMI interrupt
-    lda #%10010000
+    lda #%10001000
     sta PPU_CTRL_REG1
     ; loop until NMI
 :   jmp :-
@@ -61,7 +63,7 @@ ClearMemory:
     rts
 
 ; this interrupt executes every frame
-NonMaskableInterrupt:
+INP_NMI:
     ; clear stack
     ldx #$FF
     txs
@@ -110,7 +112,7 @@ NMIProcedures:
 Setup:
     ; first disable the NMI interrupt so that we can copy data to the ppu without
     ; worrying about getting interrupted
-    lda #%00010000
+    lda #%00001000
     sta PPU_CTRL_REG1
 	lda #$00
     sta PPU_CTRL_REG2
@@ -142,7 +144,7 @@ Setup:
     sta PPU_SCROLL_REG
     sta PPU_SCROLL_REG
     ; then re-enable NMI so the next frame can run
-    lda #%10010000
+    lda #%10001000
     sta PPU_CTRL_REG1
     lda #%00001000
     sta PPU_CTRL_REG2

@@ -121,13 +121,11 @@ dont_wipe_bank_selection:
 		bne @NoCredits
 		jmp PracticeCredits
 @NoCredits:
-.ifdef ORG
 		jsr ReadJoypads
 		cmp #A_Button+B_Button
 		bne @No_InputLog
-		lda #$02
+		lda #BANK_CHR
 		jsr StartBank
-.endif
 @No_InputLog:		
 		jsr enter_loader
 

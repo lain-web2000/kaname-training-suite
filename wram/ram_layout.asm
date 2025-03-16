@@ -72,7 +72,7 @@ WRAM_LevelRandomData:
 WRAM_LevelFrameRuleData:
 	.res $04, $00
 WRAM_EnemyData:
-	.res $80-(WRAM_EnemyData-WRAM_ToSaveFile), $00
+	.res $100, $00
 WRAM_LevelData:
 	.res $100, $00
 WRAM_IsContraMode:
@@ -281,3 +281,6 @@ WRAM_SavePAL:
 
 WRAM_StoredInputs:
         .res $0b, $00
+		
+BANK_SELECTED:
+		.byte $00

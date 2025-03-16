@@ -635,7 +635,7 @@ Level4 = 3
 
 WarmBootOffset        = <$07d6
 ColdBootOffset        = <$07fe
-TitleScreenDataOffset = $1ec0
+TitleScreenDataOffset = $0ec0
 SoundMemory           = $07b0
 
 .define SwimTileRepOffset		PlayerGraphicsTable + $9e

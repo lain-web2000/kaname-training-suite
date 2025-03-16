@@ -139,11 +139,7 @@ dont_wipe_bank_selection:
 		;
 		; Enable NMI
 		;
-	.ifndef ORG
 		lda #%10001000
-	.else
-		lda #$90		;MMC3 swaps backgrounds and sprites so we need to adjust
-	.endif
 		sta MirrorPPUCTRL
 		sta PPU_CTRL_REG1
 hang:
@@ -194,11 +190,7 @@ wedone:
 			  lda #$00
 			  sta PPU_SCROLL_REG
 			  sta PPU_SCROLL_REG
-	.ifndef ORG
 		lda #%00001000
-	.else
-		lda #$10		;MMC3 swaps backgrounds and sprites so we need to adjust
-	.endif
 		sta PPU_CTRL_REG1
 		lda #%00001110
 		sta PPU_CTRL_REG2
@@ -570,9 +562,4 @@ bank_table:
 	.include "smlsound.asm"
 	.include "faxsound.asm"
 
-.ifndef ORG
 	.res $C000 - *, $FF
-.else
-	practice_callgate
-	control_bank
-.endif

@@ -50,9 +50,4 @@ NonMaskableInterrupt: ; Dummy
 	.export FactoryResetWRAM
 	.export UpdateGameTimer
 
-.ifndef ORG
 	.res $C000 - *, $FF
-.else
-	practice_callgate
-	control_bank
-.endif

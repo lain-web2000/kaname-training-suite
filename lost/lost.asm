@@ -5890,7 +5890,9 @@ AddToScore:
 WriteScoreAndCoinTally:
 		lda #$a1
 WriteDigits:
-        jmp PrintStatusBarNumbers ;print status bar numbers based on nybbles, whatever they be
+        jsr PrintStatusBarNumbers ;print status bar numbers based on nybbles, whatever they be
+		ldx ObjectOffset
+		rts
 
 ;-------------------------------------------------------------------------------------
 
@@ -11293,6 +11295,8 @@ SetWDest: tay
            jsr Enter_LL_GetAreaPointer ;get pointer for the next area
 .endif
           sty AreaPointer           ;store area offset here to be used to change areas
+		  sty WRAM_LevelAreaPointer
+		  PF_SetToLevelEnd_A
           lda #Silence
           sta EventMusicQueue       ;silence music
           lda #$00

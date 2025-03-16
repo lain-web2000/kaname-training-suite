@@ -11,7 +11,7 @@ Procedure     = $7FF
 ProcedureAddr = $7FD
 
 ; this code will run at startup, or when reset is pressed.
-Start:
+Start_I:
     ; enable interrupts
     sei
     cld
@@ -386,8 +386,7 @@ Attributes:
 .byte $FF, $FF, $00, %10001000, $00, $00, $00, $00
 AttributesEnd:
 
-	practice_callgate
-	control_bank
+	.res $C000 - *, $FF
 
 ;                                 ++%                               %+*===                           
 ;                                ++##                              %%#**=---                         

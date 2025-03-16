@@ -4,21 +4,22 @@ AFLAGS = -W0 -U -I inc -g --create-dep "$@.dep"
 OUT = build
 OBJECTS-O = $(OUT)/intro-o.o \
           $(OUT)/original.o \
+          $(OUT)/levels.o \
           $(OUT)/common-o.o \
           $(OUT)/dummy.o \
-          $(OUT)/mmc1h.o
+          $(OUT)/ines.o
 		  
 OBJECTS-L = $(OUT)/intro-l.o \
           $(OUT)/lost.o \
           $(OUT)/ll-leveldata.o \
           $(OUT)/common-l.o \
-          $(OUT)/mmc3h.o
+          $(OUT)/ines.o
 		  
 OBJECTS-N = $(OUT)/intro-n.o \
           $(OUT)/nippon.o \
           $(OUT)/ann-leveldata.o \
           $(OUT)/common-n.o \
-          $(OUT)/mmc3h.o
+          $(OUT)/ines.o
 
 WRAM = inc/wram.inc \
 		wram/full.bin \
@@ -48,9 +49,6 @@ $(OUT)/dummy.o: $(INCS) dummy.asm
 chr/full.chr: chr/build_chr.sh
 	(cd chr && sh build_chr.sh)
 #-----------------------------------------------------------------------------------------------------------------------------------
-
-$(OUT)/mmc1h.o: $(INCS) common/ines.asm
-	$(AS) $(AFLAGS) -l $(OUT)/mmc1h.map -D ORG=1 common/ines.asm -o $@
 	
 $(OUT)/intro-o.o: $(INCS) intro/intro.asm intro/faxsound.asm intro/intro.inc intro/smlsound.asm intro/nt.asm intro/settings.asm
 	$(AS) $(AFLAGS) -l $(OUT)/intro.map -D ORG=1 intro/intro.asm -o $@
@@ -58,14 +56,18 @@ $(OUT)/intro-o.o: $(INCS) intro/intro.asm intro/faxsound.asm intro/intro.inc int
 $(OUT)/original.o: $(INCS) org/original.asm
 	$(AS) $(AFLAGS) -l $(OUT)/original.map -D ORG=1 org/original.asm -o $@
 	
+$(OUT)/levels.o: org/levels.asm
+	$(AS) $(AFLAGS) -l $(OUT)/levels.map org/levels.asm -o $@
+	
 $(OUT)/common-o.o: common/common.asm common/sound.asm common/practice.asm
 	$(AS) $(AFLAGS) -l $(OUT)/common.map -D ORG=1 common/common.asm -o $@
 
 smb1.nes: $(OBJECTS-O) chr/full.chr
 	$(LD) -C scripts/smb1.cfg\
-		$(OUT)/mmc1h.o\
+		$(OUT)/ines.o\
 		$(OUT)/intro-o.o\
 		$(OUT)/dummy.o \
+		$(OUT)/levels.o \
 		$(OUT)/original.o \
 		$(OUT)/common-o.o\
 		--dbgfile "smb1.dbg" \
@@ -73,8 +75,8 @@ smb1.nes: $(OBJECTS-O) chr/full.chr
 	cat smb1.tmp chr/org.chr > smb1.nes
 	
 #-----------------------------------------------------------------------------------------------------------------------------------
-$(OUT)/mmc3h.o: $(INCS) common/ines.asm
-	$(AS) $(AFLAGS) -l $(OUT)/mmc3h.map -D LOST=1 common/ines.asm -o $@
+$(OUT)/ines.o: $(INCS) common/ines.asm
+	$(AS) $(AFLAGS) -l $(OUT)/ines.map common/ines.asm -o $@
 
 $(OUT)/intro-l.o: $(INCS) intro/intro.asm intro/faxsound.asm intro/intro.inc intro/smlsound.asm intro/nt.asm intro/settings.asm
 	$(AS) $(AFLAGS) -l $(OUT)/intro.map -D LOST=1 intro/intro.asm -o $@
@@ -90,7 +92,7 @@ $(OUT)/common-l.o: common/common.asm common/sound-ll.asm common/practice.asm
 	
 smb2.nes: $(OBJECTS-L) chr/full.chr
 	$(LD) -C scripts/smb2.cfg \
-		$(OUT)/mmc3h.o \
+		$(OUT)/ines.o \
 		$(OUT)/intro-l.o \
         $(OUT)/lost.o \
         $(OUT)/ll-leveldata.o \
@@ -115,7 +117,7 @@ $(OUT)/common-n.o: common/common.asm common/sound-ll.asm common/practice.asm
 
 nippon.nes: $(OBJECTS-N) chr/full.chr
 	$(LD) -C scripts/nippon.cfg \
-		$(OUT)/mmc3h.o \
+		$(OUT)/ines.o \
 		$(OUT)/intro-n.o \
         $(OUT)/nippon.o \
         $(OUT)/ann-leveldata.o \

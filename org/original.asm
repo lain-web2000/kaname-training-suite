@@ -1526,6 +1526,8 @@ ChkOverR: ldy JoypadOverride          ;if controller bits not set, branch to ski
           jsr Setup_Vine              ;do a sub to grow vine
 ChkSwimE: ldy AreaType                ;if level not water-type,
           bne SetPESub                ;skip this subroutine
+		  ldy #$02
+		  sty $07					  ;fix bubbles
           jsr SetupBubble             ;otherwise, execute sub to set up air bubbles
 SetPESub: lda #$07                    ;set to run player entrance subroutine
           sta GameEngineSubroutine    ;on the next frame of game engine
@@ -4035,9 +4037,11 @@ ExitBubl: rts                      ;leave
 
 Bubble_MForceData:
       .byte $ff, $50
+	  .byte $f9
 
 BubbleTimerData:
       .byte $40, $20
+	  .byte $04
 
 ;-------------------------------------------------------------------------------------
 

@@ -13210,24 +13210,24 @@ NoHammer: ldx ObjectOffset         ;get original enemy object offset
 		
 	Enter_GetAreaDataAddrs:
 		lda #BANK_ORGDATA
-		jsr Set16KBankFromA
+		jsr SetBankFromA
 		jsr GetAreaDataAddrs
 		lda #BANK_ORG
-		jmp Set16KBankFromA
+		jmp SetBankFromA
 
 	Enter_LoadAreaPointer:
 		lda #BANK_ORGDATA
-		jsr Set16KBankFromA
+		jsr SetBankFromA
 		jsr LoadAreaPointer
 		lda #BANK_ORG
-		jmp Set16KBankFromA
+		jmp SetBankFromA
 
 	Enter_GetAreaPointer:
 		lda #BANK_ORGDATA
-		jsr Set16KBankFromA
+		jsr SetBankFromA
 		jsr GetAreaPointer
 		lda #BANK_ORG
-		jmp Set16KBankFromA		
+		jmp SetBankFromA		
 
 ;
 ; Lower banks
@@ -13257,12 +13257,27 @@ NonMaskableInterrupt_Fixed:
 
 	LoadChrDataFromX:
 		lda #BANK_CHR
-            jsr Set16KBankFromA
+            jsr SetBankFromA
             jsr LoadCHR
             lda BANK_SELECTED
             jmp SetBankFromA
 
-	Set16KBankFromA:
+	Set8KBankAt8000FromA:
+		pha
+		lda #%00000110
+		sta MMC3_BankSelect
+		pla
+		sta MMC3_BankData
+		rts
+		
+	Set8KBankAtA000FromA:
+		pha
+		lda #%00000111
+		sta MMC3_BankSelect
+		pla
+		sta MMC3_BankData
+		rts
+		
 	SetBankFromA:
 		clc
 		pha
@@ -13277,6 +13292,27 @@ NonMaskableInterrupt_Fixed:
 		pla
 		sta MMC3_BankData
 		rts
+		
+InitCHRBanks:
+		ldx #$00		;Set up for MMC3 registers.
+		lda #$01		;Bit 0 is ignored for 2K modes so this is good.
+@chrloop1:				;A12 inversion bit = 0 so $0000 to $0FFF = 2K banks
+		stx $8000		;Select CHR address to set up bank number.
+		sta $8001		;Switch to that CHR bank.
+		inx				;Increment bank select number.
+		asl				;Multiply by 2 since we are dealing with 2K banks.
+		cmp #$04	    ;Have we reached CHR bank 4?
+		bne @chrloop1	;If not, initialise next CHR bank.
+		tay				;We need to transfer to Y since we want to increment by 1 now.
+@chrloop2:				;A12 inversion bit = 0 so $1000 to $1FFF = 1K banks
+		stx $8000		;Select CHR address to set up bank number.
+		sty $8001		;Switch to that CHR bank.
+		inx				;Increment bank select number.
+		iny				;Increment CHR bank number.
+		cpy #$08		;Have we initialised CHR bank 7?
+		bne @chrloop2	;If not, initialise next CHR bank.
+@StartGame:
+		jmp Start_I
 		
 	MapperReset:
 		;
@@ -13295,7 +13331,7 @@ NonMaskableInterrupt_Fixed:
 		inx
 		stx BANK_SELECTED
 		jsr SetBankFromA
-		jmp Start_I
+		jmp InitCHRBanks
 
 StartBank:
 		sta BANK_SELECTED

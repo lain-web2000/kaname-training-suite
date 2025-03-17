@@ -15548,45 +15548,45 @@ SuperPlayerMsg:
 .ifdef LOST
 	Enter_LL_GetAreaDataAddrs:
 			lda #BANK_LLDATA
-			jsr Set16KBankFromA
+			jsr SetBankFromA
 			jsr GetAreaDataAddrs
 			lda #BANK_SMBLL
-			jmp Set16KBankFromA
+			jmp SetBankFromA
 
 		Enter_LL_GetAreaPointer:
 			lda #BANK_LLDATA
-			jsr Set16KBankFromA
+			jsr SetBankFromA
 			jsr GetAreaPointer
 			lda #BANK_SMBLL
-			jmp Set16KBankFromA
+			jmp SetBankFromA
 			
 		Enter_LL_LoadAreaPointer:
 			lda #BANK_LLDATA
-			jsr Set16KBankFromA
+			jsr SetBankFromA
 			jsr LoadAreaPointer
 			lda #BANK_SMBLL
-			jmp Set16KBankFromA
+			jmp SetBankFromA
 .else
 		Enter_ANN_GetAreaDataAddrs:
 			lda #BANK_ANNDATA
-			jsr Set16KBankFromA
+			jsr SetBankFromA
 			jsr ANN_GetAreaDataAddrs
 			lda #BANK_ANN
-			jmp Set16KBankFromA
+			jmp SetBankFromA
 
 		Enter_ANN_GetAreaPointer:
 			lda #BANK_ANNDATA
-			jsr Set16KBankFromA
+			jsr SetBankFromA
 			jsr ANN_GetAreaPointer
 			lda #BANK_ANN
-			jmp Set16KBankFromA
+			jmp SetBankFromA
 			
 		Enter_ANN_LoadAreaPointer:
 			lda #BANK_ANNDATA
-			jsr Set16KBankFromA
+			jsr SetBankFromA
 			jsr ANN_LoadAreaPointer
 			lda #BANK_ANN
-			jmp Set16KBankFromA
+			jmp SetBankFromA
 .endif
 		
 
@@ -15621,12 +15621,27 @@ NonMaskableInterrupt_Fixed:
 
 	LoadChrDataFromX:
 		lda #BANK_CHR
-            jsr Set16KBankFromA
+            jsr SetBankFromA
             jsr LoadCHR
             lda BANK_SELECTED
             jmp SetBankFromA
 
-	Set16KBankFromA:
+	Set8KBankAt8000FromA:
+		pha
+		lda #%00000110
+		sta MMC3_BankSelect
+		pla
+		sta MMC3_BankData
+		rts
+		
+	Set8KBankAtA000FromA:
+		pha
+		lda #%00000111
+		sta MMC3_BankSelect
+		pla
+		sta MMC3_BankData
+		rts
+		
 	SetBankFromA:
 		clc
 		pha
@@ -15642,9 +15657,29 @@ NonMaskableInterrupt_Fixed:
 		sta MMC3_BankData
 		rts
 		
+InitCHRBanks:
+		ldx #$00		;Set up for MMC3 registers.
+		lda #$01		;Bit 0 is ignored for 2K modes so this is good.
+@chrloop1:				;A12 inversion bit = 0 so $0000 to $0FFF = 2K banks
+		stx $8000		;Select CHR address to set up bank number.
+		sta $8001		;Switch to that CHR bank.
+		inx				;Increment bank select number.
+		asl				;Multiply by 2 since we are dealing with 2K banks.
+		cmp #$04	    ;Have we reached CHR bank 4?
+		bne @chrloop1	;If not, initialise next CHR bank.
+		tay				;We need to transfer to Y since we want to increment by 1 now.
+@chrloop2:				;A12 inversion bit = 0 so $1000 to $1FFF = 1K banks
+		stx $8000		;Select CHR address to set up bank number.
+		sty $8001		;Switch to that CHR bank.
+		inx				;Increment bank select number.
+		iny				;Increment CHR bank number.
+		cpy #$08		;Have we initialised CHR bank 7?
+		bne @chrloop2	;If not, initialise next CHR bank.
+		jmp Start_I
+		
 	MapperReset:
 		;
-		; Clear MMC5 state
+		; Clear MMC3 state
 		;
 		sei
 		cld
@@ -15655,11 +15690,11 @@ NonMaskableInterrupt_Fixed:
 		lda #%10000000
 		sta MMC3_PRGRAMProtect      ; enable PRG-RAM
 		lda #$00
-		sta MMC3_IRQDisable
+		sta MMC3_IRQDisable			; disable IRQ's
 		inx
-		stx BANK_SELECTED
+		stx BANK_SELECTED			
 		jsr SetBankFromA
-		jmp Start_I
+		jmp InitCHRBanks
 
 	
 InterruptRequest:

@@ -30,13 +30,8 @@ ColdBoot:    jsr InitializeMemory         ;clear memory using pointer in Y
 
              jsr Enter_PracticeInit
 
-             lda #CHR_ORG_SPR
-             ldy WRAM_IsContraMode
-             beq @not_peach
-             lda #CHR_PEACH_SPR
-@not_peach:
-             ldx #CHR_ORG_BG
-             jsr SetChrBanksFromAX
+             ldx #CHR_ORG
+             jsr LoadChrDataFromX
              lda #%00001111
              sta SND_MASTERCTRL_REG       ;enable all sound channels except dmc
              lda #%00000110
@@ -13124,7 +13119,7 @@ NoHammer: ldx ObjectOffset         ;get original enemy object offset
 
 .export StartBank
 .export ReturnBank
-.export SetChrBanksFromAX
+.export LoadChrDataFromX
 .export Enter_InitializeWRAM
 .export Enter_FactoryResetWRAM
 
@@ -13253,20 +13248,14 @@ NonMaskableInterrupt_Fixed:
 		lda BANK_SELECTED
 		jmp SetBankFromA
 
-	SetChrBanksFromAX:
-		clc
-		jsr SwitchSPR_CHR0
-		adc #$01
-		jsr SwitchSPR_CHR1
-		adc #$01
-		jsr SwitchSPR_CHR2
-		adc #$01
-		jsr SwitchSPR_CHR3
-		inx
-		txa
-		jsr SwitchBG_CHR0
-		adc #$02
-		jmp SwitchBG_CHR1
+.import LoadCHR
+
+	LoadChrDataFromX:
+		lda #BANK_CHR
+            jsr Set16KBankFromA
+            jsr LoadCHR
+            lda BANK_SELECTED
+            jmp SetBankFromA
 
 	Set16KBankFromA:
 	SetBankFromA:
@@ -13279,50 +13268,6 @@ NonMaskableInterrupt_Fixed:
 		adc #%00000001
 		pha
 		lda #%00000111
-		sta MMC3_BankSelect
-		pla
-		sta MMC3_BankData
-		rts
-
-SwitchBG_CHR1:
-		pha
-		lda #%00000001
-		sta MMC3_BankSelect
-		pla
-		sta MMC3_BankData
-		rts
-SwitchBG_CHR0:
-		pha
-		lda #%00000000
-		sta MMC3_BankSelect
-		pla
-		sta MMC3_BankData
-		rts
-		
-SwitchSPR_CHR3:
-		pha
-		lda #%00000101
-		sta MMC3_BankSelect
-		pla
-		sta MMC3_BankData
-		rts
-SwitchSPR_CHR2:
-		pha
-		lda #%00000100
-		sta MMC3_BankSelect
-		pla
-		sta MMC3_BankData
-		rts
-SwitchSPR_CHR1:
-		pha
-		lda #%00000011
-		sta MMC3_BankSelect
-		pla
-		sta MMC3_BankData
-		rts
-SwitchSPR_CHR0:
-		pha
-		lda #%00000010
 		sta MMC3_BankSelect
 		pla
 		sta MMC3_BankData

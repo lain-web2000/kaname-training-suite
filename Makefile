@@ -6,21 +6,21 @@ OBJECTS-O = $(OUT)/intro-o.o \
           $(OUT)/original.o \
           $(OUT)/levels.o \
           $(OUT)/common-o.o \
-          $(OUT)/dummy.o \
+          $(OUT)/dummy-o.o \
           $(OUT)/ines.o
 		  
 OBJECTS-L = $(OUT)/intro-l.o \
           $(OUT)/lost.o \
           $(OUT)/ll-leveldata.o \
           $(OUT)/common-l.o \
-		  $(OUT)/dummy.o \
+		  $(OUT)/dummy-l.o \
           $(OUT)/ines.o
 		  
 OBJECTS-N = $(OUT)/intro-n.o \
           $(OUT)/nippon.o \
           $(OUT)/ann-leveldata.o \
           $(OUT)/common-n.o \
-		  $(OUT)/dummy.o \
+		  $(OUT)/dummy-n.o \
           $(OUT)/ines.o
 
 WRAM = inc/wram.inc \
@@ -45,9 +45,6 @@ wram/full.bin $(OUT)/ram_layout.map: wram/ram_layout.asm
 	$(AS) $(AFLAGS) -l $(OUT)/ram_layout.map wram/ram_layout.asm -o build/ram_layout.o
 	$(LD) -C scripts/ram-link.cfg build/ram_layout.o -o wram/full.bin
 	
-$(OUT)/dummy.o: $(INCS) dummy.asm
-	$(AS) $(AFLAGS) -l $(OUT)/dummy.map -D ORG=1 dummy.asm -o $@
-	
 chr/full.chr: chr/build_chr.sh
 	(cd chr && sh build_chr.sh)
 #-----------------------------------------------------------------------------------------------------------------------------------
@@ -64,17 +61,20 @@ $(OUT)/levels.o: org/levels.asm
 $(OUT)/common-o.o: common/common.asm common/sound.asm common/practice.asm
 	$(AS) $(AFLAGS) -l $(OUT)/common.map -D ORG=1 common/common.asm -o $@
 
+$(OUT)/dummy-o.o: $(INCS) dummy.asm
+	$(AS) $(AFLAGS) -l $(OUT)/dummy-o.map -D ORG=1 dummy.asm -o $@
+
 smb1.nes: $(OBJECTS-O) chr/full.chr
 	$(LD) -C scripts/smb1.cfg\
 		$(OUT)/ines.o\
 		$(OUT)/intro-o.o\
-		$(OUT)/dummy.o \
+		$(OUT)/dummy-o.o \
 		$(OUT)/levels.o \
 		$(OUT)/original.o \
 		$(OUT)/common-o.o\
 		--dbgfile "smb1.dbg" \
 		-o smb1.tmp
-	cat smb1.tmp chr/org.chr > smb1.nes
+	cat smb1.tmp > smb1.nes
 	
 #-----------------------------------------------------------------------------------------------------------------------------------
 $(OUT)/ines.o: $(INCS) common/ines.asm
@@ -91,18 +91,21 @@ $(OUT)/ll-leveldata.o: lost/leveldata.asm
 
 $(OUT)/common-l.o: common/common.asm common/sound-ll.asm common/practice.asm
 	$(AS) $(AFLAGS) -l $(OUT)/common.map -D LOST=1 common/common.asm -o $@
+
+$(OUT)/dummy-l.o: $(INCS) dummy.asm
+	$(AS) $(AFLAGS) -l $(OUT)/dummy-l.map -D LOST=1 dummy.asm -o $@
 	
 smb2.nes: $(OBJECTS-L) chr/full.chr
 	$(LD) -C scripts/smb2.cfg \
 		$(OUT)/ines.o \
 		$(OUT)/intro-l.o \
-		$(OUT)/dummy.o \
+		$(OUT)/dummy-l.o \
         $(OUT)/lost.o \
         $(OUT)/ll-leveldata.o \
 		$(OUT)/common-l.o \
 		--dbgfile "smb2.dbg" \
 		-o smb2.tmp
-	cat smb2.tmp chr/lost.chr > smb2.nes
+	cat smb2.tmp > smb2.nes
 	
 #-----------------------------------------------------------------------------------------------------------------------------------
 
@@ -118,17 +121,20 @@ $(OUT)/ann-leveldata.o: lost/leveldata.asm
 $(OUT)/common-n.o: common/common.asm common/sound-ll.asm common/practice.asm
 	$(AS) $(AFLAGS) -l $(OUT)/common.map -D ANN=1 common/common.asm -o $@
 
+$(OUT)/dummy-n.o: $(INCS) dummy.asm
+	$(AS) $(AFLAGS) -l $(OUT)/dummy-n.map -D ANN=1 dummy.asm -o $@
+
 nippon.nes: $(OBJECTS-N) chr/full.chr
 	$(LD) -C scripts/nippon.cfg \
 		$(OUT)/ines.o \
 		$(OUT)/intro-n.o \
-		$(OUT)/dummy.o \
+		$(OUT)/dummy-n.o \
         $(OUT)/nippon.o \
         $(OUT)/ann-leveldata.o \
 		$(OUT)/common-n.o \
 		--dbgfile "nippon.dbg" \
 		-o nippon.tmp
-	cat nippon.tmp chr/nippon.chr > nippon.nes
+	cat nippon.tmp > nippon.nes
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 

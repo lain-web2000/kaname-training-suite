@@ -113,9 +113,10 @@ dont_wipe_bank_selection:
 		inx
 		bne clear_memory
 
-		lda #CHR_INTRO_SPR0
 		ldx #CHR_INTRO_BG
-		jsr SetChrBanksFromAX
+		jsr LoadChrDataFromX
+		ldx #CHR_INTRO_SPR
+		jsr LoadChrDataFromX
 		jsr ReadJoypads
 		cmp #Start_Button+Select_Button
 		bne @NoCredits

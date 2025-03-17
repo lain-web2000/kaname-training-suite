@@ -388,6 +388,91 @@ Attributes:
 .byte $FF, $FF, $00, %10001000, $00, $00, $00, $00
 AttributesEnd:
 
+;-----------------------------------------------------------------
+
+.include "chr/chrram/chrramlayout.asm"
+
+CHRSourceAddress:
+    .word intro_bg_start
+    .word intro_spr_start
+.ifdef ORG
+    .word sm1char1_start
+.else
+    .word sm2char1_start
+    .word sm2char2_start
+.endif
+
+CHRDestinationAddress:
+    .word $0000
+    .word $1000
+    .word $0000
+.ifndef ORG
+    .word $1760
+.endif
+
+EndOfFileTerminator:
+    .byte $45, $4F, $46
+
+.export LoadCHR
+
+LoadCHR:
+    txa
+    asl
+    tax
+    lda CHRSourceAddress,x
+    sta $00
+    lda CHRSourceAddress+1,x
+    sta $01
+    lda Mirror_PPU_CTRL_REG1
+    and #%11111011
+    sta PPU_CTRL_REG1
+    lda Mirror_PPU_CTRL_REG2
+    and #%11100001
+    sta PPU_CTRL_REG2
+    lda PPU_STATUS
+    lda CHRDestinationAddress+1,x
+    sta PPU_ADDRESS
+    lda CHRDestinationAddress,x
+    sta PPU_ADDRESS
+    ldy #$00
+@continue:
+    lda ($00),y
+    cmp EndOfFileTerminator
+    bne @store
+    tya
+    pha
+    clc
+    adc $00
+    sta $02
+    lda $01
+    adc #0
+    sta $03
+    ldx #$00
+    ldy #$00
+@terminator:
+    inx
+    cpx #$03
+    bcs @done
+    iny
+    lda ($02),y
+    cmp EndOfFileTerminator,x
+    beq @terminator
+    pla
+    tay
+@store:
+    sta PPU_DATA
+    iny
+    bne @continue
+    inc $01
+    bne @continue
+@done:
+    pla
+    lda Mirror_PPU_CTRL_REG1
+    sta PPU_CTRL_REG1
+    lda Mirror_PPU_CTRL_REG2
+    sta PPU_CTRL_REG2
+    rts
+
 	.res $C000 - *, $FF
 
 ;                                 ++%                               %+*===                           

@@ -35,14 +35,9 @@ ColdBoot:
         sta PseudoRandomBitReg      ;set seed for pseudorandom register
 
         jsr Enter_PracticeInit
-.ifdef ANN
-		ldx #CHR_NIPPON_BG
-		lda #CHR_NIPPON_SPR
-.else
-		ldx #CHR_LOST_BG
-		lda #CHR_LOST_SPR
-.endif
-		jsr SetChrBanksFromAX
+
+		ldx #CHR_SM2CHAR1
+		jsr LoadChrDataFromX
 		lda #%00001111
 		sta SND_MASTERCTRL_REG      ;enable all sound channels except dmc
 		lda #%00000110
@@ -473,25 +468,58 @@ IncModeTask:
 
 .ifdef ANN
 
+MRetainerData:
+.addr MRetainerCHRWorld1
+.addr MRetainerCHRWorld2
+.addr MRetainerCHRWorld3
+.addr MRetainerCHRWorld4
+.addr MRetainerCHRWorld5
+.addr MRetainerCHRWorld6
+.addr MRetainerCHRWorld7
+
+; overwrites CHR 1CD0-1CFF, 17A0-17BF and 1EE0-1EEF
+MRetainerPPUOffsetHi:
+      .byte $1C,$17,$1E
+MRetainerPPUOffsetLo:
+      .byte $D0,$A0,$E0
+MRetainerPPULen:
+      .byte $30,$50,$60
+
+; Each world has it's own mushroom retainer in All Night Nippon.
+; These are loaded in at the start of the level.
 LoadWorldMushroomRetainer:
+      @TempPtr = $00
+      @TempOffset = $06
       lda LevelNumber                ; get current level number
       cmp #$03                       ; check if we're in a castle
       bne @End                       ; if not - exit out
-	  lda WorldNumber
-      cmp #$07                       ; check if we're in a castle
-	  beq @End                       ; if not - exit out
       ldy HardWorldFlag              ; check if we're playing hard worlds
       bne @End                       ; if so - exit out
-	  lda WorldNumber
-	  asl
-	  clc
-	  adc #BANK_NIPPON_CHAR_L
-	  sta MMC5_CHRBank+1
-	  lda WorldNumber
-	  asl
-	  clc
-	  adc #BANK_NIPPON_CHAR_R
-	  sta MMC5_CHRBank+3
+      sty @TempOffset                ; clear offset value
+      lda WorldNumber                ; get current world
+      asl a                          ; multiply by 2 to get offset
+      tax                            ; and store it in X
+      lda MRetainerData,x            ; place pointer for world in $00
+      sta @TempPtr                   ;
+      inx                            ;
+      lda MRetainerData,x            ;
+      sta @TempPtr+1                 ;
+@CopyNext:
+      ldx @TempOffset                ; load current offset
+      lda MRetainerPPUOffsetHi,x     ; set PPU address from table
+      sta PPU_ADDRESS                ;
+      lda MRetainerPPUOffsetLo,x     ;
+      sta PPU_ADDRESS                ;
+:     lda (@TempPtr),y               ; get next byte to copy to CHR
+      sta PPU_DATA                   ; and write it to PPU
+      iny                            ; increment loop
+      tya                            ;
+      cmp MRetainerPPULen,x          ; check if we've reached the end of the data
+      bne :-                         ; otherwise loop
+      inc @TempOffset                ; advance to next CHR region
+      lda @TempOffset                ; check if we're reached the end
+      cmp #$03                       ;
+      bne @CopyNext                  ; no - keep looping
 @End:
       jmp IncModeTask                ; yes - move on to next task
 .endif
@@ -2099,7 +2127,7 @@ DoneInitArea:  lda #Silence             ;silence music
 ;-------------------------------------------------------------------------------------
 
 SecondaryGameSetup:
-	   jsr Enter_ProcessLevelLoad
+	 jsr Enter_ProcessLevelLoad
        lda #$00
        sta DisableScreenFlag    ;reenable screen, reset some flags
 .ifndef ANN
@@ -14221,13 +14249,8 @@ LoadWorlds1Thru4:
            bcc InitWorldPos      ;thus skip to the end, no need to load them again
 LW14Files: lda #$00              ;set filelist number to reload SM2MAIN, SM2CHAR1 and SM2SAVE
            sta FileListNumber
-.ifdef ANN
-		   lda #CHR_NIPPON_SPR+1
-		   jsr SwitchSPR_CHR1
-.else
-		   lda #CHR_LOST_SPR+1
-		   jsr SwitchSPR_CHR1
-.endif
+           ldx #CHR_SM2CHAR1
+           jsr LoadChrDataFromX
 InitWorldPos:
            lda #$01              ;set flag to check player's world info
            sta NotColdFlag       ;before erasing it
@@ -14283,15 +14306,8 @@ VictoryModeDiskRoutines:
 LoadEnding:
         lda #$02                 ;set filelist number to load SM2DATA3, SM2CHAR2 and SM2SAVE
         sta FileListNumber
-.ifdef ANN
-	    lda #CHR_NIPPON_VICTORY
-	    sta MMC5_CHRBank+1
-		lda #CHR_NIPPON_VICTORY+1
-	    sta MMC5_CHRBank+2		
-.else
-	    lda #CHR_LOST_VICTORY
-	    jsr SwitchSPR_CHR1
-.endif
+        ldx #CHR_SM2CHAR2
+        jsr LoadChrDataFromX
         jsr InitializeNameTables
         jsr ResetDiskIOTask      ;end disk subroutines
         sta ScreenRoutineTask    ;init screen routine task
@@ -14811,6 +14827,106 @@ WLp:  lda LeavesXPos,y      ;initialize leaf positions
       dey                   ;decrement counter
       bpl WLp               ;branch if not done initalizing leaves
       rts                   ;leave
+
+.else
+
+MRetainerCHRWorld1:
+.byte $00,$03,$1f,$3f,$3f,$7f,$7f,$7f
+.byte $00,$03,$1f,$3f,$3f,$7f,$7f,$7f
+.byte $7f,$3f,$3b,$33,$7f,$7e,$7f,$7f
+.byte $5f,$18,$0f,$3f,$70,$53,$19,$1c
+.byte $00,$00,$03,$34,$79,$7f,$3f,$1c
+.byte $3f,$3f,$0f,$0f,$07,$03,$03,$00
+.byte $e0,$f0,$f8,$f8,$fc,$fe,$fe,$fe
+.byte $e0,$f0,$f8,$f8,$fc,$fe,$fe,$fe
+.byte $fe,$fe,$ee,$e6,$ff,$3f,$ff,$ff
+.byte $8c,$04,$70,$7e,$07,$e5,$cc,$1c
+.byte $80,$00,$e0,$06,$cf,$ff,$fe,$1c
+.byte $7e,$fe,$f8,$f8,$f0,$e0,$e0,$00
+
+MRetainerCHRWorld2:
+.byte $1f,$3f,$3f,$1f,$1f,$1f,$1f,$1f
+.byte $1f,$3f,$30,$04,$03,$02,$00,$00
+.byte $1f,$1f,$1f,$1f,$1e,$0f,$0f,$07
+.byte $00,$01,$00,$01,$00,$01,$00,$00
+.byte $74,$42,$e3,$e1,$00,$60,$38,$0c
+.byte $0e,$03,$03,$01,$0f,$e8,$78,$3c
+.byte $00,$f8,$fc,$fc,$fc,$fc,$fc,$fc
+.byte $00,$f8,$1c,$4c,$8c,$84,$04,$04
+.byte $f8,$f8,$f8,$f8,$f8,$f0,$f0,$e0
+.byte $00,$00,$00,$00,$00,$00,$00,$00
+.byte $2e,$62,$c7,$c7,$00,$18,$0c,$06
+.byte $70,$e0,$c0,$c0,$c0,$dc,$fe,$07
+
+MRetainerCHRWorld3:
+.byte $00,$0e,$3f,$7f,$7f,$ff,$ff,$ff
+.byte $00,$0e,$3f,$7f,$7e,$fc,$f0,$ec
+.byte $7f,$7f,$7f,$7f,$3c,$1f,$47,$c1
+.byte $50,$4e,$00,$00,$0f,$00,$00,$00
+.byte $e1,$35,$06,$07,$63,$70,$30,$10
+.byte $02,$0f,$0f,$07,$e3,$f7,$fc,$70
+.byte $00,$70,$fc,$fe,$fe,$ff,$ff,$ff
+.byte $00,$70,$fc,$fe,$7e,$3f,$0f,$37
+.byte $fe,$fe,$fe,$fe,$3c,$f8,$e2,$83
+.byte $0a,$72,$00,$00,$f0,$00,$00,$00
+.byte $87,$ac,$60,$e0,$60,$0e,$0c,$08
+.byte $40,$f0,$f0,$e0,$c7,$ef,$3f,$0e
+
+MRetainerCHRWorld4:
+.byte $0f,$3f,$7f,$7f,$ff,$ff,$ff,$ff
+.byte $0f,$3f,$7f,$7f,$fe,$fc,$ee,$e0
+.byte $e1,$f1,$7f,$1f,$0c,$66,$73,$21
+.byte $c4,$00,$00,$00,$01,$00,$00,$00
+.byte $3d,$06,$07,$0e,$1c,$18,$00,$00
+.byte $07,$07,$03,$00,$58,$78,$70,$31
+.byte $f0,$fc,$fe,$fe,$fe,$ff,$ff,$ff
+.byte $f0,$fc,$fe,$fe,$7e,$7f,$3f,$07
+.byte $87,$8f,$fe,$f8,$30,$64,$c6,$86
+.byte $21,$00,$00,$00,$80,$00,$00,$00
+.byte $bc,$60,$c0,$c0,$c0,$c0,$c0,$00
+.byte $e0,$e0,$c0,$00,$00,$c0,$c0,$f0
+
+MRetainerCHRWorld5:
+.byte $0F,$3F,$7F,$7F,$F3,$ED,$FF,$FD
+.byte $0F,$3F,$78,$60,$C0,$C0,$80,$00
+.byte $FF,$FB,$7C,$FF,$70,$7F,$FF,$FF
+.byte $00,$00,$00,$80,$43,$40,$E0,$F8
+.byte $FC,$FE,$7F,$10,$00,$00,$00,$FC
+.byte $FF,$FF,$63,$0F,$3F,$7C,$78,$FC
+.byte $F0,$FC,$FE,$FE,$CF,$B7,$FF,$BF
+.byte $F0,$FC,$1E,$06,$03,$03,$01,$00
+.byte $FF,$DF,$3E,$FF,$0E,$FE,$FF,$FF
+.byte $00,$00,$00,$01,$42,$02,$07,$1F
+.byte $3F,$7F,$FE,$08,$00,$00,$00,$3F
+.byte $FF,$FF,$C6,$F0,$FC,$3E,$1E,$3F
+
+MRetainerCHRWorld6:
+.byte $03,$07,$1F,$7F,$7F,$FF,$FD,$FF
+.byte $03,$07,$1F,$7F,$7F,$FF,$FC,$F8
+.byte $71,$39,$0F,$0F,$1F,$1F,$1E,$3F
+.byte $4A,$03,$01,$01,$11,$10,$18,$39
+.byte $3B,$3F,$3C,$3C,$18,$00,$00,$3F
+.byte $24,$03,$03,$02,$07,$07,$07,$3F
+.byte $C0,$F0,$F0,$FC,$FE,$FF,$8F,$FF
+.byte $C0,$F0,$F0,$FC,$9E,$17,$07,$01
+.byte $8E,$9E,$F8,$F8,$FE,$FE,$3F,$F7
+.byte $50,$40,$00,$00,$86,$07,$0F,$CF
+.byte $F7,$F7,$02,$00,$1C,$3E,$3E,$1C
+.byte $1B,$FB,$FC,$DC,$FC,$3E,$3E,$1C
+
+MRetainerCHRWorld7:
+.byte $1F,$7F,$70,$C1,$C1,$95,$A3,$CB
+.byte $1F,$7F,$7F,$FE,$FE,$EA,$C4,$08
+.byte $F3,$FD,$FC,$3F,$38,$1C,$1F,$17
+.byte $00,$02,$03,$00,$00,$63,$70,$F8
+.byte $10,$38,$7F,$7F,$3F,$7F,$78,$00
+.byte $FF,$DF,$9F,$3B,$3F,$7F,$78,$F8
+.byte $F0,$FC,$1C,$06,$06,$82,$82,$46
+.byte $F0,$FC,$FC,$FE,$FE,$7E,$1E,$48
+.byte $3E,$FE,$7E,$F8,$38,$70,$E0,$D6
+.byte $00,$00,$80,$00,$00,$88,$1C,$38
+.byte $1F,$3F,$FF,$FE,$F8,$FC,$3E,$00
+.byte $F0,$F0,$F0,$B8,$F8,$FC,$3E,$3F
 
 .endif
 ;-------------------------------------------------------------------------------------
@@ -15345,7 +15461,7 @@ SuperPlayerMsg:
 
 .export StartBank
 .export ReturnBank
-.export SetChrBanksFromAX
+.export LoadChrDataFromX
 .export Enter_InitializeWRAM
 .export Enter_FactoryResetWRAM
 
@@ -15501,20 +15617,14 @@ NonMaskableInterrupt_Fixed:
 		lda BANK_SELECTED
 		jmp SetBankFromA
 
-	SetChrBanksFromAX:
-		clc
-		jsr SwitchSPR_CHR0
-		adc #$01
-		jsr SwitchSPR_CHR1
-		adc #$01
-		jsr SwitchSPR_CHR2
-		adc #$01
-		jsr SwitchSPR_CHR3
-		inx
-		txa
-		jsr SwitchBG_CHR0
-		adc #$02
-		jmp SwitchBG_CHR1
+.import LoadCHR
+
+	LoadChrDataFromX:
+		lda #BANK_CHR
+            jsr Set16KBankFromA
+            jsr LoadCHR
+            lda BANK_SELECTED
+            jmp SetBankFromA
 
 	Set16KBankFromA:
 	SetBankFromA:
@@ -15527,50 +15637,6 @@ NonMaskableInterrupt_Fixed:
 		adc #%00000001
 		pha
 		lda #%00000111
-		sta MMC3_BankSelect
-		pla
-		sta MMC3_BankData
-		rts
-
-SwitchBG_CHR1:
-		pha
-		lda #%00000001
-		sta MMC3_BankSelect
-		pla
-		sta MMC3_BankData
-		rts
-SwitchBG_CHR0:
-		pha
-		lda #%00000000
-		sta MMC3_BankSelect
-		pla
-		sta MMC3_BankData
-		rts
-		
-SwitchSPR_CHR3:
-		pha
-		lda #%00000101
-		sta MMC3_BankSelect
-		pla
-		sta MMC3_BankData
-		rts
-SwitchSPR_CHR2:
-		pha
-		lda #%00000100
-		sta MMC3_BankSelect
-		pla
-		sta MMC3_BankData
-		rts
-SwitchSPR_CHR1:
-		pha
-		lda #%00000011
-		sta MMC3_BankSelect
-		pla
-		sta MMC3_BankData
-		rts
-SwitchSPR_CHR0:
-		pha
-		lda #%00000010
 		sta MMC3_BankSelect
 		pla
 		sta MMC3_BankData

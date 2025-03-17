@@ -83,6 +83,7 @@ NoPowerups:
 		ora TopScoreDisplay+4
 		ora TopScoreDisplay+5
 		bne StartAdvance
+		sta PowerUps
 		rts
 StartAdvance:
 		lda IntervalTimerControl

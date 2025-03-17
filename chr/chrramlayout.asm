@@ -6,9 +6,12 @@ intro_spr_start:
 		.byte $45, $4F, $46		;terminator bytes (EOF in ASCII)
 .ifdef ORG
 	sm1char1_start:
-		.incbin "sm1char_bg.chr"
-		.incbin "sm1char_spr.chr"
+		.incbin "sm1char1_bg.chr"
+		.incbin "sm1char1_spr.chr"
 		.byte $45, $4F, $46		;terminator bytes (EOF in ASCII)
+	sm1char2_start:
+		.incbin "sm1char2.chr"
+		.byte $45, $4F, $46		;terminator bytes (EOF in ASCII)	
 .endif
 
 .ifndef ORG

@@ -390,13 +390,14 @@ AttributesEnd:
 
 ;-----------------------------------------------------------------
 
-.include "chr/chrram/chrramlayout.asm"
+.include "chr/chrramlayout.asm"
 
 CHRSourceAddress:
     .word intro_bg_start
     .word intro_spr_start
 .ifdef ORG
     .word sm1char1_start
+    .word sm1char2_start
 .else
     .word sm2char1_start
     .word sm2char2_start
@@ -406,7 +407,9 @@ CHRDestinationAddress:
     .word $0000
     .word $1000
     .word $0000
-.ifndef ORG
+.ifdef ORG
+    .word $1000
+.else
     .word $1760
 .endif
 

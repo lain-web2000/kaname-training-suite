@@ -423,11 +423,17 @@ DrawRuleNumber:
 		sta VRAM_Buffer1+2, x
 		ldy #0
 @copy_next:
-		lda ($04), y
+		lda ($04),y
+		pha
+		lsr_by 4
 		sta VRAM_Buffer1+3, x
+		pla
+		and #$0f
+		sta VRAM_Buffer1+4, x
+		inx
 		inx
 		iny
-		cpy #4
+		cpy #2
 		bne @copy_next
 		lda VRAM_Buffer1_Offset
 		clc 
@@ -480,11 +486,6 @@ RuleCursorData:
 	.byte $22, $ca, $06, $24, $24, $24, $24, $24, $24, $00
 
 DrawRuleCursor:
-		lda RuleIndex
-		bne @initialized
-		lda #4
-		sta RuleIndex
-@initialized:
 		ldy #9
 		lda VRAM_Buffer1_Offset
 		clc
@@ -499,7 +500,7 @@ WriteRuleCursor:
 		bpl WriteRuleCursor
 		lda VRAM_Buffer1_Offset
 		sec
-		sbc #6
+		sbc #5
 		adc RuleIndex
 		tax
 		dex
@@ -545,13 +546,12 @@ rule_input:
 		bne @test_down
 		inx
 @rule_hori:
-		cpx #1
 		bpl @test_high
-		ldx #4
+		ldx #3
 @test_high:
-		cpx #5
-		bne @save_index
-		ldx #1
+		cpx #4
+		bcc @save_index
+		ldx #0
 @save_index:
 		stx RuleIndex
 		rts
@@ -565,10 +565,17 @@ rule_input:
 		bne rule_done
 		lda #$01
 @update:
-		ldy RuleIndex
-		dey
+		sta $00         ;store A in temp RAM
+		lda RuleIndex   ;divide rule index by 2
+		lsr
+		tay
+		lda ($04),y     ;retrieve the appropiate BCD digit
+		bcs @low_nybble
+		lsr_by 4
+@low_nybble:	
+		and #$0f
 		clc
-		adc ($04),y
+		adc $00         ;add to A to obtain proper value
 		bmi @negative
 		cmp #10
 		bmi @save_digit
@@ -577,7 +584,25 @@ rule_input:
 @negative:
 		lda #9
 @save_digit:
-		sta ($04), y
+		sta $00         ;store in temp RAM for later
+		lda RuleIndex   ;divide rule index by 2
+		lsr
+		tay
+		lda ($04),y
+		bcs @update_low_nybble
+		rol $00         ;move digit to high nybble
+		rol $00
+		rol $00
+		rol $00
+		and #$0f        ;mask out high nybble from rule
+		adc $00         ;and add in new high nybble
+		jmp @store_digit
+@update_low_nybble:
+		and #$f0        ;mask out low nybble from rule
+		clc
+		adc $00         ;and add in new low nybble
+@store_digit:
+		sta ($04), y    ;store updated rule byte
 rule_done:
 		rts
 
@@ -698,10 +723,18 @@ next_task:
 		dex
 		bpl @reset_next
 		jsr WriteRulePointer
-		ldy #3
+		ldx #2
+		ldy #1
 @copy_rule:
 		lda ($04), y
-		sta SavedRule, y
+		pha
+		and #$0f
+		sta SavedRule+1, x
+		pla
+		lsr_by 4
+		sta SavedRule, x
+		dex
+		dex
 		dey
 		bpl @copy_rule
 		inc OperMode_Task
@@ -712,18 +745,16 @@ WriteRulePointer:
 		asl ; *=2
 		asl ; *=4
 		asl ; *=8
-		asl ; *=16
 .ifdef ANN
-		cmp #(8*16)
+		cmp #(8*8)
 		bcc @store
 		sec
-		sbc #16 ;subtract offset for nippon ext, no world 9
+		sbc #8 ;subtract offset for nippon ext, no world 9
 .endif
 @store:
 		sta $04
 		lda LevelNumber
 		asl ; *=2
-		asl ; *=4
 		clc
 		adc $04
 .ifndef ORG

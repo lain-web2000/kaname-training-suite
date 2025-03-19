@@ -72,6 +72,7 @@ HEART_SPRITE = $18
 Start:
 .endif
 Start_I:
+		lda #$00
 		sta MirrorPPUCTRL
 		sta PPU_CTRL_REG1
 		;

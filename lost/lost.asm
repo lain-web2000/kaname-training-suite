@@ -15701,7 +15701,7 @@ StartBank:
 		stx PPU_CTRL_REG1
 		stx PPU_CTRL_REG2
 		jsr SetBankFromA
-		jmp Start
+		jmp $8000
 		
 		.res $FFFA - *, $ea
 		;

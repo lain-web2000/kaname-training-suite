@@ -409,7 +409,11 @@ DrawRuleNumber:
 		ldx VRAM_Buffer1_Offset
 		lda #$22
 		sta VRAM_Buffer1, x
-		lda #$Eb
+.ifdef ORG
+		lda #$F0
+.else
+		lda #$F2
+.endif
 		sta VRAM_Buffer1+1, x
 		lda #$04
 		sta VRAM_Buffer1+2, x
@@ -435,12 +439,21 @@ DrawRuleNumber:
 
 
 menu_text:
-	text_block $222B, "% WORLD"
-	text_block $224B, "% LEVEL"
-	text_block $226B, "% P-UP"
-	text_block $228B, "% SLOT"
-	text_block $22AB, "% HERO"
-	text_block $22F0, "RULE"
+.ifdef ORG
+	text_block $222B, "WORLD %"
+	text_block $224B, "LEVEL %"
+	text_block $226B, "P-UP  %"
+	text_block $228B, "SLOT  %"
+	text_block $22AB, "HERO  %"
+	text_block $22EB, "RULE"
+.else
+	text_block $222D, "WORLD %"
+	text_block $224D, "LEVEL %"
+	text_block $226D, "P-UP  %"
+	text_block $228D, "SLOT  %"
+	text_block $22AD, "HERO  %"
+	text_block $22ED, "RULE"
+.endif
 	.byte $00
 
 draw_menu:
@@ -475,7 +488,19 @@ draw_menu:
 ;-------------------------------------------------------------------------------------
 
 RuleCursorData:
-	.byte $23, $0a, $06, $24, $24, $24, $24, $24, $24, $00
+	.byte $23
+.ifdef ORG
+	.byte $0f
+.else
+	.byte $11
+.endif
+	.byte $06, $24, $24, $24, $24, $24
+.ifndef LOST
+	.byte $24
+.else
+	.byte $be
+.endif
+	.byte $00
 
 DrawRuleCursor:
 		ldy #9
@@ -501,7 +526,13 @@ WriteRuleCursor:
 		rts
 
 MushroomIconData:
-		.byte $22, $29, $87, $24, $24, $24, $24, $24, $24, $24
+		.byte $22
+	.ifdef ORG
+		.byte $29
+	.else
+		.byte $2B
+	.endif
+		.byte $87, $24, $24, $24, $24, $24, $24, $24
 DrawMushroomIcon:
 		ldy #$0a
 		lda VRAM_Buffer1_Offset

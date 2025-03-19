@@ -162,10 +162,8 @@ CreditsTextYadaYada:
 	.byte $22, $aa, "FORKED FROM", $FF
 	.byte $22, $c8, "---------------", $FF
 	.byte $23, $01, "HTTP://GITHUB.COM/PELLSSON/SMB", $FF
-.ifdef ORG
 	.byte $23, $41, "HTTP://GITHUB.COM/", $FF
 	.byte $23, $6a, "THREECREEPIO/INPUTLOG", $FF
-.endif
 
 	.byte $3f, $00, $0f, $30, $fe
 

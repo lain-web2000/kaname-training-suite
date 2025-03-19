@@ -185,16 +185,8 @@ copy_user_row:
 		rts
 
 _draw_pm_row_8:
-.ifdef ORG
-		lda WRAM_OrgUser0
-		ldx WRAM_OrgUser0+1
-.elseif .defined(LOST)
-		lda WRAM_LostUser0
-		ldx WRAM_LostUser0+1
-.else
-		lda WRAM_NipponUser0
-		ldx WRAM_NipponUser0+1
-.endif
+		lda WRAM_UserVarA
+		ldx WRAM_UserVarA+1
 @save:
 		sta $00
 		stx $01
@@ -205,16 +197,8 @@ _draw_pm_row_8:
 		rts
 
 _draw_pm_row_9:
-.ifdef ORG
-		lda WRAM_OrgUser1
-		ldx WRAM_OrgUser1+1
-.elseif .defined(LOST)
-		lda WRAM_LostUser1
-		ldx WRAM_LostUser1+1
-.else
-		lda WRAM_NipponUser1
-		ldx WRAM_NipponUser1+1
-.endif
+		lda WRAM_UserVarB
+		ldx WRAM_UserVarB+1
 @save:
 		sta $00
 		stx $01
@@ -740,28 +724,12 @@ get_user_selected:
 		ldx WRAM_MenuIndex
 		cpx #7
 		beq @is_org_0
-.ifdef ORG
-		lda #<WRAM_OrgUser1
-		ldx #>WRAM_OrgUser1
-.elseif .defined(LOST)
-		lda #<WRAM_LostUser1
-		ldx #>WRAM_LostUser1
-.else
-		lda #<WRAM_NipponUser1
-		ldx #>WRAM_NipponUser1
-.endif
+		lda #<WRAM_UserVarB
+		ldx #>WRAM_UserVarB
 		jmp @save
 @is_org_0:
-.ifdef ORG
-		lda #<WRAM_OrgUser0
-		ldx #>WRAM_OrgUser0
-.elseif .defined(LOST)
-		lda #<WRAM_LostUser0
-		ldx #>WRAM_LostUser0
-.else
-		lda #<WRAM_NipponUser0
-		ldx #>WRAM_NipponUser0
-.endif
+		lda #<WRAM_UserVarA
+		ldx #>WRAM_UserVarA
 @save:
 		sta $00
 		stx $01

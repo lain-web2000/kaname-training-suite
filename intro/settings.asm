@@ -143,35 +143,15 @@ get_uservar_ptr:
 		dex
 		bne @try_o1
 		; org0
-.ifdef ORG
-		lda #<WRAM_OrgUser0
+		lda #<WRAM_UserVarA
 		sta $00
-		lda #>WRAM_OrgUser0
-.elseif .defined(LOST)
-		lda #<WRAM_LostUser0
-		sta $00
-		lda #>WRAM_LostUser0
-.else
-		lda #<WRAM_NipponUser0
-		sta $00
-		lda #>WRAM_NipponUser0
-.endif
+		lda #>WRAM_UserVarA
 		sta $01
 		rts
 @try_o1:
-.ifdef ORG
-		lda #<WRAM_OrgUser1
+		lda #<WRAM_UserVarB
 		sta $00
-		lda #>WRAM_OrgUser1
-.elseif .defined(LOST)
-		lda #<WRAM_LostUser1
-		sta $00
-		lda #>WRAM_LostUser1
-.else
-		lda #<WRAM_NipponUser1
-		sta $00
-		lda #>WRAM_NipponUser1
-.endif
+		lda #>WRAM_UserVarB
 		sta $01
 		rts
 
@@ -339,14 +319,6 @@ _select_sound:
 
 _select_value:
 		ldx #1
-		jmp set_selection_sprites
-
-_select_charset:
-		ldx #4
-		lda WRAM_CharSet
-		beq @draw
-		ldx #3
-@draw:
 		jmp set_selection_sprites
 		
 _select_minusworld:

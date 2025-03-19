@@ -9,10 +9,14 @@ WRAM_MenuIndex:
 	.byte $00
 WRAM_PracticeFlags:
 	.byte $00
-WRAM_CharSet:
+WRAM_SelectedSlot:
 	.byte $00
-WRAM_MinusWorld:
-	.byte $00
+	
+.ifdef ORG
+	WRAM_MinusWorld:
+		.byte $00
+.endif
+
 WRAM_DelaySaveFrames:
 	.byte $00
 WRAM_DelayUserFrames:
@@ -83,166 +87,123 @@ WRAM_Temp:
 
 ; Persistent
 
-WRAM_OrgUser0:
+WRAM_UserVarA:
 	.word 0
-WRAM_OrgUser1:
-	.word 0
-WRAM_LostUser0:
-	.word 0
-WRAM_LostUser1:
-	.word 0
-WRAM_NipponUser0:
-	.word 0
-WRAM_NipponUser1:
+WRAM_UserVarB:
 	.word 0
 
-.ifdef ORG	;SMB1 WRAM
+WRAM_RuleSlot1:
+	.word 0, 0, 0, 0 ; World 1
+	.word 0, 0, 0, 0 ; World 2
+	.word 0, 0, 0, 0 ; World 3
+	.word 0, 0, 0, 0 ; World 4
+	.word 0, 0, 0, 0 ; World 5
+	.word 0, 0, 0, 0 ; World 6
+	.word 0, 0, 0, 0 ; World 7
+	.word 0, 0, 0, 0 ; World 8
+.ifndef ANN
+	.word 0, 0, 0, 0 ; World 9
+.endif
+.ifndef ORG
+	.word 0, 0, 0, 0 ; World A
+	.word 0, 0, 0, 0 ; World B
+	.word 0, 0, 0, 0 ; World C
+	.word 0, 0, 0, 0 ; World D
+.endif
 
-	WRAM_OrgRules:
-		.word 0, 0, 0, 0 ; World 1
-		.word 0, 0, 0, 0 ; World 2
-		.word 0, 0, 0, 0 ; World 3
-		.word 0, 0, 0, 0 ; World 4
-		.word 0, 0, 0, 0 ; World 5
-		.word 0, 0, 0, 0 ; World 6
-		.word 0, 0, 0, 0 ; World 7
-		.word 0, 0, 0, 0 ; World 8
-		.word 0, 0, 0, 0 ; World 9 (Minus World)
+WRAM_RuleSlot2:
+	.word 0, 0, 0, 0 ; World 1
+	.word 0, 0, 0, 0 ; World 2
+	.word 0, 0, 0, 0 ; World 3
+	.word 0, 0, 0, 0 ; World 4
+	.word 0, 0, 0, 0 ; World 5
+	.word 0, 0, 0, 0 ; World 6
+	.word 0, 0, 0, 0 ; World 7
+	.word 0, 0, 0, 0 ; World 8
+.ifndef ANN
+	.word 0, 0, 0, 0 ; World 9
+.endif
+.ifndef ORG
+	.word 0, 0, 0, 0 ; World A
+	.word 0, 0, 0, 0 ; World B
+	.word 0, 0, 0, 0 ; World C
+	.word 0, 0, 0, 0 ; World D
+.endif
 
-	WRAM_FireRules:
-		.word 0, 0, 0, 0 ; World 1
-		.word 0, 0, 0, 0 ; World 2
-		.word 0, 0, 0, 0 ; World 3
-		.word 0, 0, 0, 0 ; World 4
-		.word 0, 0, 0, 0 ; World 5
-		.word 0, 0, 0, 0 ; World 6
-		.word 0, 0, 0, 0 ; World 7
-		.word 0, 0, 0, 0 ; World 8
-		.word 0, 0, 0, 0 ; World 9 (Minus World)
+WRAM_RuleSlot3:
+	.word 0, 0, 0, 0 ; World 1
+	.word 0, 0, 0, 0 ; World 2
+	.word 0, 0, 0, 0 ; World 3
+	.word 0, 0, 0, 0 ; World 4
+	.word 0, 0, 0, 0 ; World 5
+	.word 0, 0, 0, 0 ; World 6
+	.word 0, 0, 0, 0 ; World 7
+	.word 0, 0, 0, 0 ; World 8
+.ifndef ANN
+	.word 0, 0, 0, 0 ; World 9
+.endif
+.ifndef ORG
+	.word 0, 0, 0, 0 ; World A
+	.word 0, 0, 0, 0 ; World B
+	.word 0, 0, 0, 0 ; World C
+	.word 0, 0, 0, 0 ; World D
+.endif
 
-.elseif .defined(LOST)	;SMB2 WRAM
+WRAM_RuleSlot4:
+	.word 0, 0, 0, 0 ; World 1
+	.word 0, 0, 0, 0 ; World 2
+	.word 0, 0, 0, 0 ; World 3
+	.word 0, 0, 0, 0 ; World 4
+	.word 0, 0, 0, 0 ; World 5
+	.word 0, 0, 0, 0 ; World 6
+	.word 0, 0, 0, 0 ; World 7
+	.word 0, 0, 0, 0 ; World 8
+.ifndef ANN
+	.word 0, 0, 0, 0 ; World 9
+.endif
+.ifndef ORG
+	.word 0, 0, 0, 0 ; World A
+	.word 0, 0, 0, 0 ; World B
+	.word 0, 0, 0, 0 ; World C
+	.word 0, 0, 0, 0 ; World D
+.endif
 
-	WRAM_LostRules:
-		.word 0, 0, 0, 0 ; World 1
-		.word 0, 0, 0, 0 ; World 2
-		.word 0, 0, 0, 0 ; World 3
-		.word 0, 0, 0, 0 ; World 4
-		.word 0, 0, 0, 0 ; World 5
-		.word 0, 0, 0, 0 ; World 6
-		.word 0, 0, 0, 0 ; World 7
-		.word 0, 0, 0, 0 ; World 8
-		.word 0, 0, 0, 0 ; World 9
-		.word 0, 0, 0, 0 ; World A
-		.word 0, 0, 0, 0 ; World B
-		.word 0, 0, 0, 0 ; World C
-		.word 0, 0, 0, 0 ; World D
-		
-	WRAM_LostRules_L:
-		.word 0, 0, 0, 0 ; World 1
-		.word 0, 0, 0, 0 ; World 2
-		.word 0, 0, 0, 0 ; World 3
-		.word 0, 0, 0, 0 ; World 4
-		.word 0, 0, 0, 0 ; World 5
-		.word 0, 0, 0, 0 ; World 6
-		.word 0, 0, 0, 0 ; World 7
-		.word 0, 0, 0, 0 ; World 8
-		.word 0, 0, 0, 0 ; World 9
-		.word 0, 0, 0, 0 ; World A
-		.word 0, 0, 0, 0 ; World B
-		.word 0, 0, 0, 0 ; World C
-		.word 0, 0, 0, 0 ; World D
-		
-	WRAM_FireLostRules:
-		.word 0, 0, 0, 0 ; World 1
-		.word 0, 0, 0, 0 ; World 2
-		.word 0, 0, 0, 0 ; World 3
-		.word 0, 0, 0, 0 ; World 4
-		.word 0, 0, 0, 0 ; World 5
-		.word 0, 0, 0, 0 ; World 6
-		.word 0, 0, 0, 0 ; World 7
-		.word 0, 0, 0, 0 ; World 8
-		.word 0, 0, 0, 0 ; World 9
-		.word 0, 0, 0, 0 ; World A
-		.word 0, 0, 0, 0 ; World B
-		.word 0, 0, 0, 0 ; World C
-		.word 0, 0, 0, 0 ; World D
-		
-	WRAM_FireLostRules_L:
-		.word 0, 0, 0, 0 ; World 1
-		.word 0, 0, 0, 0 ; World 2
-		.word 0, 0, 0, 0 ; World 3
-		.word 0, 0, 0, 0 ; World 4
-		.word 0, 0, 0, 0 ; World 5
-		.word 0, 0, 0, 0 ; World 6
-		.word 0, 0, 0, 0 ; World 7
-		.word 0, 0, 0, 0 ; World 8
-		.word 0, 0, 0, 0 ; World 9
-		.word 0, 0, 0, 0 ; World A
-		.word 0, 0, 0, 0 ; World B
-		.word 0, 0, 0, 0 ; World C
-		.word 0, 0, 0, 0 ; World D
-		
-.else	;Nippon WRAM
+WRAM_RuleSlot5:
+	.word 0, 0, 0, 0 ; World 1
+	.word 0, 0, 0, 0 ; World 2
+	.word 0, 0, 0, 0 ; World 3
+	.word 0, 0, 0, 0 ; World 4
+	.word 0, 0, 0, 0 ; World 5
+	.word 0, 0, 0, 0 ; World 6
+	.word 0, 0, 0, 0 ; World 7
+	.word 0, 0, 0, 0 ; World 8
+.ifndef ANN
+	.word 0, 0, 0, 0 ; World 9
+.endif
+.ifndef ORG
+	.word 0, 0, 0, 0 ; World A
+	.word 0, 0, 0, 0 ; World B
+	.word 0, 0, 0, 0 ; World C
+	.word 0, 0, 0, 0 ; World D
+.endif
 
-	WRAM_Fire_NipponRules:
-		.word 0, 0, 0, 0 ; World 1
-		.word 0, 0, 0, 0 ; World 2
-		.word 0, 0, 0, 0 ; World 3
-		.word 0, 0, 0, 0 ; World 4
-		.word 0, 0, 0, 0 ; World 5
-		.word 0, 0, 0, 0 ; World 6
-		.word 0, 0, 0, 0 ; World 7
-		.word 0, 0, 0, 0 ; World 8
-		.word 0, 0, 0, 0 ; World 9
-		.word 0, 0, 0, 0 ; World A
-		.word 0, 0, 0, 0 ; World B
-		.word 0, 0, 0, 0 ; World C
-		.word 0, 0, 0, 0 ; World D
-		
-	WRAM_Fire_NipponRules_L:
-		.word 0, 0, 0, 0 ; World 1
-		.word 0, 0, 0, 0 ; World 2
-		.word 0, 0, 0, 0 ; World 3
-		.word 0, 0, 0, 0 ; World 4
-		.word 0, 0, 0, 0 ; World 5
-		.word 0, 0, 0, 0 ; World 6
-		.word 0, 0, 0, 0 ; World 7
-		.word 0, 0, 0, 0 ; World 8
-		.word 0, 0, 0, 0 ; World 9
-		.word 0, 0, 0, 0 ; World A
-		.word 0, 0, 0, 0 ; World B
-		.word 0, 0, 0, 0 ; World C
-		.word 0, 0, 0, 0 ; World D
-		
-	WRAM_NipponRules:
-		.word 0, 0, 0, 0 ; World 1
-		.word 0, 0, 0, 0 ; World 2
-		.word 0, 0, 0, 0 ; World 3
-		.word 0, 0, 0, 0 ; World 4
-		.word 0, 0, 0, 0 ; World 5
-		.word 0, 0, 0, 0 ; World 6
-		.word 0, 0, 0, 0 ; World 7
-		.word 0, 0, 0, 0 ; World 8
-		.word 0, 0, 0, 0 ; World 9
-		.word 0, 0, 0, 0 ; World A
-		.word 0, 0, 0, 0 ; World B
-		.word 0, 0, 0, 0 ; World C
-		.word 0, 0, 0, 0 ; World D
-
-	WRAM_NipponRules_L:
-		.word 0, 0, 0, 0 ; World 1
-		.word 0, 0, 0, 0 ; World 2
-		.word 0, 0, 0, 0 ; World 3
-		.word 0, 0, 0, 0 ; World 4
-		.word 0, 0, 0, 0 ; World 5
-		.word 0, 0, 0, 0 ; World 6
-		.word 0, 0, 0, 0 ; World 7
-		.word 0, 0, 0, 0 ; World 8
-		.word 0, 0, 0, 0 ; World 9
-		.word 0, 0, 0, 0 ; World A
-		.word 0, 0, 0, 0 ; World B
-		.word 0, 0, 0, 0 ; World C
-		.word 0, 0, 0, 0 ; World D
+WRAM_AdvRNGSlot:
+	.word 0, 0, 0, 0 ; World 1
+	.word 0, 0, 0, 0 ; World 2
+	.word 0, 0, 0, 0 ; World 3
+	.word 0, 0, 0, 0 ; World 4
+	.word 0, 0, 0, 0 ; World 5
+	.word 0, 0, 0, 0 ; World 6
+	.word 0, 0, 0, 0 ; World 7
+	.word 0, 0, 0, 0 ; World 8
+.ifndef ANN
+	.word 0, 0, 0, 0 ; World 9
+.endif
+.ifndef ORG
+	.word 0, 0, 0, 0 ; World A
+	.word 0, 0, 0, 0 ; World B
+	.word 0, 0, 0, 0 ; World C
+	.word 0, 0, 0, 0 ; World D
 .endif
 	
 WRAM_Timer:

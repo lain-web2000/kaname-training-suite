@@ -376,11 +376,13 @@ GetSelectedValue:
 		beq @get_level
 		cmp #2
 		beq @get_pups
+		cmp #3
+		beq @get_slots
 		bne @get_player
 @get_level:
 		lda LevelNumber
-		sec
-		adc #0
+		clc
+		adc #$01
 		rts
 @get_pups:
 		lda PowerUps
@@ -389,6 +391,11 @@ GetSelectedValue:
 		lda WRAM_IsContraMode ;
 		beq @not_peach
 		lda #$19
+		rts
+@get_slots:
+		lda WRAM_SelectedSlot
+		clc
+		adc #$01
 		rts
 @not_peach:
 		lda #$16 ; M
@@ -430,9 +437,10 @@ DrawRuleNumber:
 menu_text:
 	text_block $222B, "% WORLD"
 	text_block $224B, "% LEVEL"
-	text_block $226B, "% P-UPS"
-	text_block $228B, "% HERO"
-	text_block $22f0, "RULE"
+	text_block $226B, "% P-UP"
+	text_block $228B, "% SLOT"
+	text_block $22AB, "% HERO"
+	text_block $22F0, "RULE"
 	.byte $00
 
 draw_menu:
@@ -467,7 +475,7 @@ draw_menu:
 ;-------------------------------------------------------------------------------------
 
 RuleCursorData:
-	.byte $22, $ca, $06, $24, $24, $24, $24, $24, $24, $00
+	.byte $23, $0a, $06, $24, $24, $24, $24, $24, $24, $00
 
 DrawRuleCursor:
 		ldy #9
@@ -508,10 +516,10 @@ IconDataRead:
 		dey
 		bpl IconDataRead
 		lda WRAM_MenuIndex
-		cmp #4
+		cmp #5
 		bmi FirstFour
 		clc
-		adc #2
+		adc #1
 FirstFour:
 		adc VRAM_Buffer1_Offset
 		tax
@@ -616,13 +624,29 @@ menu_input:
 		jmp ChangeWorldNumber
 @check_pups:
 		dex
-		bne @hero_selected
+		bne @slot_number
 		lda PowerUps
 		clc
 		adc $00
 		and #$03
 		sta PowerUps
 @keep_peach:
+		rts
+@slot_number:
+		dex
+		bne @hero_selected
+		lda WRAM_SelectedSlot
+		clc
+		adc $00
+		bpl @right
+		lda #$04
+		bne @store
+@right:
+		cmp #$05
+		bcc @store
+		lda #$00
+@store:
+		sta WRAM_SelectedSlot
 		rts
 @hero_selected:
 		lda WRAM_IsContraMode
@@ -724,6 +748,12 @@ next_task:
 		inc OperMode_Task
 		jmp ReturnBank
 
+RuleSlotPointers_Low:
+	.byte <WRAM_RuleSlot1, <WRAM_RuleSlot2, <WRAM_RuleSlot3, <WRAM_RuleSlot4, <WRAM_RuleSlot5
+
+RuleSlotPointers_Hi:
+	.byte >WRAM_RuleSlot1, >WRAM_RuleSlot2, >WRAM_RuleSlot3, >WRAM_RuleSlot4, >WRAM_RuleSlot5
+	
 WriteRulePointer:
 		lda WorldNumber
 		asl ; *=2
@@ -741,101 +771,14 @@ WriteRulePointer:
 		asl ; *=2
 		clc
 		adc $04
-.ifndef ORG
-		ldx CurrentPlayer
-		cpx #$01
-		beq @is_luigi
-.endif
-@is_mario:
-		ldx PowerUps
-		cpx #$02
-		bcc @is_fire_m
+		ldx WRAM_SelectedSlot
 		clc
-		
-	.ifdef ORG
-		adc #<WRAM_OrgRules
-	.elseif .defined(LOST)
-		adc #<WRAM_LostRules
-	.else
-		adc #<WRAM_NipponRules
-	.endif
-	
+		adc RuleSlotPointers_Low,x
 		sta $04
 		lda #0
-		
-	.ifdef ORG
-		adc #>WRAM_OrgRules
-	.elseif .defined(LOST)
-		adc #>WRAM_LostRules
-	.else
-		adc #>WRAM_NipponRules
-	.endif
-	
-		sta $05
+		adc RuleSlotPointers_Hi,x
+		sta $05	
 		rts
-		
-@is_fire_m:
-		clc
-		
-	.ifdef ORG
-		adc #<WRAM_FireRules
-	.elseif .defined(LOST)
-		adc #<WRAM_FireLostRules
-	.else
-		adc #<WRAM_Fire_NipponRules
-	.endif
-	
-		sta $04
-		lda #0
-		
-	.ifdef ORG
-		adc #>WRAM_FireRules
-	.elseif .defined(LOST)
-		adc #>WRAM_FireLostRules
-	.else
-		adc #>WRAM_Fire_NipponRules
-	.endif
-	
-		sta $05
-		rts
-		
-.ifndef ORG
-	@is_luigi:
-			ldx PowerUps
-			cpx #$02
-			bcc @is_fire_l
-			clc
-		.ifdef LOST
-			adc #<WRAM_LostRules_L
-		.else
-			adc #<WRAM_NipponRules_L
-		.endif
-			sta $04
-			lda #0
-		.ifdef LOST
-			adc #>WRAM_LostRules_L
-		.else
-			adc #>WRAM_NipponRules_L
-		.endif
-			sta $05
-			rts
-	@is_fire_l:
-			clc
-		.ifdef LOST
-			adc #<WRAM_FireLostRules_L
-		.else
-			adc #<WRAM_Fire_NipponRules_L
-		.endif
-			sta $04
-			lda #0
-		.ifdef LOST
-			adc #>WRAM_FireLostRules_L
-		.else
-			adc #>WRAM_Fire_NipponRules_L
-		.endif
-			sta $05
-			rts
-.endif
 
 toggle_second_quest:
 .ifndef LOST
@@ -994,7 +937,7 @@ PracticeTitleMenu:
 		bne @check_b
 		ldx WRAM_MenuIndex
 		inx
-		cpx #5
+		cpx #6
 		bne @save_menu_index
 		ldx #0
 @save_menu_index:
@@ -1012,7 +955,7 @@ PracticeTitleMenu:
 		jmp @dec_timer
 @check_input:
 		ldx WRAM_MenuIndex
-		cpx #4
+		cpx #5
 		bne @check_menu_input
 		jsr rule_input
 		jmp @dec_timer
@@ -1123,7 +1066,13 @@ PracticeOnFrameInner:
 		cmp #GameModeValue
 		bne @exit
 		lda OperMode_Task
+.ifdef ORG
         cmp #$03
+.elseif .defined(LOST)
+        cmp #$04
+.else
+        cmp #$05
+.endif
 		bmi @exit
 @check_pause:
 		; TODO RENABLE
@@ -1487,16 +1436,8 @@ RedrawUserVars:
         and #PF_DisablePracticeInfo
         bne hide
 		
-.ifdef ORG
-		RedrawUserVar WRAM_OrgUser0, 3
-		RedrawUserVar WRAM_OrgUser1, 7
-.elseif .defined(LOST)
-		RedrawUserVar WRAM_LostUser0, 3
-		RedrawUserVar WRAM_LostUser1, 7
-.else
-		RedrawUserVar WRAM_NipponUser0, 3
-		RedrawUserVar WRAM_NipponUser1, 7
-.endif
+		RedrawUserVar WRAM_UserVarA, 3
+		RedrawUserVar WRAM_UserVarB, 7
 
 terminate:
 		sty VRAM_Buffer1+$0A
@@ -1846,37 +1787,14 @@ SetDefaultWRAM:
 		sta WRAM_Magic+3
 
 		lda #<Player_Rel_XPos
-	.ifdef ORG
-		sta WRAM_OrgUser0
-	.elseif .defined(LOST)
-		sta WRAM_LostUser0
-	.else
-		sta WRAM_NipponUser0
-	.endif
+		sta WRAM_UserVarA
 		lda #>Player_Rel_XPos
-	.ifdef ORG
-		sta WRAM_OrgUser0+1
-	.elseif .defined(LOST)
-		sta WRAM_LostUser0+1
-	.else
-		sta WRAM_NipponUser0+1
-	.endif
+		sta WRAM_UserVarA+1
+		
 		lda #<Player_X_MoveForce
-	.ifdef ORG
-		sta WRAM_OrgUser1
-	.elseif .defined(LOST)
-		sta WRAM_LostUser1
-	.else
-		sta WRAM_NipponUser1
-	.endif
+		sta WRAM_UserVarB
 		lda #>Player_X_MoveForce
-	.ifdef ORG
-		sta WRAM_OrgUser1+1
-	.elseif .defined(LOST)
-		sta WRAM_LostUser1+1
-	.else
-		sta WRAM_NipponUser1+1
-	.endif
+		sta WRAM_UserVarB+1
 
 		lda #30
 		sta WRAM_DelaySaveFrames
@@ -1914,42 +1832,42 @@ FactoryResetWRAM:
 		jmp ReturnBank
 
 AdvanceRandom:
-    lda PseudoRandomBitReg    ;get first memory location of LSFR bytes
-    and #%00000010            ;mask out all but d1
-    sta $00                   ;save here
-    lda PseudoRandomBitReg+1  ;get second memory location
-    and #%00000010            ;mask out all but d1
-    eor $00                   ;perform exclusive-OR on d1 from first and second bytes
-    clc                       ;if neither or both are set, carry will be clear
-    beq RotPRandomBit
-    sec                       ;if one or the other is set, carry will be set
+		lda PseudoRandomBitReg    ;get first memory location of LSFR bytes
+		and #%00000010            ;mask out all but d1
+		sta $00                   ;save here
+		lda PseudoRandomBitReg+1  ;get second memory location
+		and #%00000010            ;mask out all but d1
+		eor $00                   ;perform exclusive-OR on d1 from first and second bytes
+		clc                       ;if neither or both are set, carry will be clear
+		beq RotPRandomBit
+		sec                       ;if one or the other is set, carry will be set
 RotPRandomBit:
-    ror PseudoRandomBitReg+0  ;rotate carry into d7, and rotate last bit into carry
-    ror PseudoRandomBitReg+1  ;rotate carry into d7, and rotate last bit into carry
-    ror PseudoRandomBitReg+2  ;rotate carry into d7, and rotate last bit into carry
-    ror PseudoRandomBitReg+3  ;rotate carry into d7, and rotate last bit into carry
-    ror PseudoRandomBitReg+4  ;rotate carry into d7, and rotate last bit into carry
-    ror PseudoRandomBitReg+5  ;rotate carry into d7, and rotate last bit into carry
-    ror PseudoRandomBitReg+6  ;rotate carry into d7, and rotate last bit into carry
-    rts
+		ror PseudoRandomBitReg+0  ;rotate carry into d7, and rotate last bit into carry
+		ror PseudoRandomBitReg+1  ;rotate carry into d7, and rotate last bit into carry
+		ror PseudoRandomBitReg+2  ;rotate carry into d7, and rotate last bit into carry
+		ror PseudoRandomBitReg+3  ;rotate carry into d7, and rotate last bit into carry
+		ror PseudoRandomBitReg+4  ;rotate carry into d7, and rotate last bit into carry
+		ror PseudoRandomBitReg+5  ;rotate carry into d7, and rotate last bit into carry
+		ror PseudoRandomBitReg+6  ;rotate carry into d7, and rotate last bit into carry
+		rts
 
 MulByTen:
-    asl
-    sta $0
-    asl
-    asl
-    clc
-    adc $0
-    rts
+		asl
+		sta $0
+		asl
+		asl
+		clc
+		adc $0
+		rts
 	
 DivByTen:
-    ldx #$00
+		ldx #$00
 DivMore:
-    cmp #$0a
-    bcc DivByTenDone
-    sbc #$0a
-    inx
-    sec
-    bcs DivMore
+		cmp #$0a
+		bcc DivByTenDone
+		sbc #$0a
+		inx
+		sec
+		bcs DivMore
 DivByTenDone:
-    rts
+		rts

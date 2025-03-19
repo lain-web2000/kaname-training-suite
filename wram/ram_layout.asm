@@ -11,11 +11,11 @@ WRAM_PracticeFlags:
 	.byte $00
 WRAM_SelectedSlot:
 	.byte $00
-	
-.ifdef ORG
-	WRAM_MinusWorld:
-		.byte $00
-.endif
+
+WRAM_MinusWorld:
+	.byte $00
+WRAM_GameGenie:
+	.byte $00
 
 WRAM_DelaySaveFrames:
 	.byte $00
@@ -101,15 +101,11 @@ WRAM_RuleSlot1:
 	.word 0, 0, 0, 0 ; World 6
 	.word 0, 0, 0, 0 ; World 7
 	.word 0, 0, 0, 0 ; World 8
-.ifndef ANN
 	.word 0, 0, 0, 0 ; World 9
-.endif
-.ifndef ORG
 	.word 0, 0, 0, 0 ; World A
 	.word 0, 0, 0, 0 ; World B
 	.word 0, 0, 0, 0 ; World C
 	.word 0, 0, 0, 0 ; World D
-.endif
 
 WRAM_RuleSlot2:
 	.word 0, 0, 0, 0 ; World 1
@@ -120,15 +116,11 @@ WRAM_RuleSlot2:
 	.word 0, 0, 0, 0 ; World 6
 	.word 0, 0, 0, 0 ; World 7
 	.word 0, 0, 0, 0 ; World 8
-.ifndef ANN
 	.word 0, 0, 0, 0 ; World 9
-.endif
-.ifndef ORG
 	.word 0, 0, 0, 0 ; World A
 	.word 0, 0, 0, 0 ; World B
 	.word 0, 0, 0, 0 ; World C
 	.word 0, 0, 0, 0 ; World D
-.endif
 
 WRAM_RuleSlot3:
 	.word 0, 0, 0, 0 ; World 1
@@ -139,15 +131,11 @@ WRAM_RuleSlot3:
 	.word 0, 0, 0, 0 ; World 6
 	.word 0, 0, 0, 0 ; World 7
 	.word 0, 0, 0, 0 ; World 8
-.ifndef ANN
 	.word 0, 0, 0, 0 ; World 9
-.endif
-.ifndef ORG
 	.word 0, 0, 0, 0 ; World A
 	.word 0, 0, 0, 0 ; World B
 	.word 0, 0, 0, 0 ; World C
 	.word 0, 0, 0, 0 ; World D
-.endif
 
 WRAM_RuleSlot4:
 	.word 0, 0, 0, 0 ; World 1
@@ -158,15 +146,11 @@ WRAM_RuleSlot4:
 	.word 0, 0, 0, 0 ; World 6
 	.word 0, 0, 0, 0 ; World 7
 	.word 0, 0, 0, 0 ; World 8
-.ifndef ANN
 	.word 0, 0, 0, 0 ; World 9
-.endif
-.ifndef ORG
 	.word 0, 0, 0, 0 ; World A
 	.word 0, 0, 0, 0 ; World B
 	.word 0, 0, 0, 0 ; World C
 	.word 0, 0, 0, 0 ; World D
-.endif
 
 WRAM_RuleSlot5:
 	.word 0, 0, 0, 0 ; World 1
@@ -177,15 +161,11 @@ WRAM_RuleSlot5:
 	.word 0, 0, 0, 0 ; World 6
 	.word 0, 0, 0, 0 ; World 7
 	.word 0, 0, 0, 0 ; World 8
-.ifndef ANN
 	.word 0, 0, 0, 0 ; World 9
-.endif
-.ifndef ORG
 	.word 0, 0, 0, 0 ; World A
 	.word 0, 0, 0, 0 ; World B
 	.word 0, 0, 0, 0 ; World C
 	.word 0, 0, 0, 0 ; World D
-.endif
 
 WRAM_AdvRNGSlot:
 	.word 0, 0, 0, 0 ; World 1
@@ -196,15 +176,11 @@ WRAM_AdvRNGSlot:
 	.word 0, 0, 0, 0 ; World 6
 	.word 0, 0, 0, 0 ; World 7
 	.word 0, 0, 0, 0 ; World 8
-.ifndef ANN
 	.word 0, 0, 0, 0 ; World 9
-.endif
-.ifndef ORG
 	.word 0, 0, 0, 0 ; World A
 	.word 0, 0, 0, 0 ; World B
 	.word 0, 0, 0, 0 ; World C
 	.word 0, 0, 0, 0 ; World D
-.endif
 	
 WRAM_Timer:
 	.word 0

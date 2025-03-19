@@ -1498,7 +1498,11 @@ Entrance_GameTimerSetup:
           lda #$00                    ;set player state to on the ground by default
           sta Player_State
           dec Player_CollisionBits    ;initialize player's collision bits
+		  lda WRAM_GameGenie
+		  cmp #$03
+		  beq @pigoap
           ldy #$00                    ;initialize halfway page
+@pigoap:
           sty HalfwayPage      
           lda AreaType                ;check area type
           bne ChkStPos                ;if water type, set swimming flag, otherwise do not set
@@ -6919,6 +6923,12 @@ RunNormalEnemies:
           jsr PlayerEnemyCollision
           ldy TimerControl          ;if master timer control set, skip to last routine
           bne SkipMove
+		  lda WRAM_GameGenie
+		  cmp #$02
+		  bne @no_stageo
+		  jsr STAGEO
+		  jmp SkipMove
+@no_stageo:
           jsr EnemyMovementSubs
 SkipMove: jmp OffscreenBoundsCheck
 
@@ -7074,6 +7084,7 @@ ChkJH: lda HammerBroJumpTimer,x   ;check jump timer
        lda Enemy_OffscreenBits
        and #%00001100             ;check offscreen bits
        bne MoveHammerBroXDir      ;if hammer bro a little offscreen, skip to movement code
+STAGEO:
        lda HammerThrowingTimer,x  ;check hammer throwing timer
        bne DecHT                  ;if not expired, skip ahead, do not throw hammer
        ldy SecondaryHardMode      ;otherwise get secondary hard mode flag
@@ -9969,9 +9980,13 @@ ImpedePlayerMove:
        inx                       ;return value to X
        cpy #$00                  ;if player moving to the left,
        bmi ExIPM                 ;branch to invert bit and leave
+	   lda WRAM_GameGenie
+	   cmp #$01
+	   beq aisson
        lda #$ff                  ;otherwise load A with value to be used later
        jmp NXSpd                 ;and jump to affect movement
 RImpd: ldx #$02                  ;return $02 to X
+aisson:
        cpy #$01                  ;if player moving to the right,
        bpl ExIPM                 ;branch to invert bit and leave
        lda #$01                  ;otherwise load A with value to be used here

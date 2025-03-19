@@ -5,7 +5,7 @@ SETTINGS_MENU_PPU = $1FF3
 .ifndef ORG
 	MAX_SETTING = 10
 .else
-	MAX_SETTING = 11
+	MAX_SETTING = 12
 .endif
 
 .macro draw_simple_at at, txt
@@ -187,6 +187,22 @@ _draw_savedelay_opt:
 			jmp _char_nes
 	@fds:
 			jmp _char_fds
+			
+	_char_none: draw_simple_at 13, "NONE  "
+	_char_aisson: draw_simple_at 13, "AISSON"
+	_char_stageo: draw_simple_at 13, "STAGEO"
+	_char_pigoap: draw_simple_at 13, "PIGOAP"
+	
+	_draw_gamegenie_opt:
+			lda WRAM_GameGenie
+			beq @none
+			cmp #$01
+			beq _char_aisson
+			cmp #$02
+			beq _char_stageo
+			jmp _char_pigoap
+	@none:
+			jmp _char_none
 .endif
 		
 _draw_button_restart_opt:
@@ -194,7 +210,7 @@ _draw_button_restart_opt:
 .ifndef ORG
 		draw_button_opt 12
 .else
-		draw_button_opt 13
+		draw_button_opt 14
 .endif
 
 _draw_button_title_opt:
@@ -202,7 +218,7 @@ _draw_button_title_opt:
 .ifndef ORG
 		draw_button_opt 13
 .else
-		draw_button_opt 14
+		draw_button_opt 15
 .endif
 
 _draw_button_save_opt:
@@ -210,7 +226,7 @@ _draw_button_save_opt:
 .ifndef ORG
 		draw_button_opt 14
 .else
-		draw_button_opt 15
+		draw_button_opt 16
 .endif
 
 _draw_button_load_opt:
@@ -218,14 +234,14 @@ _draw_button_load_opt:
 .ifndef ORG
 		draw_button_opt 15
 .else
-		draw_button_opt 16
+		draw_button_opt 17
 .endif
 
 _draw_reset_wram_opt:
 .ifndef ORG
 		draw_simple_at 16, "NO YES"
 .else
-		draw_simple_at 17, "NO YES"
+		draw_simple_at 18, "NO YES"
 .endif
 
 
@@ -238,6 +254,7 @@ settings_renderers:
 		.word _draw_savedelay_opt
 .ifdef ORG
 		.word _draw_minusworld_opt
+		.word _draw_gamegenie_opt
 .endif
 		.word _draw_button_restart_opt
 		.word _draw_button_title_opt
@@ -326,6 +343,16 @@ _select_minusworld:
 @draw:
 		jmp set_selection_sprites
 
+_select_gamegenie:
+		lda WRAM_GameGenie
+		bne @6letters
+		ldx #4
+		bne @draw
+@6letters:
+		ldx #6
+@draw:
+		jmp set_selection_sprites
+		
 select_buttons:
 		ldx #7
 		cmp #0
@@ -367,6 +394,7 @@ select_option:
 		.word _select_value
 .ifdef ORG
 		.word _select_minusworld
+		.word _select_gamegenie
 .endif
 		.word _select_retry_buttons
 		.word _select_title_buttons
@@ -588,6 +616,28 @@ _savedelay_input:
 			sta WRAM_MinusWorld
 	@nothing:
 			rts
+			
+	_gamegenie_input:
+			and #(B_Button|A_Button)
+			beq @nothing
+			lda SavedJoypadBits
+			cmp #B_Button
+			beq @dec
+	@inc:
+			lda WRAM_GameGenie
+			clc
+			adc #$01
+			and #$03
+			jmp @store
+	@dec:
+			lda WRAM_GameGenie
+			clc
+			sbc #$00
+	@store:
+			and #$03
+			sta WRAM_GameGenie
+	@nothing:
+			rts
 .endif
 
 recordbuttons_input:
@@ -704,6 +754,7 @@ option_inputs:
 		.word _savedelay_input
 .ifdef ORG
 		.word _minusworld_input
+		.word _gamegenie_input
 .endif
 		.word _retrybuttons_input
 		.word _titlebuttons_input

@@ -1,5 +1,3 @@
-	.include "org.inc"
-	.include "lost.inc"
 	.include "wram.inc"
 
 ;
@@ -17,14 +15,14 @@ prac_quick_resume:
 		;
 		; Get the top two digits of target rule (1234 -> 12)
 		;
-		lda TopScoreDisplay+2
+		lda FrameruleNumber+2
 		jsr MulByTen
 		clc
-		adc TopScoreDisplay+3
+		adc FrameruleNumber+3
 		tax
 		ldy #0
-		sty TopScoreDisplay+2 ; clear (1234 - > 34)
-		sty TopScoreDisplay+3 ; clear
+		sty FrameruleNumber+2 ; clear (1234 - > 34)
+		sty FrameruleNumber+3 ; clear
 		lda resume_0,x
 		sta PseudoRandomBitReg+0
 		lda resume_1,x
@@ -78,10 +76,10 @@ NoPowerups:
 		;
 		; If Rule is 0, use title Rule
 		; 
-		lda TopScoreDisplay+2
-		ora TopScoreDisplay+3
-		ora TopScoreDisplay+4
-		ora TopScoreDisplay+5
+		lda FrameruleNumber+2
+		ora FrameruleNumber+3
+		ora FrameruleNumber+4
+		ora FrameruleNumber+5
 		bne StartAdvance
 		sta PowerUps
 		rts
@@ -95,7 +93,7 @@ DeadLock:
 		;
 		ldx #4
 KeepCopyRule:
-		lda TopScoreDisplay+1,x
+		lda FrameruleNumber+1,x
 		sta DisplayDigits+RULE_COUNT_OFFSET-4, x
 		dex
 		bne KeepCopyRule
@@ -105,10 +103,10 @@ KeepCopyRule:
 		; Advance to correct frame rule
 		;
 		jsr prac_quick_resume
-		lda TopScoreDisplay+4
+		lda FrameruleNumber+4
 		jsr MulByTen
 		clc
-		adc TopScoreDisplay+5
+		adc FrameruleNumber+5
 		tax
 		beq RuleContinue
 AdvanceFurther:
@@ -137,8 +135,8 @@ AdvanceFurther:
 		bne AdvanceFurther
 RuleContinue:
 		lda #0
-		sta TopScoreDisplay+5
-		sta TopScoreDisplay+4
+		sta FrameruleNumber+5
+		sta FrameruleNumber+4
 		;
 		; Advance to correct place within this rule
 		;
@@ -209,10 +207,8 @@ NoCategoryFrames:
 		lda LevelNumber
 		bne SaveFrameCounter
 		inx
-		iny
 SaveFrameCounter:
 		stx FrameCounter
-		sty SavedEnterTimer
 		;
 		; On the correct framerule, continue with the game.
 		;
@@ -368,20 +364,9 @@ NotEvenFrameRule:
 		jmp ReturnBank
 
 PrintableWorldNumber:
-		jmp @get_ll_world
-@org_world:
 		lda WorldNumber
-		jmp @to_print
-@get_ll_world:
-		lda IsPlayingExtendedWorlds
-		beq @org_world
-		lda WorldNumber
-		and #3
 		clc
-		adc #9
-@to_print:
-		sec
-		adc #0
+		adc #$01
 		rts
 
 GetSelectedValue:
@@ -451,7 +436,6 @@ menu_text:
 	.byte $00
 
 draw_menu:
-		jsr DrawTitleMario
 		lda FrameCounter
 		and #$1
 		beq @redraw_extra
@@ -463,7 +447,7 @@ draw_menu:
 		cmp #$25 ; %
 		bne @draw_menu_byte
 		jsr GetSelectedValue
-		inc $0
+		inc $00
 @draw_menu_byte:
 		sta VRAM_Buffer1, y
 		lda menu_text, x
@@ -1639,7 +1623,7 @@ RequestRestartLevel:
 		lda WRAM_LevelAreaType
 		sta AreaType ; Probably not needed but whatever
 		lda WRAM_CoinTally
-		sta OffScr_CoinTally
+		sta CoinTally
 		lda WRAM_CoinDisplay
 		sta CoinDisplay
 		lda WRAM_CoinDisplay+1
@@ -1704,7 +1688,7 @@ ProcessLevelLoad:
 		sta WRAM_LevelPlayerStatus
 		lda PlayerSize
 		sta WRAM_LevelPlayerSize
-		lda OffScr_CoinTally
+		lda CoinTally
 		sta WRAM_CoinTally
 		lda CoinDisplay
 		sta WRAM_CoinDisplay
@@ -1929,3 +1913,43 @@ FactoryResetWRAM:
 @exit:
 		jmp ReturnBank
 
+AdvanceRandom:
+    lda PseudoRandomBitReg    ;get first memory location of LSFR bytes
+    and #%00000010            ;mask out all but d1
+    sta $00                   ;save here
+    lda PseudoRandomBitReg+1  ;get second memory location
+    and #%00000010            ;mask out all but d1
+    eor $00                   ;perform exclusive-OR on d1 from first and second bytes
+    clc                       ;if neither or both are set, carry will be clear
+    beq RotPRandomBit
+    sec                       ;if one or the other is set, carry will be set
+RotPRandomBit:
+    ror PseudoRandomBitReg+0  ;rotate carry into d7, and rotate last bit into carry
+    ror PseudoRandomBitReg+1  ;rotate carry into d7, and rotate last bit into carry
+    ror PseudoRandomBitReg+2  ;rotate carry into d7, and rotate last bit into carry
+    ror PseudoRandomBitReg+3  ;rotate carry into d7, and rotate last bit into carry
+    ror PseudoRandomBitReg+4  ;rotate carry into d7, and rotate last bit into carry
+    ror PseudoRandomBitReg+5  ;rotate carry into d7, and rotate last bit into carry
+    ror PseudoRandomBitReg+6  ;rotate carry into d7, and rotate last bit into carry
+    rts
+
+MulByTen:
+    asl
+    sta $0
+    asl
+    asl
+    clc
+    adc $0
+    rts
+	
+DivByTen:
+    ldx #$00
+DivMore:
+    cmp #$0a
+    bcc DivByTenDone
+    sbc #$0a
+    inx
+    sec
+    bcs DivMore
+DivByTenDone:
+    rts

@@ -1,6 +1,12 @@
 
-	.include "shared.inc"
-	.include "mario.inc"
+	.include "practice.inc"
+	
+.ifdef ORG
+	.include "smb1.inc"
+.else
+	.include "smb2.inc"
+.endif
+
 	.include "macros.inc"
 	.include "text.inc"
 
@@ -18,7 +24,6 @@
 Start:	; Dummy
 NonMaskableInterrupt: ; Dummy
 
-	.include "utils.inc"
 .ifdef ORG
 	.include "sound.asm"
 .else

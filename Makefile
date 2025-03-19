@@ -27,11 +27,15 @@ WRAM = inc/wram.inc \
 		wram/full.bin \
 		lost/wram-init.bin
 
-INCS = inc/wram.inc \
+INCS-1 = inc/wram.inc \
        inc/macros.inc \
-       inc/org.inc \
-       inc/shared.inc \
-       inc/utils.inc
+       inc/smb1.inc \
+       inc/practice.inc
+
+INCS-2 = inc/wram.inc \
+       inc/macros.inc \
+       inc/smb2.inc \
+       inc/practice.inc 
 
 all: smb1.nes smb2.nes nippon.nes
 
@@ -47,10 +51,10 @@ wram/full.bin $(OUT)/ram_layout.map: wram/ram_layout.asm
 	
 #-----------------------------------------------------------------------------------------------------------------------------------
 	
-$(OUT)/intro-o.o: $(INCS) intro/intro.asm intro/faxsound.asm intro/intro.inc intro/smlsound.asm intro/nt.asm intro/settings.asm
+$(OUT)/intro-o.o: $(INCS-1) intro/intro.asm intro/faxsound.asm intro/intro.inc intro/smlsound.asm intro/nt.asm intro/settings.asm
 	$(AS) $(AFLAGS) -l $(OUT)/intro.map -D ORG=1 intro/intro.asm -o $@
 	
-$(OUT)/original.o: $(INCS) org/original.asm
+$(OUT)/original.o: $(INCS-1) org/original.asm
 	$(AS) $(AFLAGS) -l $(OUT)/original.map -D ORG=1 org/original.asm -o $@
 	
 $(OUT)/levels.o: org/levels.asm
@@ -59,7 +63,7 @@ $(OUT)/levels.o: org/levels.asm
 $(OUT)/common-o.o: common/common.asm common/sound.asm common/practice.asm
 	$(AS) $(AFLAGS) -l $(OUT)/common.map -D ORG=1 common/common.asm -o $@
 
-$(OUT)/dummy-o.o: $(INCS) dummy.asm
+$(OUT)/dummy-o.o: $(INCS-1) dummy.asm
 	$(AS) $(AFLAGS) -l $(OUT)/dummy-o.map -D ORG=1 dummy.asm -o $@
 
 smb1.nes: $(OBJECTS-O)
@@ -75,13 +79,13 @@ smb1.nes: $(OBJECTS-O)
 	cat smb1.tmp > smb1.nes
 	
 #-----------------------------------------------------------------------------------------------------------------------------------
-$(OUT)/ines.o: $(INCS) common/ines.asm
+$(OUT)/ines.o: $(INCS-2) common/ines.asm
 	$(AS) $(AFLAGS) -l $(OUT)/ines.map common/ines.asm -o $@
 
-$(OUT)/intro-l.o: $(INCS) intro/intro.asm intro/faxsound.asm intro/intro.inc intro/smlsound.asm intro/nt.asm intro/settings.asm
+$(OUT)/intro-l.o: $(INCS-2) intro/intro.asm intro/faxsound.asm intro/intro.inc intro/smlsound.asm intro/nt.asm intro/settings.asm
 	$(AS) $(AFLAGS) -l $(OUT)/intro.map -D LOST=1 intro/intro.asm -o $@
 	
-$(OUT)/lost.o: $(INCS) $(WRAM) lost/lost.asm
+$(OUT)/lost.o: $(INCS-2) $(WRAM) lost/lost.asm
 	$(AS) $(AFLAGS) -l $(OUT)/lost.map -D LOST=1 lost/lost.asm -o $@
 
 $(OUT)/ll-leveldata.o: lost/leveldata.asm
@@ -90,7 +94,7 @@ $(OUT)/ll-leveldata.o: lost/leveldata.asm
 $(OUT)/common-l.o: common/common.asm common/sound-ll.asm common/practice.asm
 	$(AS) $(AFLAGS) -l $(OUT)/common.map -D LOST=1 common/common.asm -o $@
 
-$(OUT)/dummy-l.o: $(INCS) dummy.asm
+$(OUT)/dummy-l.o: $(INCS-2) dummy.asm
 	$(AS) $(AFLAGS) -l $(OUT)/dummy-l.map -D LOST=1 dummy.asm -o $@
 	
 smb2.nes: $(OBJECTS-L)
@@ -107,10 +111,10 @@ smb2.nes: $(OBJECTS-L)
 	
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-$(OUT)/intro-n.o: $(INCS) intro/intro.asm intro/faxsound.asm intro/intro.inc intro/smlsound.asm intro/nt.asm intro/settings.asm
+$(OUT)/intro-n.o: $(INCS-2) intro/intro.asm intro/faxsound.asm intro/intro.inc intro/smlsound.asm intro/nt.asm intro/settings.asm
 	$(AS) $(AFLAGS) -l $(OUT)/intro.map -D ANN=1 intro/intro.asm -o $@
 	
-$(OUT)/nippon.o: $(INCS) $(WRAM) lost/lost.asm
+$(OUT)/nippon.o: $(INCS-2) $(WRAM) lost/lost.asm
 	$(AS) $(AFLAGS) -l $(OUT)/nippon.map -D ANN=1 lost/lost.asm -o $@
 
 $(OUT)/ann-leveldata.o: lost/leveldata.asm
@@ -119,7 +123,7 @@ $(OUT)/ann-leveldata.o: lost/leveldata.asm
 $(OUT)/common-n.o: common/common.asm common/sound-ll.asm common/practice.asm
 	$(AS) $(AFLAGS) -l $(OUT)/common.map -D ANN=1 common/common.asm -o $@
 
-$(OUT)/dummy-n.o: $(INCS) dummy.asm
+$(OUT)/dummy-n.o: $(INCS-2) dummy.asm
 	$(AS) $(AFLAGS) -l $(OUT)/dummy-n.map -D ANN=1 dummy.asm -o $@
 
 nippon.nes: $(OBJECTS-N)

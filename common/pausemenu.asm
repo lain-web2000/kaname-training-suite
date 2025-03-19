@@ -135,7 +135,7 @@ _draw_pm_row_5:
 		sta CustomRow, x
 		dex
 		bpl @copy_more
-		lda OffScr_CoinTally
+		lda CoinTally
 		jsr DivByTen
 		stx CustomRow+$08
 		sta CustomRow+$09
@@ -292,7 +292,7 @@ draw_prepared_row:
 		pha
 		lda Mirror_PPU_CTRL_REG1
 .ifndef ORG
-        lda UseNtBase2400
+        lda NameTableSelect
 .endif
 @okok:
 		and #3
@@ -486,7 +486,7 @@ pm_toggle_show:
 		jmp ForceUpdateSockHashInner
 
 pm_low_coins:
-		lda OffScr_CoinTally
+		lda CoinTally
 		clc
 		adc #1
 		pha
@@ -499,7 +499,7 @@ pm_low_coins:
 		sbc #10
 		pha
 @store: pla
-		sta OffScr_CoinTally
+		sta CoinTally
 		sta WRAM_CoinTally
 		jsr DivByTen
 		stx WRAM_CoinDisplay
@@ -701,13 +701,13 @@ do_coins_input:
 		lda SavedJoypad1Bits
 		cmp #Right_Dir
 		bne @exit
-		lda OffScr_CoinTally
+		lda CoinTally
 		clc
 		adc #10
 		cmp #100
 		bcc @store
 		sbc #100
-@store: sta OffScr_CoinTally
+@store: sta CoinTally
 		sta WRAM_CoinTally
 		jsr DivByTen
 		stx CoinDisplay

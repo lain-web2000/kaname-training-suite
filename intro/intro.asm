@@ -51,8 +51,12 @@ CURSOR_SPRITE = $0A
 FIRST_HEAD_TILE = $2E
 HEART_SPRITE = $18
 
-	.include "mario.inc"
-	.include "shared.inc"
+.ifdef ORG
+	.include "smb1.inc"
+.else
+	.include "smb2.inc"
+.endif
+	.include "practice.inc"
 	.include "macros.inc"
 	.include "wram.inc"
 	.include "text.inc"

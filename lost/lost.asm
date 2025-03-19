@@ -6,11 +6,13 @@
 	.segment "bank5"
 .endif
 
-	.include "defines.inc"
-	.include "shared.inc"
-	.include "macros.inc"
-	.include "wram.inc"
-	.include "text.inc"
+		.include "practice.inc"
+		.include "smb2.inc"
+		.include "macros.inc"
+		.include "wram.inc"
+		.include "text.inc"
+		
+SwimTileRepOffset     = PlayerGraphicsTable + $9e
 
 Start:
 		lda #%00010000               ;init PPU control register 1
@@ -111,7 +113,7 @@ ScrnSwch:
    ldx PPU_STATUS
    lda #$00
    jsr InitScroll
-   lda #0
+   lda #$00
    sta PPU_SPR_ADDR
    lda #$02                  ;dump OAM data to PPU's sprite RAM
    sta SPR_DMA
@@ -1957,10 +1959,10 @@ StatusBarData:
       .byte $7a, $03 ; game timer
 
 StatusBarOffset:
-      .byte $06, $0c, $12, $24
+      .byte $06, $0c, $12, $18
 
 PrintStatusBarNumbers:
-			 sta $00            ;store player-specific offset
+			 sta $00            	;store player-specific offset
 
 OutputNumbers:
              clc                      ;add 1 to low nybble
@@ -2032,26 +2034,6 @@ CarryOne:   sec                       ;subtract ten from our digit to make it a
             sbc #10                   ;proper BCD number, then increment the digit
             inc DigitModifier-1,x     ;preceding current digit to "carry the one" properly
             jmp StoreNewD             ;go back to just after we branched here
-
-UpdateTopScore:
-              ldx #$05                 ;start with the lowest digit
-              ldy #$05
-              sec           
-GetScoreDiff: lda PlayerScoreDisplay,x ;subtract the regular score digit from each high score digit
-              sbc TopScoreDisplay,y    ;from lowest to highest, if any top score digit exceeds
-              dex                      ;the player score digit, borrow will be set until a subsequent
-              dey                      ;subtraction clears it (player digit is higher than top)
-              bpl GetScoreDiff      
-              bcc NoTopSc              ;check to see if borrow is still set, if so, no new high score
-              inx                      ;increment X and Y once to the start of the score
-              iny
-CopyScore:    lda PlayerScoreDisplay,x ;store player's score digits into high score memory area
-              sta TopScoreDisplay,y
-              inx
-              iny
-              cpy #$06                 ;do this until we have stored them all
-              bcc CopyScore
-NoTopSc:      rts
 
 ;-------------------------------------------------------------------------------------
 
@@ -5231,7 +5213,7 @@ ResGTCtrl: lda #$18                   ;reset game timer control
            sta DigitModifier+5
            jsr DigitsMathRoutine      ;do sub to decrement game timer slowly
            lda #$a2                   ;set status nybbles to update game timer display
-           jmp Enter_UpdateGameTimer  ;do sub to update the display
+           jmp PrintStatusBarNumbers  ;do sub to update the display
 TimeUpOn:  sta PlayerStatus           ;init player status (note A will always be zero here)
            jsr ForceInjury            ;do sub to kill the player (note player is small here)
            inc GameTimerExpiredFlag   ;set game timer expiration flag
@@ -5911,12 +5893,12 @@ GiveOneCoin:
       sta DigitModifier+5    ;to the current player's coin tally
       ldy #$11               ;set offset for coin tally
       jsr DigitsMathRoutine  ;update the coin tally
-      inc OffScr_CoinTally   ;increment onscreen player's coin amount
-      lda OffScr_CoinTally
+      inc CoinTally   ;increment onscreen player's coin amount
+      lda CoinTally
       cmp #100               ;does player have 100 coins yet?
       bne CoinPoints         ;if not, skip all of this
       lda #$00
-      sta OffScr_CoinTally   ;otherwise, reinitialize coin amount
+      sta CoinTally   ;otherwise, reinitialize coin amount
       lda #Sfx_ExtraLife
       sta Square2SoundQueue  ;play 1-up sound
 CoinPoints:
@@ -9410,9 +9392,14 @@ AwardTimerCastle:
          beq NoTTick            ;for four frames every four frames) branch if not set
          lda #Sfx_TimerTick
          sta Square2SoundQueue  ;load timer tick sound
-NoTTick: jmp Enter_UpdateGameTimer
+NoTTick: ldy #$17               ;set offset here to subtract from game timer's last digit
+         lda #$ff               ;set adder here to $ff, or -1, to subtract one
+         sta DigitModifier+5    ;from the last digit of the game timer
+         jsr DigitsMathRoutine  ;subtract digit
+
 EndAreaPoints:
-         rts
+         lda #$02               ;now update the score on the screen
+         jmp WriteDigits
 
 RaiseFlagSetoffFWorks:
          lda Enemy_Y_Position,x  ;check star flag's vertical position
@@ -14362,23 +14349,6 @@ ChgSelLoop: lda GameOverCursorData,y     ;set up cursor sprite tile, attribute
             rts
 
 ContinueOrRetry:
-  lda ContinueMenuSelect       ;if player selected "continue"
-  beq Continue                 ;then branch to continue
-.ifndef ANN
-  lda #$00
-  sta CompletedWorlds          ;otherwise init completed worlds flags
-.endif
-  jmp TerminateGame            ;and end the game
-Continue:
-        ldy #$02
-        sty OffScr_NumberofLives           ;give three lives
-        sta LevelNumber
-        sta AreaNumber              ;put at x-1 of the current world
-        ldy #$0b
-ISCont: sta ScoreAndCoinDisplay,y   ;reset score
-        dey
-        bpl ISCont
-        inc Hidden1UpFlag           ;allow 1-up to be found again
         jmp ContinueGame
 
 ;-------------------------------------------------------------------------------------
@@ -14405,7 +14375,7 @@ IsBigWorld:
 .endif
 
 NoGoTime:
-    lda #0
+    lda #$00
     sta WindFlag
     sta SavedJoypad1Bits
     jmp GameCoreRoutine
@@ -14414,16 +14384,16 @@ GameMenuRoutine:
 	jsr Enter_PracticeTitleMenu
 	lda OperMode_Task
 .ifdef ANN
-    cmp #6
+    cmp #$06
 .else
-	cmp #5
+	cmp #$05
 .endif
     bne NoGoTime
     ldx LevelNumber
     ldy WorldNumber
     lda IsBigWorld, y
     beq @save_area
-    cpx #2
+    cpx #$02
     bmi @save_area
     inx
  @save_area:
@@ -14433,7 +14403,7 @@ GameMenuRoutine:
     bmi @not_extended
     tya
     sec
-    sbc #9
+    sbc #$09
     sta WorldNumber
     lda #$01
 @not_extended:
@@ -14554,8 +14524,6 @@ PrimaryGameSetup:
       lda #$01
       sta FetchNewGameTimerFlag   ;set flag to load game timer from header
       sta PlayerSize              ;set player's size to small
-      lda #$02
-      sta OffScr_NumberofLives           ;give each player three lives
       jmp SecondaryGameSetup
 
 ;-------------------------------------------------------------------------------------
@@ -14995,18 +14963,18 @@ SetEndingPalette:
 .endif
 
 RevealPrincess:
-    lda #$a2                   ;print game timer
-    jsr PrintStatusBarNumbers
-    lda #VictoryMusic          ;play victory music
-    sta EventMusicQueue
-    lda #$00
-    sta $0c                    ;residual, this does nothing
-    sta NameTableSelect
-    sta IRQUpdateFlag   ;turn screen back on but without sprite 0
-    sta DisableScreenFlag
+		lda #$a2                   ;print game timer
+		jsr PrintStatusBarNumbers
+		lda #VictoryMusic          ;play victory music
+		sta EventMusicQueue
+		lda #$00
+		sta $0c                    ;residual, this does nothing
+		sta NameTableSelect
+		sta IRQUpdateFlag   ;turn screen back on but without sprite 0
+		sta DisableScreenFlag
 NextOperTask:
-    inc OperMode_Task
-    rts
+		inc OperMode_Task
+		rts
 
 PrintVictoryMsgsForWorld8:
          lda MsgFractional          ;if fractional not looped to zero
@@ -15053,7 +15021,7 @@ NotYet: rts
 AwardExtraLives:
     lda WorldEndTimer          ;wait until timer expires before running this sub
     bne NotYet
-    lda OffScr_NumberofLives          ;if counted all extra lives, branch
+    lda #$ff
     bmi ExAEL                  ;to run another task in victory mode
     lda SelectTimer
     bne NotYet                 ;if short delay between each count of extra lives
@@ -15061,7 +15029,6 @@ AwardExtraLives:
     sta SelectTimer
     lda #Sfx_ExtraLife
     sta Square2SoundQueue
-    dec OffScr_NumberofLives          ;count down each extra life
     lda #$01                   ;give 100,000 points to player for each one
     sta DigitModifier+1
     jmp EndAreaPoints
@@ -15454,8 +15421,6 @@ SuperPlayerMsg:
     .byte $0f, $0f, $af
     .byte $00
 .endif
-
-.include "utils.inc"
 
 .res $F000 - *, $EA
 

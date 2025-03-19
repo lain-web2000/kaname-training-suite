@@ -2,6 +2,10 @@
 ;
 ; Bank for all sound-related stuff
 ;
+
+MusicHeaderOffsetData = MusicHeaderData - 1
+MHD                   = MusicHeaderData
+
 SoundEngineExternal:
 		jsr SoundEngine
 		jmp ReturnBank

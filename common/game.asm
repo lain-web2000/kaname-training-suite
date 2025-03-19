@@ -313,7 +313,7 @@ MarioOrLuigiColors:
 LL_UpdatePlayerChange:
 		; ldx #$60
 		ldy #$21
-		lda IsPlayingLuigi
+		lda CurrentPlayer
 		bne PlayerIsLuigiPath
 PlayerIsMarioPatch:
 		; ldx #$E
@@ -326,7 +326,7 @@ PlayerIsLuigiPath:
 		dex
 		bpl @copy_more
 		ldy #7
-		lda IsPlayingLuigi
+		lda CurrentPlayer
 		bne @is_luigi
 		ldy #3
 @is_luigi:

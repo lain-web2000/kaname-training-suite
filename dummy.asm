@@ -1,7 +1,11 @@
 .export INP_NMI
 
-	.include "mario.inc"
-	.include "shared.inc"
+.ifdef ORG
+	.include "smb1.inc"
+.else
+	.include "smb2.inc"
+.endif
+	.include "practice.inc"
 	.include "macros.inc"
 	.include "text.inc"
 	.org $8000
@@ -452,7 +456,7 @@ LoadCHR:
     sta $03
     ldx #$00
     ldy #$00
-@terminator:
+@terminator: ;good movie
     inx
     cpx #$03
     bcs @done
@@ -462,6 +466,7 @@ LoadCHR:
     beq @terminator
     pla
     tay
+	lda ($00),y
 @store:
     sta PPU_DATA
     iny

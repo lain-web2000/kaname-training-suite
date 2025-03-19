@@ -1,6 +1,5 @@
-		.include "shared.inc"
-		.include "org.inc"
-		.include "mario.inc"
+		.include "practice.inc"
+		.include "smb1.inc"
 		.include "macros.inc"
 		.include "wram.inc"
 		.include "text.inc"

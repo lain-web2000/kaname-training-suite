@@ -1,14 +1,15 @@
 ;
 ; Practice ROM
 ;
-		.include "shared.inc"
-		.include "org.inc"
-		.include "mario.inc"
+		.include "practice.inc"
+		.include "smb1.inc"
 		.include "macros.inc"
 		.include "wram.inc"
 		.include "text.inc"
 		.org $8000
 		.segment "bank3"
+		
+SwimTileRepOffset     = PlayerGraphicsTable + $9e
 
 Start:
              lda #%00010000               ;init PPU control register 1 
@@ -127,7 +128,23 @@ SkipExpTimer:  dex                       ;move onto next timer
                bpl DecTimersLoop         ;do this until all timers are dealt with
                jsr Enter_UpdateFrameRule
 NoDecTimers:   inc FrameCounter          ;increment frame counter
-               jsr AdvanceRandom
+				lda PseudoRandomBitReg    ;get first memory location of LSFR bytes
+				and #%00000010            ;mask out all but d1
+				sta $00                   ;save here
+				lda PseudoRandomBitReg+1  ;get second memory location
+				and #%00000010            ;mask out all but d1
+				eor $00                   ;perform exclusive-OR on d1 from first and second bytes
+				clc                       ;if neither or both are set, carry will be clear
+				beq RotPRandomBit
+				sec                       ;if one or the other is set, carry will be set
+			RotPRandomBit:
+				ror PseudoRandomBitReg+0  ;rotate carry into d7, and rotate last bit into carry
+				ror PseudoRandomBitReg+1  ;rotate carry into d7, and rotate last bit into carry
+				ror PseudoRandomBitReg+2  ;rotate carry into d7, and rotate last bit into carry
+				ror PseudoRandomBitReg+3  ;rotate carry into d7, and rotate last bit into carry
+				ror PseudoRandomBitReg+4  ;rotate carry into d7, and rotate last bit into carry
+				ror PseudoRandomBitReg+5  ;rotate carry into d7, and rotate last bit into carry
+				ror PseudoRandomBitReg+6  ;rotate carry into d7, and rotate last bit into carry
 PauseSkip:
                lda GamePauseStatus
                and #$02
@@ -1283,7 +1300,7 @@ StatusBarData:
       .byte $7a, $03 ; game timer
 
 StatusBarOffset:
-      .byte $06, $0c, $12, $12, $1e, $24
+      .byte $06, $0c, $12, $18, $1e, $24
 
 PrintStatusBarNumbers:
       sta $00            ;store player-specific offset
@@ -4441,21 +4458,27 @@ MiscLoopBack:
 
 ;-------------------------------------------------------------------------------------
 
+CoinTallyOffsets:
+      .byte $17, $1d
+
 ScoreOffsets:
       .byte $0b, $11
+
+StatusBarNybbles:
+      .byte $02, $13
 
 GiveOneCoin:
       lda #$01               ;set digit modifier to add 1 coin
       sta DigitModifier+5    ;to the current player's coin tally
       ldx CurrentPlayer      ;get current player on the screen
-      ldy #$11               ;get offset for player's coin tally
+      ldy CoinTallyOffsets,x ;get offset for player's coin tally
       jsr DigitsMathRoutine  ;update the coin tally
-      inc OffScr_CoinTally   ;increment onscreen player's coin amount
-      lda OffScr_CoinTally
+      inc CoinTally          ;increment onscreen player's coin amount
+      lda CoinTally
       cmp #100               ;does player have 100 coins yet?
       bne CoinPoints         ;if not, skip all of this
       lda #$00
-      sta OffScr_CoinTally   ;otherwise, reinitialize coin amount
+      sta CoinTally          ;otherwise, reinitialize coin amount
       lda #Sfx_ExtraLife
       sta Square2SoundQueue  ;play 1-up sound
 
@@ -13117,8 +13140,6 @@ SetMOfs:  tay                      ;use either d3 or d2-d0 for offset here
 NoHammer: ldx ObjectOffset         ;get original enemy object offset
           clc                      ;return with carry clear
           rts
-
-          .include "utils.inc"
 
 .res $F000 - *, $EA
 

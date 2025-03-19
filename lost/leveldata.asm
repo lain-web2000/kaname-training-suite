@@ -6,8 +6,8 @@
 	.segment "bank7"
 .endif
 
-	.include "defines.inc"
-	.include "shared.inc"
+	.include "smb2.inc"
+	.include "practice.inc"
 	.include "macros.inc"
 	.include "wram.inc"
 

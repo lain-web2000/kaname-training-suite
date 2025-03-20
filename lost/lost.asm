@@ -186,6 +186,8 @@ DTTLoop:
    lda IntervalTimerControl
    cmp #$14
    bne IncFrameCntr
+   lda WRAM_AdvRNG
+   bne IncFrameCntr
    jsr Enter_UpdateFrameRule
 IncFrameCntr:
    inc FrameCounter

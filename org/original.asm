@@ -126,6 +126,8 @@ DecTimersLoop: lda Timers,x              ;check current timer
                dec Timers,x              ;otherwise decrement the current timer
 SkipExpTimer:  dex                       ;move onto next timer
                bpl DecTimersLoop         ;do this until all timers are dealt with
+			   lda WRAM_AdvRNG
+			   bne NoDecTimers
                jsr Enter_UpdateFrameRule
 NoDecTimers:   inc FrameCounter          ;increment frame counter
                ldx #$00

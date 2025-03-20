@@ -371,29 +371,29 @@ RedrawFramesRemaningInner:
 		lda WRAM_PracticeFlags
 		and #PF_DisablePracticeInfo
 		bne nodraw
-		ldy VRAM_Buffer1_Offset
-		lda #$20
-		sta VRAM_Buffer1, y
-		lda #$59
-		sta VRAM_Buffer1+1, y
-		lda #$04
-		sta VRAM_Buffer1+2, y
-		lda #$1B
-		sta VRAM_Buffer1+3, y
-		lda #$29
-		sta VRAM_Buffer1+4, y
+		clc                                          ;
+		lda VRAM_Buffer1_Offset                      ; get current vram offset
+		tay                                          ;
+		adc #7                                       ; and advance it by 4
+		sta VRAM_Buffer1_Offset                      ; store the new offset
+		lda #$20                                     ; write the ppu address to update
+		sta VRAM_Buffer1+0, y                        ;
+		lda #$59                                     ;
+		sta VRAM_Buffer1+1, y                        ;
+		lda #$04                                     ; we are writing 4 bytes
+		sta VRAM_Buffer1+2, y                        ;
+		lda #'R'                                     ; and that byte is an R
+		sta VRAM_Buffer1+3, y                        ;
+		lda #$29                                     ; and that byte is an R
+		sta VRAM_Buffer1+4, y                        ;
 		lda IntervalTimerControl
 		jsr DivByTen
 		sta VRAM_Buffer1+6, y
 		txa
 		sta VRAM_Buffer1+5, y
-		lda #0
-		sta VRAM_Buffer1+7, y
-		clc
-		tya
-		adc #7
-		sta VRAM_Buffer1_Offset
-nodraw:	rts
+		lda #$00                                     ; set the null terminator
+		sta VRAM_Buffer1+7, y                        ;
+nodraw:	rts                                          ; and finish
 
 HideRemainingFrames:
 		ldy VRAM_Buffer1_Offset
@@ -434,26 +434,33 @@ RedrawFrameNumbersInner:
 		lda WRAM_PracticeFlags
 		and #PF_DisablePracticeInfo
 		bne nodraw
-@draw:	ldy VRAM_Buffer1_Offset
-		lda #$20
-		sta VRAM_Buffer1, y
-		lda #$4d
-		sta VRAM_Buffer1+1, y
-		lda #$03
-		sta VRAM_Buffer1+2, y
-		lda FrameCounter
-		jsr DivByTen
-		sta VRAM_Buffer1+5, y
-		txa
-		jsr DivByTen
-		sta VRAM_Buffer1+4, y
-		txa
-		sta VRAM_Buffer1+3, y
-		lda #0
-		sta VRAM_Buffer1+6, y
+@draw:	lda VRAM_Buffer1_Offset                      ; get current vram offset
+		tay                                          ;
+		adc #(3+3)                                   ; add 3 for vram offset, 3 for values to draw
+		sta VRAM_Buffer1_Offset                      ; save new vram offset
+		lda #$20                                     ; store the ppu location of the frame number
+		sta VRAM_Buffer1,y                           ;
+		lda #$4d                                     ;
+		sta VRAM_Buffer1+1,y                         ;
+		lda #$03                                     ; store the number of digits to draw
+		sta VRAM_Buffer1+2,y                         ;
+		iny                                          ; advance y to the end of the buffer to write
+		iny                                          ;
+		iny                                          ;
+		lda #0                                       ; place our null terminator
+		sta VRAM_Buffer1+3,y                         ;
+	@PrintFramecounterDataAtY:                       ;
+		lda FrameCounter                             ; get the current frame number
+		jsr DivByTen                               	 ; divide by 10
+		sta VRAM_Buffer1+2,y                         ; store remainder in vram buffer
+		txa                                          ; get the result of the divide
+		jsr DivByTen                               	 ; divide by 10
+		sta VRAM_Buffer1+1,y                         ; store remainder in vram buffer
+		txa                                          ; get the result of the divide
+		sta VRAM_Buffer1+0,y                         ; and store it in vram
 
 		lda OperMode
-		beq @rule ; force RULE if on title screen
+		beq @PrintRule ; force RULE if on title screen
 		lda WRAM_PracticeFlags
 		and #PF_SockMode
 	.ifndef ORG
@@ -461,43 +468,44 @@ RedrawFrameNumbersInner:
 	.else
 		beq @dont_draw_rule
 	.endif
-@rule:	lda #$20
-		sta VRAM_Buffer1+6, y ; Offset for RULE (if any)
-		lda #$64
-		sta VRAM_Buffer1+7, y
-		lda #$04
-		sta VRAM_Buffer1+8, y
-		ldx #0
-@copy_rule:
-		lda CurrentRule, x
-		sta VRAM_Buffer1+9, y
-		iny
-		inx
-		cpx #4
-		bne @copy_rule
-		lda #0
-		sta VRAM_Buffer1+9, y
-		iny
-		iny
-		iny
-@dont_draw_rule:
-		tya
-		clc
-		adc #6
-		sta VRAM_Buffer1_Offset
-		ldx ObjectOffset
-		rts
+@PrintRule:
+		lda VRAM_Buffer1_Offset                      ; get the current buffer offset
+		tay                                          ;
+		adc #(3+4)                                   ; shift over based on length of the framerule text
+		sta VRAM_Buffer1_Offset                      ; store the ppu location of the framerule counter
+		lda #$20                                     ;
+		sta VRAM_Buffer1,y                           ;
+		lda #$64                                     ;
+		sta VRAM_Buffer1+1,y                         ;
+		lda #$04                                     ; store the number of digits to draw
+		sta VRAM_Buffer1+2,y                         ;
+		iny                                          ; increment past the ppu location
+		iny                                          ;
+		iny                                          ;
+		lda #0                                       ; place our null terminator
+		sta VRAM_Buffer1+4,y                         ;
+	@PrintRuleDataAtY:
+		lda CurrentRule+3          					 ; then copy the framerule numbers into the buffer
+		sta VRAM_Buffer1+3,y                         ;
+		lda CurrentRule+2          					 ;
+		sta VRAM_Buffer1+2,y                         ;
+		lda CurrentRule+1         					 ;
+		sta VRAM_Buffer1+1,y                         ;
+		lda CurrentRule+0          					 ;
+		sta VRAM_Buffer1+0,y                         ;
+@dont_draw_rule:		
+		rts                                          ;
 
 RedrawFrameNumbers:
 		jsr RedrawFrameNumbersInner
 		jmp ReturnBank
 
 UpdateFrameRule:
-		lda WRAM_AdvRNG
-		bne NotEvenFrameRule
+.ifdef ORG
 		lda #$14
 		cmp IntervalTimerControl
 		bne NotEvenFrameRule
+.endif
 		lda #$01
 		sta DigitModifier+5
 		ldy #RULE_COUNT_OFFSET
@@ -1991,23 +1999,23 @@ RedrawSockTimer:
 		stx VRAM_Buffer1_Offset
 		jmp RedrawFrameNumbers
 
-MagicByte0 = $70 ; P
-MagicByte1 = $56 ; V
-MagicByte2 = $35 ; 5
-MagicByte3 = $35 ; 5
+MagicalBytes:
+.ifdef ORG
+		.byte $6D, $61, $64, $6F, $70, $6C, $75, $73, $68 ;madoplush
+.elseif .defined(LOST)
+		.byte $73, $61, $79, $61, $70, $6C, $75, $73, $68 ;sayaplush
+.else
+		.byte $6B, $79, $6F, $75, $70, $6C, $75, $73, $68 ;kyouplush
+.endif
 
 ValidWRAMMagic:
-		lda WRAM_Magic+0
-		cmp #MagicByte0
+		ldx #$09
+@WRAMLoop:
+		lda WRAM_Magic-1,x
+		cmp MagicalBytes-1,x
 		bne @exit
-		lda WRAM_Magic+1
-		cmp #MagicByte1
-		bne @exit
-		lda WRAM_Magic+2
-		cmp #MagicByte2
-		bne @exit
-		lda WRAM_Magic+3
-		cmp #MagicByte3
+		dex
+		bne @WRAMLoop
 @exit:
 		rts
 
@@ -2021,16 +2029,13 @@ RamGoodExit:
 SetDefaultWRAM:
 		jsr ValidWRAMMagic
 		beq RamGoodExit
-
-		lda #MagicByte0
-		sta WRAM_Magic+0
-		lda #MagicByte1
-		sta WRAM_Magic+1
-		lda #MagicByte2
-		sta WRAM_Magic+2
-		lda #MagicByte3
-		sta WRAM_Magic+3
-
+		ldx #$00
+@WRAMLoop:
+		lda MagicalBytes,x
+		sta WRAM_Magic,x
+		inx
+		cpx #$09
+		bcc @WRAMLoop	
 		lda #<Player_Rel_XPos
 		sta WRAM_UserVarA
 		lda #>Player_Rel_XPos

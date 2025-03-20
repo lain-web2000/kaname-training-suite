@@ -15063,20 +15063,25 @@ BlueUpdateTiming:
            lda EndControlCntr
            and #$0f               ;execute the next part only every 16 frames
            bne ExFade
-BlueUpd:   ldx #$13
+BlueUpd:   ldy VRAM_Buffer1_Offset ;practice hack fix, respect buffer offset
+           ldx #$00
 BlueULoop: lda BlueTransPalette,x ;write palette to VRAM buffer
-           sta VRAM_Buffer1,x
-           dex
-           bpl BlueULoop
-           ldx #$0c 
+           sta VRAM_Buffer1,y
+           iny
+           inx
+           cpx #$14
+           bmi BlueULoop
+           ldx VRAM_Buffer1_Offset ;practice hack fix, respect buffer offset
+           sty VRAM_Buffer1_Offset
            ldy BlueColorOfs       ;get color offset
 NextBlue:  lda BlueTints,y        ;set background color based on color offset
            sta VRAM_Buffer1+3,x
-           dex                    ;be sure to set the same background color
-           dex                    ;in all four palettes (even though only the first
-           dex                    ;one is acknowledged)
-           dex
-           bpl NextBlue
+           inx                    ;be sure to set the same background color
+           inx                    ;in all four palettes (even though only the first
+           inx                    ;one is acknowledged)
+           inx
+           cpx #$10
+           bmi NextBlue
            inc BlueColorOfs       ;increment to next color which will show up
            lda BlueColorOfs       ;16 frames later, thus causing a slow color change
            cmp #$04               ;if not changed to last color, leave
@@ -15085,11 +15090,15 @@ NextBlue:  lda BlueTints,y        ;set background color based on color offset
 ExFade:    rts
 
 EraseLivesLines:
-     ldx #$08                  ;erase bottom two lines
+     ldy VRAM_Buffer1_Offset   ;practice hack fix, respect buffer offset
+     ldx #$00                  ;erase bottom two lines
 ELL: lda TwoBlankRows,x
-     sta VRAM_Buffer1,x
-     dex
-     bpl ELL
+     sta VRAM_Buffer1,y
+     iny
+     inx
+     cpx #$09
+     bmi ELL
+     sty VRAM_Buffer1_Offset
      inc OperMode_Task
      jsr EraseEndingCounters   ;init ending counters
      lda #$60

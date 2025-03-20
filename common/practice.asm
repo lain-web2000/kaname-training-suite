@@ -1,43 +1,15 @@
 	.include "wram.inc"
-
 ;
 ; Practice stuff
 ;
-resume_0: .byte $49, $BF, $75, $F6, $40, $9C, $9B, $06, $3E, $39, $73, $F8, $3F, $18, $D6, $F8, $19, $BF, $5B, $EA, $94, $C0, $3C, $8F, $F1, $18, $2B, $8A, $A1, $A9, $AC, $71, $49, $2B, $30, $F8, $73, $C3, $89, $D2, $30, $1F, $86, $F4, $51, $56, $E6, $89, $3E, $35, $15, $0D, $56, $27, $DB, $84, $FF, $1C, $A4, $A7, $FA, $7F, $18, $B3, $A9, $5A, $F3, $CC, $6E, $E1, $C3, $B5, $F2, $32, $C3, $78, $C6, $7D, $60, $4E, $62, $F0, $5B, $49, $01, $F1, $80, $08, $71, $FB, $C9, $B3, $D9, $A1, $AE, $3A, $B9, $73, $32
-resume_1: .byte $5B, $88, $53, $4B, $4A, $01, $D8, $0A, $14, $17, $45, $ED, $1B, $C4, $ED, $45, $23, $64, $EF, $53, $7F, $D1, $5A, $4A, $DE, $D0, $93, $37, $78, $5A, $83, $37, $33, $17, $14, $27, $03, $1A, $AE, $05, $D2, $15, $F3, $6F, $FB, $D0, $7F, $32, $72, $D1, $21, $41, $BE, $75, $62, $05, $92, $A8, $59, $2C, $ED, $7D, $DE, $CA, $14, $B8, $B6, $29, $CE, $7C, $60, $DA, $27, $FE, $68, $16, $13, $25, $8E, $2E, $84, $F7, $A7, $FD, $E9, $D0, $89, $B0, $F7, $94, $F0, $7A, $78, $44, $D9, $14, $DA, $71, $A2
-resume_2: .byte $C9, $F7, $B9, $A7, $CA, $39, $EF, $06, $68, $65, $A3, $1C, $65, $F5, $40, $B5, $11, $1A, $58, $87, $57, $50, $22, $54, $3D, $E1, $C4, $23, $3A, $08, $DA, $D5, $A1, $41, $74, $D7, $E5, $9C, $BD, $A1, $B3, $2B, $FE, $87, $58, $7D, $B3, $20, $0E, $BA, $0B, $5B, $13, $3B, $D4, $0D, $6D, $91, $11, $62, $18, $83, $EF, $AD, $46, $0D, $51, $B1, $13, $BE, $E6, $B1, $C3, $9B, $EE, $E6, $9F, $DF, $4F, $B2, $41, $16, $10, $6E, $EA, $33, $88, $A1, $14, $63, $63, $1C, $CA, $06, $84, $60, $A9, $97, $C7
-resume_3: .byte $7E, $E6, $1E, $30, $5F, $3B, $5E, $12, $40, $4B, $28, $C6, $53, $7C, $9A, $3E, $57, $D2, $86, $20, $A9, $F2, $96, $C0, $81, $40, $E3, $4D, $CA, $BC, $DD, $BA, $C6, $6F, $5C, $98, $E2, $A9, $E0, $AA, $16, $01, $19, $58, $AE, $DD, $4C, $44, $EA, $19, $49, $D9, $6F, $D1, $11, $07, $49, $C0, $A3, $3A, $C2, $78, $52, $38, $6E, $7D, $3D, $E2, $8F, $47, $27, $04, $8C, $66, $3F, $CB, $B8, $94, $53, $EF, $49, $F8, $5E, $94, $39, $93, $9B, $C0, $FA, $4B, $83, $E8, $3B, $8E, $37, $48, $1C, $74, $82
-resume_4: .byte $EC, $09, $6C, $7E, $CB, $49, $80, $1E, $90, $81, $6E, $FF, $99, $96, $1B, $54, $75, $E7, $37, $2E, $06, $53, $D3, $69, $FA, $82, $6A, $0B, $BF, $AD, $68, $11, $85, $ED, $B4, $37, $29, $90, $9B, $E9, $70, $57, $E5, $56, $1F, $26, $2A, $04, $F7, $6D, $5F, $6E, $49, $A6, $B9, $1D, $93, $E3, $80, $FE, $F3, $7E, $8C, $62, $E2, $67, $9F, $81, $A8, $3B, $EB, $66, $0B, $50, $E3, $06, $87, $2B, $CD, $8A, $CB, $D5, $7E, $49, $ED, $F4, $8A, $83, $D3, $8D, $44, $D1, $AF, $83, $3F, $88, $4E, $5A, $0D
-resume_5: .byte $11, $C5, $50, $1E, $74, $3F, $3D, $3A, $11, $16, $3E, $72, $3E, $6F, $2F, $28, $DB, $42, $3B, $6E, $54, $B7, $FE, $E9, $F9, $03, $AC, $91, $2A, $D4, $D2, $65, $08, $32, $0D, $07, $ED, $C3, $5A, $BC, $5C, $55, $D6, $E6, $43, $9C, $B2, $8C, $22, $5F, $CD, $DC, $97, $05, $9A, $13, $00, $62, $C7, $8B, $76, $8E, $29, $12, $3F, $9D, $E4, $44, $B7, $B5, $A4, $6E, $13, $9C, $9C, $90, $F6, $03, $6A, $55, $58, $24, $C2, $61, $9E, $D3, $BD, $02, $26, $1A, $42, $00, $D8, $9E, $51, $19, $76, $B2, $09
-resume_6: .byte $C9, $D6, $88, $E2, $E2, $AD, $3D, $06, $31, $14, $E2, $8C, $0C, $43, $19, $80, $30, $8C, $55, $32, $58, $10, $59, $3A, $0C, $07, $79, $86, $54, $8F, $03, $47, $02, $E8, $65, $69, $BE, $E2, $6C, $6F, $BC, $FB, $1D, $4B, $7D, $D1, $E7, $85, $CC, $85, $72, $01, $04, $49, $E9, $29, $26, $A4, $C6, $76, $90, $73, $31, $D6, $FB, $52, $DB, $46, $E6, $C2, $73, $A2, $05, $3D, $5B, $9D, $F9, $55, $F0, $41, $CE, $8E, $3F, $F3, $45, $3A, $A8, $04, $80, $00, $CA, $A2, $87, $99, $2F, $09, $EA, $07, $13
-
-prac_quick_resume:
-		;
-		; Get the top two digits of target rule (1234 -> 12)
-		;
-		lda FrameruleNumber+2
-		jsr MulByTen
-		clc
-		adc FrameruleNumber+3
-		tax
-		ldy #0
-		sty FrameruleNumber+2 ; clear (1234 - > 34)
-		sty FrameruleNumber+3 ; clear
-		lda resume_0,x
-		sta PseudoRandomBitReg+0
-		lda resume_1,x
-		sta PseudoRandomBitReg+1
-		lda resume_2,x
-		sta PseudoRandomBitReg+2
-		lda resume_3,x
-		sta PseudoRandomBitReg+3
-		lda resume_4,x
-		sta PseudoRandomBitReg+4
-		lda resume_5,x
-		sta PseudoRandomBitReg+5
-		lda resume_6,x
-		sta PseudoRandomBitReg+6
-		rts
+; lookup tables of RNG values for different framerules, each offset is another 2100 frames
+resume_0: .byte $28, $34, $0c, $55, $f8, $fa, $97, $c0, $15, $05, $ed, $7e, $95, $ae, $09, $b4, $e0, $9a, $50, $f6, $ac, $99, $91, $8d, $9c, $4f, $fe, $9a, $49, $3a, $47, $4a, $ee, $96, $64, $82, $b9, $65, $d3, $e7, $38, $03, $97, $27, $e0, $32, $35, $fa, $43, $38, $b1, $75, $a4, $c1, $e0, $58, $49, $28, $7b, $9c, $6e, $cf, $df, $61, $ae, $95, $4a, $b7, $e7, $25, $12, $d0, $d3, $8a, $d2, $19, $95, $9a, $92, $ef, $72, $4e, $94, $72, $de, $0c, $d0, $ca, $46, $39, $ca, $ea, $81, $6a, $22, $35, $b1, $0e, $af
+resume_1: .byte $02, $86, $c4, $17, $a1, $53, $48, $01, $65, $c5, $06, $42, $a4, $db, $67, $d7, $87, $5b, $36, $d7, $3d, $02, $ec, $b8, $c5, $99, $f7, $97, $bb, $1e, $65, $48, $8f, $a7, $44, $fb, $6e, $fb, $44, $3a, $3c, $41, $8e, $33, $95, $b0, $53, $97, $09, $fc, $e6, $69, $5d, $ca, $f7, $90, $2d, $d6, $5f, $51, $22, $c0, $78, $ef, $f7, $7c, $28, $dc, $d4, $f3, $54, $4d, $1a, $99, $d5, $ed, $9a, $2b, $fd, $cc, $3c, $60, $bf, $76, $bd, $24, $81, $97, $50, $8d, $a7, $f9, $34, $7c, $ae, $a5, $0c, $40, $52
+resume_2: .byte $52, $ef, $dd, $bd, $50, $a7, $66, $81, $4f, $ce, $dc, $be, $8f, $86, $75, $be, $46, $6f, $96, $3a, $65, $30, $cf, $a3, $fc, $06, $0a, $a2, $28, $6a, $eb, $dc, $52, $8a, $8c, $fe, $1c, $30, $e2, $f4, $4c, $47, $a1, $7d, $54, $d5, $39, $62, $8f, $8d, $85, $83, $15, $49, $36, $21, $bf, $87, $a9, $69, $fe, $5f, $c6, $2c, $aa, $56, $bc, $b3, $1b, $b8, $70, $ed, $bc, $8c, $70, $de, $b1, $1f, $d8, $13, $d8, $fc, $96, $92, $00, $3c, $20, $02, $dc, $fe, $32, $2c, $36, $a8, $eb, $ce, $6e, $5c, $0c
+resume_3: .byte $56, $e2, $54, $92, $12, $00, $f6, $82, $85, $45, $d1, $3b, $c6, $31, $bb, $11, $48, $d9, $fb, $94, $1f, $34, $16, $d2, $77, $34, $e4, $8d, $5e, $56, $20, $4d, $4c, $c5, $05, $09, $c0, $c6, $6b, $81, $34, $c5, $bc, $1b, $7e, $b4, $9f, $4c, $9c, $74, $48, $50, $af, $dd, $d8, $01, $e4, $2a, $16, $cb, $bb, $df, $37, $f2, $45, $ae, $ed, $0a, $b3, $5f, $d8, $76, $89, $bf, $da, $05, $84, $49, $23, $8b, $a1, $3d, $e9, $7f, $7a, $74, $22, $2c, $7d, $e5, $7c, $de, $5e, $51, $b6, $85, $76, $dc, $a8
+resume_4: .byte $f2, $3d, $ee, $e9, $b2, $4e, $3b, $81, $1a, $d9, $68, $47, $d9, $3d, $50, $6d, $c4, $06, $d6, $e1, $d5, $54, $88, $95, $8f, $38, $f1, $c8, $0e, $82, $f6, $f5, $e8, $d0, $1d, $f5, $f9, $a7, $af, $68, $ac, $4a, $ff, $e1, $d6, $1f, $ec, $88, $83, $6e, $42, $56, $84, $4e, $b5, $43, $9b, $24, $44, $18, $46, $60, $bb, $ab, $11, $03, $94, $6c, $84, $2f, $39, $ac, $f0, $a6, $3b, $b9, $e7, $77, $93, $ac, $10, $c5, $c4, $5b, $7a, $0c, $62, $28, $c5, $18, $18, $87, $32, $01, $61, $18, $aa, $65, $b1
+resume_5: .byte $5f, $f9, $47, $cc, $97, $4e, $d7, $84, $10, $52, $ca, $31, $54, $5f, $26, $4f, $55, $b4, $21, $c8, $ea, $3c, $a5, $30, $60, $50, $38, $d3, $b2, $2f, $b7, $6e, $71, $5b, $17, $e6, $78, $2a, $78, $6a, $c5, $c0, $86, $d6, $2b, $77, $d3, $11, $ba, $86, $d2, $f6, $db, $f4, $04, $41, $52, $70, $68, $8e, $30, $de, $d4, $4e, $9b, $5f, $4f, $78, $e3, $91, $89, $41, $e3, $d9, $8f, $b2, $ee, $e5, $d4, $bb, $52, $be, $17, $a5, $8e, $e4, $26, $70, $3e, $d2, $e0, $3a, $8e, $a3, $0d, $12, $47, $dd, $e0
+resume_6: .byte $bb, $82, $9b, $1f, $f2, $d2, $a0, $87, $24, $e0, $1b, $bf, $e6, $25, $86, $95, $dd, $b9, $8d, $0b, $41, $94, $b4, $1a, $7e, $20, $da, $42, $af, $2b, $5a, $84, $a1, $fb, $2d, $0d, $8a, $64, $26, $ba, $9c, $55, $79, $15, $87, $49, $0a, $01, $bd, $5b, $57, $5b, $d2, $69, $6e, $c7, $64, $38, $e0, $bf, $bc, $1f, $a3, $18, $b8, $59, $67, $a0, $ea, $ce, $fa, $19, $02, $94, $f8, $c1, $21, $0a, $f3, $e2, $72, $35, $9f, $12, $7b, $fd, $e2, $20, $b4, $e3, $d1, $34, $eb, $a0, $cf, $22, $13, $16, $83
 
 BIG_FRAMES = 59
 BIG_FIRE_FRAMES = 122
@@ -50,128 +22,82 @@ PowerUpOffsets:
 CategoryOffsets:
 	.word 0, BOTH_ENDINGS, ALL_STAGES
 
+;Small, Big, Fire, Small-Fire
+PlayerStatusState:
+	.byte $00, $01, $02, $02
+	
+PlayerSizeState:
+	.byte $01, $00, $00, $01
+	
+; ================================================================
+;  Setup framerule RNG
+; ----------------------------------------------------------------
 AdvanceToRule:
-		;
-		; Regardless of rule, always honor powerups
-		;
-		ldy #0
-		ldx PowerUps
-		beq NoPowerups
-		iny
-		dex
-		beq BigMarioPowerup
-		iny 
-		dex
-		beq BigMarioPowerup
-		ldx #1
-		ldy #2
-		;
-		; Big mario
-		;
-BigMarioPowerup:
-		stx PlayerSize
-		sty PlayerStatus
-
-NoPowerups:
-		;
-		; If Rule is 0, use title Rule
-		; 
-		lda FrameruleNumber+2
+prac_quick_resume:
+		lda FrameruleNumber+2        ; get hundreds and thousands digits of bcd framerule value
 		ora FrameruleNumber+3
 		ora FrameruleNumber+4
 		ora FrameruleNumber+5
-		bne StartAdvance
-		sta PowerUps
+		bne RNGQuickResume
 		rts
-StartAdvance:
-		lda IntervalTimerControl
-		cmp #3
-DeadLock:
-		bne DeadLock
-		;
-		; Copy to current rule
-		;
-		ldx #4
-KeepCopyRule:
-		lda FrameruleNumber+1,x
-		sta DisplayDigits+RULE_COUNT_OFFSET-4, x
+RNGQuickResume:
+		ldx #$03
+@CopyRule:
+		lda FrameruleNumber+2,x
+		sta DisplayDigits+RULE_COUNT_OFFSET-3, x
 		dex
-		bne KeepCopyRule
-		lda #0
-		sta DisplayDigits+RULE_COUNT_OFFSET-5
-		;
-		; Advance to correct frame rule
-		;
-		jsr prac_quick_resume
-		lda FrameruleNumber+4
-		jsr MulByTen
-		clc
-		adc FrameruleNumber+5
-		tax
-		beq RuleContinue
-AdvanceFurther:
-		jsr AdvanceRandom
-		jsr AdvanceRandom
-		jsr AdvanceRandom
-		jsr AdvanceRandom
-		jsr AdvanceRandom
-		jsr AdvanceRandom
-		jsr AdvanceRandom
-		jsr AdvanceRandom
-		jsr AdvanceRandom
-		jsr AdvanceRandom
-		jsr AdvanceRandom
-		jsr AdvanceRandom
-		jsr AdvanceRandom
-		jsr AdvanceRandom
-		jsr AdvanceRandom
-		jsr AdvanceRandom
-		jsr AdvanceRandom
-		jsr AdvanceRandom
-		jsr AdvanceRandom
-		jsr AdvanceRandom
-		jsr AdvanceRandom
-		dex
-		bne AdvanceFurther
-RuleContinue:
-		lda #0
-		sta FrameruleNumber+5
+		bpl @CopyRule
+;		lda #$00
+;		sta DisplayDigits+RULE_COUNT_OFFSET-5
+		lda FrameruleNumber+2        		 ; get hundreds and thousands digits of bcd framerule value
+		jsr MulByTen                     	 ;
+		adc FrameruleNumber+3        		 ;
+		tax                                  ; store in X
+		lda resume_0,x                       ; get rng value from lookup table for this offset
+		sta PseudoRandomBitReg+0             ;
+		lda resume_1,x                       ;
+		sta PseudoRandomBitReg+1             ;
+		lda resume_2,x                       ;
+		sta PseudoRandomBitReg+2             ;
+		lda resume_3,x                       ;
+		sta PseudoRandomBitReg+3             ;
+		lda resume_4,x                       ;
+		sta PseudoRandomBitReg+4             ;
+		lda resume_5,x                       ;
+		sta PseudoRandomBitReg+5             ;
+		lda resume_6,x                       ;
+		sta PseudoRandomBitReg+6             ;
+@FrameruleAdjust:
+		lda FrameruleNumber + 4      		 ; get ones and tens digits of bcd framerule value
+		jsr MulByTen                     	 ;
+		adc FrameruleNumber + 5      		 ;
+		tay                                  ; store in Y
+		beq @FrameAdjust                     ; if not set, we can skip ahead
+		jsr FRStepRNGByY                     ; otherwise we advance the RNG based on the framerule value * 21
+@FrameAdjust:
+		lda #$00
+		sta FrameruleNumber+2
+		sta FrameruleNumber+3
 		sta FrameruleNumber+4
-		;
-		; Advance to correct place within this rule
-		;
-		lda #18
-		sta $02
-AdvanceWithin:
-		jsr AdvanceRandom
-		dec $02
-		bne AdvanceWithin
-		;
-		; Advance powerup frames
-		;
-		lda PowerUps
+		sta FrameruleNumber+5
+@SetPowerups:
+		ldx PowerUps
+		lda PlayerStatusState,x
+		sta PlayerStatus
+		lda PlayerSizeState,x
+		sta PlayerSize
+		txa
+		beq @FrameAdjust2
 		asl
 		tax
 		lda PowerUpOffsets,x
 		tay
 		lda PowerUpOffsets+1,x
 		tax
-MorePowerUpFrames:
-		cpy #$00
-		bne DoPowerUpAdvance
-		cpx #$00
-		beq NoPowerUpFrames
-		dex
-DoPowerUpAdvance:
-		jsr AdvanceRandom
-		dey
-		jmp MorePowerUpFrames
-NoPowerUpFrames:
-    	ldx #0
-		stx PowerUps
-		;
-		; Advance category frames
-		;
+		jsr StepRNGByXY
+@FrameAdjust2:
+		lda #$00
+		sta PowerUps
 		lda CategorySelect
 		asl
 		tax
@@ -179,29 +105,14 @@ NoPowerUpFrames:
 		tay
 		lda CategoryOffsets+1,x
 		tax
-MoreCategoryFrames:
-		cpy #$00
-		bne DoCategoryAdvance
-		cpx #$00
-		beq NoCategoryFrames
-		dex
-DoCategoryAdvance:
-		jsr AdvanceRandom
-		dey
-		jmp MoreCategoryFrames
+		jsr StepRNGByXY
 NoCategoryFrames:
-    	ldx #0
-		stx CategorySelect
-		;
-		; Set the correct framecounter
-		;
-		ldy #$0e
+    	lda #$00
+		sta CategorySelect
+.ifdef ORG									; Set the correct framecounter
 		ldx #$a2
-.ifndef ORG
-		dex
-		dex
-		dey
-		dey
+.else
+		ldx #$a0
 .endif
 @is_org:
 		lda LevelNumber
@@ -209,10 +120,91 @@ NoCategoryFrames:
 		inx
 SaveFrameCounter:
 		stx FrameCounter
-		;
-		; On the correct framerule, continue with the game.
-		;
+		rts 								; On the correct framerule, continue with the game.
+	
+; ================================================================
+
+; ================================================================
+;  Advance RNG by Y framerules
+; ----------------------------------------------------------------
+FRStepRNGByY:
+		jsr FRStepRNG
+		dey
+		bne FRStepRNGByY
 		rts
+; ================================================================
+
+; ================================================================
+;  Advance RNG by XY frames
+; ----------------------------------------------------------------
+StepRNGByXY:
+	cpx #$00
+	bne @StepRNG
+	cpy #$00
+	beq @exit
+@StepRNG:
+    jsr SingleStepRNG
+    dey
+	cpy #$ff
+    bne StepRNGByXY
+	dex
+	bpl StepRNGByXY
+@exit:
+    rts
+; ================================================================
+
+; ================================================================
+;  Advance RNG by 21 frames
+; ----------------------------------------------------------------
+FRStepRNG:
+    jsr SingleStepRNG
+    jsr SingleStepRNG
+    jsr SingleStepRNG
+    jsr SingleStepRNG
+    jsr SingleStepRNG
+    jsr SingleStepRNG
+    jsr SingleStepRNG
+    jsr SingleStepRNG
+    jsr SingleStepRNG
+    jsr SingleStepRNG
+    jsr SingleStepRNG
+    jsr SingleStepRNG
+    jsr SingleStepRNG
+    jsr SingleStepRNG
+    jsr SingleStepRNG
+    jsr SingleStepRNG
+    jsr SingleStepRNG
+    jsr SingleStepRNG
+    jsr SingleStepRNG
+    jsr SingleStepRNG
+    jmp SingleStepRNG
+; ================================================================
+
+; ================================================================
+;  Advance RNG by a single game frame
+; ----------------------------------------------------------------
+SingleStepRNG:
+    pha
+    lda PseudoRandomBitReg         ; get first memory location of LSFR bytes
+    and #%00000010                 ; mask out all but d1
+    sta $00                        ; save here
+    lda PseudoRandomBitReg+1       ; get second memory location
+    and #%00000010                 ; mask out all but d1
+    eor $00                        ; perform exclusive-OR on d1 from first and second bytes
+    clc                            ; if neither or both are set, carry will be clear
+    beq RotPRandomBit
+    sec                            ; if one or the other is set, carry will be set
+RotPRandomBit:
+    ror PseudoRandomBitReg+0       ; rotate carry into d7, and rotate last bit into carry
+    ror PseudoRandomBitReg+1       ; rotate carry into d7, and rotate last bit into carry
+    ror PseudoRandomBitReg+2       ; rotate carry into d7, and rotate last bit into carry
+    ror PseudoRandomBitReg+3       ; rotate carry into d7, and rotate last bit into carry
+    ror PseudoRandomBitReg+4       ; rotate carry into d7, and rotate last bit into carry
+    ror PseudoRandomBitReg+5       ; rotate carry into d7, and rotate last bit into carry
+    ror PseudoRandomBitReg+6       ; rotate carry into d7, and rotate last bit into carry
+    pla
+    rts
+; ================================================================
 
 ;we take a snapshot of the RNG every 512 frames from the start of the loop
 ;to limit the number of RNG iterations required for calculation to 511
@@ -350,7 +342,7 @@ SetRNGFromNumber:
 	cpx #$00
 	beq @rng_advance_done
 @advance_rng:
-	jsr AdvanceRandom
+	jsr SingleStepRNG
 	dex
 	cpx #$ff
 	bne @advance_rng_loop
@@ -2083,26 +2075,6 @@ FactoryResetWRAM:
 		jmp SetDefaultWRAM
 @exit:
 		jmp ReturnBank
-
-AdvanceRandom:
-		lda PseudoRandomBitReg    ;get first memory location of LSFR bytes
-		and #%00000010            ;mask out all but d1
-		sta $00                   ;save here
-		lda PseudoRandomBitReg+1  ;get second memory location
-		and #%00000010            ;mask out all but d1
-		eor $00                   ;perform exclusive-OR on d1 from first and second bytes
-		clc                       ;if neither or both are set, carry will be clear
-		beq RotPRandomBit
-		sec                       ;if one or the other is set, carry will be set
-RotPRandomBit:
-		ror PseudoRandomBitReg+0  ;rotate carry into d7, and rotate last bit into carry
-		ror PseudoRandomBitReg+1  ;rotate carry into d7, and rotate last bit into carry
-		ror PseudoRandomBitReg+2  ;rotate carry into d7, and rotate last bit into carry
-		ror PseudoRandomBitReg+3  ;rotate carry into d7, and rotate last bit into carry
-		ror PseudoRandomBitReg+4  ;rotate carry into d7, and rotate last bit into carry
-		ror PseudoRandomBitReg+5  ;rotate carry into d7, and rotate last bit into carry
-		ror PseudoRandomBitReg+6  ;rotate carry into d7, and rotate last bit into carry
-		rts
 
 MulByTen:
 		asl

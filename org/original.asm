@@ -128,25 +128,25 @@ SkipExpTimer:  dex                       ;move onto next timer
                bpl DecTimersLoop         ;do this until all timers are dealt with
                jsr Enter_UpdateFrameRule
 NoDecTimers:   inc FrameCounter          ;increment frame counter
-				lda PseudoRandomBitReg    ;get first memory location of LSFR bytes
-				and #%00000010            ;mask out all but d1
-				sta $00                   ;save here
-				lda PseudoRandomBitReg+1  ;get second memory location
-				and #%00000010            ;mask out all but d1
-				eor $00                   ;perform exclusive-OR on d1 from first and second bytes
-				clc                       ;if neither or both are set, carry will be clear
-				beq RotPRandomBit
-				sec                       ;if one or the other is set, carry will be set
-			RotPRandomBit:
-				ror PseudoRandomBitReg+0  ;rotate carry into d7, and rotate last bit into carry
-				ror PseudoRandomBitReg+1  ;rotate carry into d7, and rotate last bit into carry
-				ror PseudoRandomBitReg+2  ;rotate carry into d7, and rotate last bit into carry
-				ror PseudoRandomBitReg+3  ;rotate carry into d7, and rotate last bit into carry
-				ror PseudoRandomBitReg+4  ;rotate carry into d7, and rotate last bit into carry
-				ror PseudoRandomBitReg+5  ;rotate carry into d7, and rotate last bit into carry
-				ror PseudoRandomBitReg+6  ;rotate carry into d7, and rotate last bit into carry
-PauseSkip:
-               lda GamePauseStatus
+               ldx #$00
+               ldy #$07
+               lda PseudoRandomBitReg    ;get first memory location of LSFR bytes
+               and #%00000010            ;mask out all but d1
+               sta $00                   ;save here
+               lda PseudoRandomBitReg+1  ;get second memory location
+               and #%00000010            ;mask out all but d1
+               eor $00                   ;perform exclusive-OR on d1 from first and second bytes
+               clc                       ;if neither or both are set, carry will be clear
+               beq RotPRandomBit
+               sec                       ;if one or the other is set, carry will be set
+RotPRandomBit: ror PseudoRandomBitReg,x  ;rotate carry into d7, and rotate last bit into carry
+               inx                       ;increment to next byte
+               dey                       ;decrement for loop
+               bne RotPRandomBit
+               lda WRAM_AdvRNG           ;only run this if advanced RNG is enabled
+               beq PauseSkip
+               jsr Enter_UpdateRNGNumber
+PauseSkip:     lda GamePauseStatus
                and #$02
                bne SkipSprite0
                lda Sprite0HitDetectFlag  ;check for flag here
@@ -4538,26 +4538,27 @@ HandlePipeEntry:
 GetWNum: ldy WarpZoneNumbers,x     ;get warp zone numbers
          dey                       ;decrement for use as world number
          sty WorldNumber           ;store as world number and offset
+         lda #$00                  ;load first level of world by default
          cpy #$08                  ;are we going to the minus world?
          bne @getpointer           ;if not, get area pointer normally
          lda WRAM_MinusWorld       ;if we are, check which minus world we're going to
-         bne @storepointer         ;if NES minus world, change area pointer manually
+         beq @getpointer           ;if FDS minus world, get area pointer normally
+         lda #$03                  ;otherwise load fourth level of world
 @getpointer:
-		 jsr Enter_GetAreaPointer
-@storepointer:
-         sta AreaPointer           ;store area offset here to be used to change areas
-         sta WRAM_LevelAreaPointer
-		 PF_SetToLevelEnd_A
+         sta AreaNumber            ;initialize area number used for area address offset
+         sta LevelNumber           ;initialize level number used for world display
+         jsr Enter_GetAreaPointer
+         sty AreaPointer           ;store area offset here to be used to change areas
+         sty WRAM_LevelAreaPointer
+         PF_SetToLevelEnd_A
          lda #Silence
          sta EventMusicQueue       ;silence music
          lda #$00
          sta EntrancePage          ;initialize starting page number
-         sta AreaNumber            ;initialize area number used for area address offset
-         sta LevelNumber           ;initialize level number used for world display
          sta AltEntranceControl    ;initialize mode of entry
          inc Hidden1UpFlag         ;set flag for hidden 1-up blocks
          inc FetchNewGameTimerFlag ;set flag to load new game timer
-		 inc WRAM_FetchNewGameTimerFlag
+         inc WRAM_FetchNewGameTimerFlag
 ExPipeE: rts                       ;leave!!!
 
 ;-------------------------------------------------------------------------------------
@@ -13213,6 +13214,11 @@ NoHammer: ldx ObjectOffset         ;get original enemy object offset
 		lda #BANK_COMMON
 		jsr SetBankFromA
 		jmp UpdateFrameRule
+
+      Enter_UpdateRNGNumber:
+		lda #BANK_COMMON
+		jsr SetBankFromA
+		jmp UpdateRNGNumber
 
 	Enter_WritePracticeTop:
 		lda #BANK_COMMON

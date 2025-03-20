@@ -32,8 +32,8 @@ FindAreaPointer:
       rts
 
 GetAreaPointer:
-     ldx WorldAddrOffsets,y    ;get offset to where this world's area offsets are
-     lda AreaAddrOffsets,x     ;get area offset based on world offset
+     jsr FindAreaPointer     ;call normal function for minus world workaround
+     tay
      rts
 	 
 GetAreaDataAddrs:
@@ -107,11 +107,11 @@ StoreFore:  sta ForegroundScenery    ;if less, save value here as foreground sce
             sta CloudTypeOverride    ;otherwise store value in other place
             lda #$00
 StoreStyle: sta AreaStyle
-			ldy #$00
+            ldy #$00
 ADataLoop:  lda (AreaData),y         ;store area data into region of RAM
             sta WRAM_LevelData,y
             iny                      ;increment Y for next byte
-			beq @exit_a
+            beq @exit_a
             cmp #$fd                 ;did we just store a $fd byte?
             bne ADataLoop            ;if not, we aren't done storing area data yet
 @exit_a:
@@ -123,7 +123,7 @@ ADataLoop:  lda (AreaData),y         ;store area data into region of RAM
 EDataLoop:  lda (EnemyData),y        ;store enemy data into region of RAM
             sta WRAM_EnemyData,y
             iny                      ;increment Y for next byte
-			beq @exit_e
+            beq @exit_e
             cmp #$ff                 ;did we just store a $ff byte?
             bne EDataLoop            ;if not, we aren't done storing enemy data yet
 @exit_e:
@@ -148,7 +148,7 @@ WorldAddrOffsets:
       .byte World3Areas-AreaAddrOffsets, World4Areas-AreaAddrOffsets
       .byte World5Areas-AreaAddrOffsets, World6Areas-AreaAddrOffsets
       .byte World7Areas-AreaAddrOffsets, World8Areas-AreaAddrOffsets
-	  .byte World9Areas-AreaAddrOffsets
+      .byte World9Areas-AreaAddrOffsets
 
 AreaAddrOffsets:
 World1Areas: .byte $25, $29, $c0, $26, $60
@@ -181,7 +181,7 @@ EnemyDataAddrLow:
       .byte <E_GroundArea13, <E_GroundArea14, <E_GroundArea15, <E_GroundArea16, <E_GroundArea17, <E_GroundArea18
       .byte <E_GroundArea19, <E_GroundArea20, <E_GroundArea21, <E_GroundArea22, <E_UndergroundArea1
       .byte <E_UndergroundArea2, <E_UndergroundArea3, <E_WaterArea1, <E_WaterArea2, <E_WaterArea3
-	  .byte $00, $00, $00, $00, $00, $00, <E_MWELevel1
+      .byte $00, $00, $00, $00, $00, $00, <E_MWELevel1
 
 EnemyDataAddrHigh:
       .byte >E_CastleArea1, >E_CastleArea2, >E_CastleArea3, >E_CastleArea4, >E_CastleArea5, >E_CastleArea6
@@ -190,7 +190,7 @@ EnemyDataAddrHigh:
       .byte >E_GroundArea13, >E_GroundArea14, >E_GroundArea15, >E_GroundArea16, >E_GroundArea17, >E_GroundArea18
       .byte >E_GroundArea19, >E_GroundArea20, >E_GroundArea21, >E_GroundArea22, >E_UndergroundArea1
       .byte >E_UndergroundArea2, >E_UndergroundArea3, >E_WaterArea1, >E_WaterArea2, >E_WaterArea3
-	  .byte $00, $00, $00, $00, $00, $00, >E_MWELevel1
+      .byte $00, $00, $00, $00, $00, $00, >E_MWELevel1
 
 AreaDataHOffsets:
       .byte $00, $03, $19, $1c

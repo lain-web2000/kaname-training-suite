@@ -206,6 +206,9 @@ RotateLFSR:
    inx                       ;then rotate the entire LFSR
    dey
    bne RotateLFSR
+   lda WRAM_AdvRNG           ;only run this if advanced RNG is enabled
+   beq PauseSkip
+   jsr Enter_UpdateRNGNumber
 PauseSkip:
    lda GamePauseStatus
    and #$02
@@ -15480,6 +15483,11 @@ SuperPlayerMsg:
 		lda #BANK_COMMON
 		jsr SetBankFromA
 		jmp UpdateFrameRule
+
+      Enter_UpdateRNGNumber:
+		lda #BANK_COMMON
+		jsr SetBankFromA
+		jmp UpdateRNGNumber
 
 	Enter_WritePracticeTop:
 		lda #BANK_COMMON

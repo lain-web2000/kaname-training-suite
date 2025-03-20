@@ -457,11 +457,20 @@ dont_update_cursor:
 		sbc #16
 		jmp @move_cursor
 @check_start:
-		cmp #Start_Button
-		bne exit_nmi
+		and #Start_Button
+		beq exit_nmi
 		ldx SEL_INDEX
 		cpx #1
 		beq @settings
+		lda SavedJoypadBits
+		cmp #Start_Button+A_Button
+		bne @normal_rules
+		lda #$01
+		bne @start_game
+@normal_rules:
+		lda #$00
+@start_game:
+		sta WRAM_AdvRNG
 		lda bank_table, x
 		jmp StartBank
 @settings:

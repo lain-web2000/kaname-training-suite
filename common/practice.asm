@@ -214,6 +214,155 @@ SaveFrameCounter:
 		;
 		rts
 
+;we take a snapshot of the RNG every 512 frames from the start of the loop
+;to limit the number of RNG iterations required for calculation to 511
+RNGByte0LookupTable:
+    .byte $33,$b5,$d1,$8c,$1b,$48,$a0,$99,$08,$36,$a7,$42,$fb,$63,$cf,$3b
+    .byte $83,$76,$ce,$e0,$2b,$6f,$a2,$8b,$40,$69,$a2,$d0,$0c,$6d,$b0,$c3
+    .byte $1f,$6c,$30,$27,$02,$12,$48,$5f,$05,$92,$f7,$0e,$7f,$f8,$9c,$1a
+    .byte $fe,$c7,$29,$7d,$ea,$d4,$45,$fb,$55,$de,$73,$95,$2c,$d9,$e1,$ab
+RNGByte1LookupTable:
+    .byte $0f,$80,$76,$87,$bf,$ae,$99,$2c,$82,$40,$96,$3e,$4a,$cd,$c4,$8d
+    .byte $c0,$e0,$b9,$f5,$63,$5d,$a1,$42,$a0,$2f,$cb,$29,$90,$65,$cf,$60
+    .byte $cf,$72,$dc,$f3,$38,$6e,$22,$6f,$5d,$17,$da,$a8,$0b,$ed,$0f,$92
+    .byte $65,$06,$5b,$33,$83,$2d,$fd,$38,$11,$81,$9b,$88,$c0,$f2,$aa,$74
+RNGByte2LookupTable:
+    .byte $69,$eb,$d4,$9e,$88,$3f,$d8,$1e,$93,$2c,$d9,$ba,$bc,$0a,$5b,$fa
+    .byte $c7,$0d,$24,$34,$35,$83,$e4,$54,$21,$fd,$8e,$89,$89,$bf,$ae,$e6
+    .byte $f0,$aa,$bd,$bc,$3c,$4a,$b2,$d1,$57,$33,$35,$b5,$f5,$1c,$37,$a7
+    .byte $99,$88,$09,$c9,$56,$85,$76,$ce,$bb,$3c,$7c,$a3,$99,$41,$69,$22
+RNGByte3LookupTable:
+    .byte $77,$ea,$39,$91,$f7,$63,$eb,$46,$96,$ac,$f4,$c7,$29,$90,$d3,$e1
+    .byte $46,$cd,$56,$de,$f3,$38,$a7,$d0,$61,$a2,$19,$da,$a8,$74,$31,$27
+    .byte $6f,$4f,$04,$5b,$4c,$96,$f7,$0e,$ed,$1d,$81,$e4,$e2,$c6,$29,$82
+    .byte $52,$85,$bf,$ae,$50,$de,$8c,$bf,$98,$3e,$4a,$b2,$18,$a5,$3d,$ca
+RNGByte4LookupTable:
+    .byte $a5,$3d,$91,$ac,$e6,$1d,$5a,$7a,$b1,$f5,$47,$b2,$51,$85,$64,$14
+    .byte $c8,$d6,$1e,$b7,$98,$3e,$6e,$79,$23,$59,$05,$c9,$bb,$0a,$6d,$eb
+    .byte $8f,$1b,$7e,$23,$34,$03,$92,$ac,$42,$7b,$ea,$8f,$09,$ff,$47,$cd
+    .byte $60,$94,$ac,$3d,$fc,$d5,$61,$22,$ef,$46,$b2,$f5,$2a,$26,$ef,$8f
+RNGByte5LookupTable:
+    .byte $4a,$e9,$e2,$8f,$09,$db,$8c,$f6,$9c,$ac,$af,$3d,$03,$a4,$c2,$d6
+    .byte $45,$4d,$b2,$0a,$7f,$4e,$20,$d9,$e1,$1d,$37,$7c,$ea,$e2,$0f,$a4
+    .byte $50,$85,$76,$95,$ac,$2f,$7d,$b1,$98,$41,$e9,$46,$cd,$72,$15,$c8
+    .byte $c4,$9f,$d3,$61,$5d,$68,$79,$5c,$de,$3a,$27,$90,$1a,$6c,$94,$1a
+RNGByte6LookupTable:
+    .byte $00,$92,$c1,$d6,$c5,$e0,$39,$03,$ff,$47,$20,$59,$a1,$af,$0b,$ff
+    .byte $d5,$e1,$8f,$64,$4f,$32,$fc,$2a,$a6,$af,$3d,$ee,$9d,$f7,$d5,$73
+    .byte $4e,$b2,$8a,$d2,$c5,$29,$59,$e8,$1d,$b7,$3c,$58,$de,$8c,$9b,$53
+    .byte $05,$b6,$8a,$1b,$a5,$c2,$bb,$18,$01,$b6,$43,$7b,$4e,$20,$4b,$04
+SetRNGFromNumber:
+	lda FrameruleNumber+2
+	ora FrameruleNumber+3
+	ora FrameruleNumber+4
+	ora FrameruleNumber+5
+	bne @do_normal_rng
+	sta PowerUps
+	rts
+@do_normal_rng:
+	;
+	; Regardless of rule, always honor powerups
+	;
+	ldy #0
+	ldx PowerUps
+	beq @no_power_ups
+	iny
+	dex
+	beq @power_ups
+	iny 
+	dex
+	beq @power_ups
+	ldx #1
+	ldy #2
+	;
+	; Big mario
+	;
+@power_ups:
+	stx PlayerSize
+	sty PlayerStatus
+@no_power_ups:
+	ldx #4
+@copy_rng_loop:
+	lda FrameruleNumber+1,x
+	sta DisplayDigits+RULE_COUNT_OFFSET-4, x
+	dex
+	bne @copy_rng_loop
+	lda #0
+	sta DisplayDigits+RULE_COUNT_OFFSET-5
+	;
+	; Advance to correct RNG
+	;
+	lda FrameruleNumber+5
+	sec
+	sbc #$01
+	and #$0f
+	sta FrameruleNumber+5
+	lda FrameruleNumber+4
+	sbc #$00
+	and #$0f
+	sta FrameruleNumber+4
+	lda FrameruleNumber+3
+	sbc #$00
+	and #$0f
+	sta FrameruleNumber+3
+	lda FrameruleNumber+2
+	sbc #$00
+	and #$0f
+	sta FrameruleNumber+2
+	asl
+	asl
+	asl
+	sta $00
+	lda FrameruleNumber+3
+	lsr
+	clc
+	adc $00
+	tax
+	lda RNGByte0LookupTable,x
+	sta PseudoRandomBitReg
+	lda RNGByte1LookupTable,x
+	sta PseudoRandomBitReg+1
+	lda RNGByte2LookupTable,x
+	sta PseudoRandomBitReg+2
+	lda RNGByte3LookupTable,x
+	sta PseudoRandomBitReg+3
+	lda RNGByte4LookupTable,x
+	sta PseudoRandomBitReg+4
+	lda RNGByte5LookupTable,x
+	sta PseudoRandomBitReg+5
+	lda RNGByte6LookupTable,x
+	sta PseudoRandomBitReg+6
+	lda FrameruleNumber+3
+	lsr
+	lda #$00
+	rol
+	tay
+	lda FrameruleNumber+4
+	asl
+	asl
+	asl
+	asl
+	adc FrameruleNumber+5
+	tax
+@advance_rng_loop:
+	cpy #$00
+	bne @advance_rng
+	cpx #$00
+	beq @rng_advance_done
+@advance_rng:
+	jsr AdvanceRandom
+	dex
+	cpx #$ff
+	bne @advance_rng_loop
+	dey
+	bpl @advance_rng_loop
+@rng_advance_done:
+	stx FrameruleNumber+2
+	stx FrameruleNumber+3
+	stx FrameruleNumber+4
+	stx FrameruleNumber+5
+	rts
+
 TopText:
 	text_block $2044, "RULE * F*"
 	text_block $2051, " A   B  TIME"
@@ -352,6 +501,8 @@ RedrawFrameNumbers:
 		jmp ReturnBank
 
 UpdateFrameRule:
+		lda WRAM_AdvRNG
+		bne NotEvenFrameRule
 		lda #$14
 		cmp IntervalTimerControl
 		bne NotEvenFrameRule
@@ -362,6 +513,52 @@ UpdateFrameRule:
 		jsr DigitsMathRoutineN
 NotEvenFrameRule:
 		jmp ReturnBank
+
+;RNG enters a 32767-frame loop 39 iterations after seeding...we assign a
+;number from $0001 to $7fff for these 32767 combinations.
+;if the RNG number is $0000, we haven't entered the loop yet.
+StartofRNGLoop:
+    .byte $33,$0f,$69,$77,$a5,$4a,$00  ;RNG number $0001 (aka start of the loop)
+UpdateRNGNumber:
+    ldx #$06                    ;use X as counter to compare RNG bytes
+@check_rng_loop:
+    lda PseudoRandomBitReg,x    ;compare our current RNG against the start of the RNG loop
+    cmp StartofRNGLoop,x
+    bne @not_start              ;if any bytes don't match, branch ahead
+    dex
+    bpl @check_rng_loop         ;do this for all seven RNG bytes
+    lda #$00                    ;our RNG sequence DOES match, force RNG number to $0001
+    sta CurrentRule
+	sta CurrentRule+1
+	sta CurrentRule+2
+    lda #$01
+    sta CurrentRule+3
+    jmp ReturnBank
+@not_start:
+    lda CurrentRule             ;if we aren't at the start of the loop, check if the number
+    ora CurrentRule+1           ;is still at $0000 (we haven't done 39 iterations yet)
+	ora CurrentRule+2
+	ora CurrentRule+3
+    beq @exit                   ;if it is, do not modify the RNG number
+	ldx #3						;otherwise increment
+	lda #$01
+@update_rng_loop:
+	clc
+	adc CurrentRule,x
+	cmp #$10
+	bcc @store_digit
+	lda #$00
+	sta CurrentRule,x
+	lda #$01
+	bne @rng_loop_condition
+@store_digit:
+	sta CurrentRule,x
+	lda #$00
+@rng_loop_condition:
+	dex
+	bpl @update_rng_loop
+@exit:
+    jmp ReturnBank
 
 PrintableWorldNumber:
 		lda WorldNumber
@@ -393,6 +590,11 @@ GetSelectedValue:
 		lda #$19
 		rts
 @get_slots:
+		lda WRAM_AdvRNG
+		beq @selected_slot
+		lda #$0A ; A
+		rts
+@selected_slot:
 		lda WRAM_SelectedSlot
 		clc
 		adc #$01
@@ -490,23 +692,18 @@ draw_menu:
 RuleCursorData:
 	.byte $23
 .ifdef ORG
-	.byte $0f
+	.byte $10
 .else
-	.byte $11
+	.byte $12
 .endif
-	.byte $06, $24, $24, $24, $24, $24
-.ifndef LOST
-	.byte $24
-.else
-	.byte $be
-.endif
+	.byte $04, $24, $24, $24, $24
 	.byte $00
 
 DrawRuleCursor:
-		ldy #9
+		ldy #7
 		lda VRAM_Buffer1_Offset
 		clc
-		adc #9
+		adc #7
 		sta VRAM_Buffer1_Offset
 		tax
 WriteRuleCursor:
@@ -517,7 +714,7 @@ WriteRuleCursor:
 		bpl WriteRuleCursor
 		lda VRAM_Buffer1_Offset
 		sec
-		sbc #5
+		sbc #4
 		adc RuleIndex
 		tax
 		dex
@@ -558,6 +755,10 @@ FirstFour:
 		sta VRAM_Buffer1+3-$0a,x
 		rts
 
+RuleInputMaxBounds:
+	.byte 10 ;rule
+	.byte 8, 16 ;RNG
+
 rule_input:
 		ldx RuleIndex
 		cmp #Left_Dir
@@ -589,6 +790,12 @@ rule_input:
 		lda #$01
 @update:
 		sta $00         ;store A in temp RAM
+		ldx WRAM_AdvRNG ;use X to determine rule or RNG mode
+		beq @get_bcd_nybble
+		lda RuleIndex
+		beq @get_bcd_nybble
+		inx             ;increment X if not first digit of RNG
+@get_bcd_nybble:
 		lda RuleIndex   ;divide rule index by 2
 		lsr
 		tay
@@ -600,12 +807,15 @@ rule_input:
 		clc
 		adc $00         ;add to A to obtain proper value
 		bmi @negative
-		cmp #10
+		cmp RuleInputMaxBounds,x
 		bmi @save_digit
 		lda #0
 		jmp @save_digit
 @negative:
-		lda #9
+		lda RuleInputMaxBounds,x
+		sec
+		sbc #$01
+		bne @save_digit
 @save_digit:
 		sta $00         ;store in temp RAM for later
 		lda RuleIndex   ;divide rule index by 2
@@ -780,10 +990,10 @@ next_task:
 		jmp ReturnBank
 
 RuleSlotPointers_Low:
-	.byte <WRAM_RuleSlot1, <WRAM_RuleSlot2, <WRAM_RuleSlot3, <WRAM_RuleSlot4, <WRAM_RuleSlot5
+	.byte <WRAM_RuleSlot1, <WRAM_RuleSlot2, <WRAM_RuleSlot3, <WRAM_RuleSlot4, <WRAM_RuleSlot5, <WRAM_AdvRNGSlot
 
 RuleSlotPointers_Hi:
-	.byte >WRAM_RuleSlot1, >WRAM_RuleSlot2, >WRAM_RuleSlot3, >WRAM_RuleSlot4, >WRAM_RuleSlot5
+	.byte >WRAM_RuleSlot1, >WRAM_RuleSlot2, >WRAM_RuleSlot3, >WRAM_RuleSlot4, >WRAM_RuleSlot5, >WRAM_AdvRNGSlot
 	
 WriteRulePointer:
 		lda WorldNumber
@@ -802,7 +1012,13 @@ WriteRulePointer:
 		asl ; *=2
 		clc
 		adc $04
+		ldx WRAM_AdvRNG
+		beq @framerules
+		ldx #5
+		bne @store_pointer
+@framerules:
 		ldx WRAM_SelectedSlot
+@store_pointer:
 		clc
 		adc RuleSlotPointers_Low,x
 		sta $04
@@ -1641,7 +1857,13 @@ ProcessLevelLoad:
 		sta WRAM_LoadedLevel
 		lda WorldNumber
 		sta WRAM_LoadedWorld
+		lda WRAM_AdvRNG
+		beq @advance_framerule
+		jsr SetRNGFromNumber
+		jmp @continue
+@advance_framerule:
 		jsr AdvanceToRule
+@continue:
 		lda OperMode
 		beq @done
 		lda WRAM_PracticeFlags

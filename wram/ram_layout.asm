@@ -11,6 +11,8 @@ WRAM_PracticeFlags:
 	.byte $00
 WRAM_SelectedSlot:
 	.byte $00
+WRAM_AdvRNG:
+	.byte $00
 
 WRAM_MinusWorld:
 	.byte $00

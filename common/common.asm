@@ -48,6 +48,7 @@ NonMaskableInterrupt: ; Dummy
 	.export RedrawAll
 	.export HideRemainingFrames
 	.export UpdateFrameRule
+	.export UpdateRNGNumber
 	.export WritePracticeTop
 	.export RedrawFrameNumbers
 	.export RedrawSockTimer

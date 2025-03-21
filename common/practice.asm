@@ -34,11 +34,19 @@ PlayerSizeState:
 ; ----------------------------------------------------------------
 AdvanceToRule:
 prac_quick_resume:
-		lda FrameruleNumber+2        ; get hundreds and thousands digits of bcd framerule value
+		ldx PowerUps                         ; apply queued power-ups first
+		beq @CheckQueuedRule
+		lda PlayerStatusState,x
+		sta PlayerStatus
+		lda PlayerSizeState,x
+		sta PlayerSize
+@CheckQueuedRule:
+		lda FrameruleNumber+2                ; get hundreds and thousands digits of bcd framerule value
 		ora FrameruleNumber+3
 		ora FrameruleNumber+4
 		ora FrameruleNumber+5
 		bne RNGQuickResume
+		sta PowerUps                         ; clear power-ups queue 
 		rts
 RNGQuickResume:
 		ldx #$03
@@ -78,13 +86,7 @@ RNGQuickResume:
 		sta FrameruleNumber+3
 		sta FrameruleNumber+4
 		sta FrameruleNumber+5
-@SetPowerups:
-		ldx PowerUps
-		lda PlayerStatusState,x
-		sta PlayerStatus
-		lda PlayerSizeState,x
-		sta PlayerSize
-		txa
+		lda PowerUps
 		beq @FrameAdjust2
 		asl
 		tax
@@ -95,7 +97,7 @@ RNGQuickResume:
 		jsr StepRNGByXY
 @FrameAdjust2:
 		lda #$00
-		sta PowerUps
+		sta PowerUps                         ; clear power-ups queue 
 		lda CategorySelect
 		asl
 		tax
@@ -107,17 +109,6 @@ RNGQuickResume:
 NoCategoryFrames:
     	lda #$00
 		sta CategorySelect
-.ifdef ORG									; Set the correct framecounter
-		ldx #$a2
-.else
-		ldx #$a0
-.endif
-@is_org:
-		lda LevelNumber
-		bne SaveFrameCounter
-		inx
-SaveFrameCounter:
-		stx FrameCounter
 		rts 								; On the correct framerule, continue with the game.
 	
 ; ================================================================
@@ -243,6 +234,15 @@ RNGByte6LookupTable:
     .byte $05,$b6,$8a,$1b,$a5,$c2,$bb,$18,$01,$b6,$43,$7b,$4e,$20,$4b,$04
 
 SetRNGFromNumber:
+	ldx PowerUps                ;apply queued power-ups first
+	beq @CheckQueuedRNG
+	lda PlayerStatusState,x
+	sta PlayerStatus
+	lda PlayerSizeState,x
+	sta PlayerSize
+	lda #$00                    ;clear power-ups queue
+	sta PowerUps
+@CheckQueuedRNG:
 	lda FrameruleNumber+2       ;RNG number queued?
 	ora FrameruleNumber+3
 	ora FrameruleNumber+4
@@ -250,11 +250,6 @@ SetRNGFromNumber:
 	bne @do_normal_rng          ;yes, load appropiate RNG state
 	rts                         ;otherwise, just leave
 @do_normal_rng:
-	ldx PowerUps                ;fetch appropiate power-up state
-	lda PlayerStatusState,x
-	sta PlayerStatus
-	lda PlayerSizeState,x
-	sta PlayerSize
 	ldx #$03                    ;copy queued RNG number to status bar display
 @copy_rng_number:
 	lda FrameruleNumber+2,x
@@ -323,7 +318,7 @@ WritePracticeTop:
 	inline_write_block TopText
 	jmp ReturnBank
 
-RedrawFramesRemaningInner:
+RedrawFramesRemainingInner:
 		lda WRAM_PracticeFlags
 		and #PF_DisablePracticeInfo
 		bne nodraw
@@ -374,14 +369,14 @@ HideRemainingFrames:
 		adc #7
 		sta VRAM_Buffer1_Offset
 		jmp ReturnBank
-		
-RedrawAllInner:
-		jsr RedrawFramesRemaningInner
-		jmp RedrawFrameNumbersInner
 
 RedrawAll:
-		jsr RedrawFramesRemaningInner
+		txa
+		pha
+		jsr RedrawFramesRemainingInner
 		jsr RedrawFrameNumbersInner
+		pla
+		tax
 		jmp ReturnBank
 		
 RedrawFrameNumbersInner:
@@ -453,7 +448,11 @@ RedrawFrameNumbersInner:
 		rts                                          ;
 
 RedrawFrameNumbers:
+		txa
+		pha
 		jsr RedrawFrameNumbersInner
+		pla
+		tax
 		jmp ReturnBank
 
 UpdateFrameRule:
@@ -951,6 +950,46 @@ next_task:
 		dex
 		dey
 		bpl @copy_rule
+		lda SavedRule
+		ora SavedRule+1
+		ora SavedRule+2
+		ora SavedRule+3
+		beq @keep_sock_timer
+		lda WRAM_AdvRNG
+		bne @selected_sock_timer
+.ifdef ORG
+		lda #$0e+5
+.elseif .defined(LOST)
+		lda #$0c+9
+.else
+		lda #$0b+10
+.endif
+		ldy LevelNumber
+		bne @store_sock_timer
+.ifdef ORG
+		lda #$0f+5
+.elseif .defined(LOST)
+		lda #$0d+9
+.else
+		lda #$0c+10
+.endif
+		bne @store_sock_timer
+@selected_sock_timer:
+		lda WRAM_EntrySockTimer
+		clc
+.ifdef ORG
+		adc #5
+.elseif .defined(LOST)
+		adc #9
+.else
+		adc #10
+.endif
+		cmp #21
+		bcc @store_sock_timer
+		sbc #21
+@store_sock_timer:
+    	sta IntervalTimerControl
+@keep_sock_timer:
 		inc OperMode_Task
 		jmp ReturnBank
 

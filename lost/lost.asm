@@ -9089,7 +9089,7 @@ GetPRCmp:  lda FrameCounter           ;get frame counter
            lda Enemy_X_Position,x
            cmp BowserOrigXPos         ;if bowser not at original horizontal position,
            bne GetDToO                ;branch to skip this part
-		   jsr Enter_RedrawFrameNumbers
+           jsr Enter_RedrawFrameNumbers
            lda PseudoRandomBitReg,x
            and #%00000011             ;get pseudorandom offset
            tay
@@ -14423,20 +14423,6 @@ GameMenuRoutine:
 .endif
     inc Hidden1UpFlag
     inc FetchNewGameTimerFlag
-    lda WRAM_AdvRNG
-    beq @not_running
-    lda WRAM_EntrySockTimer
-    clc
-.ifdef ANN
-    adc #10
-.else
-    adc #9
-.endif
-    cmp #21
-    bcc @store_sock_timer
-    sbc #21
-@store_sock_timer:
-    sta IntervalTimerControl
 @not_running:
     rts
 

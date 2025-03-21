@@ -315,16 +315,6 @@ RunTitleScreen:
     inc OperMode
     lda #$00
     sta OperMode_Task
-    lda WRAM_AdvRNG
-    beq @not_running
-    lda WRAM_EntrySockTimer
-    clc
-    adc #5
-    cmp #21
-    bcc @store_sock_timer
-    sbc #21
-@store_sock_timer:
-    sta IntervalTimerControl
 @not_running:
     rts
 
@@ -8066,7 +8056,7 @@ GetPRCmp:  lda FrameCounter           ;get frame counter
            lda Enemy_X_Position,x
            cmp BowserOrigXPos         ;if bowser not at original horizontal position,
            bne GetDToO                ;branch to skip this part
-		   jsr Enter_RedrawFrameNumbers
+           jsr Enter_RedrawFrameNumbers
            lda PseudoRandomBitReg,x
            and #%00000011             ;get pseudorandom offset
            tay

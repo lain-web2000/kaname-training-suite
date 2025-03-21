@@ -292,8 +292,8 @@ NoGoTime:
     jmp GameCoreRoutine
 
 RunTitleScreen:
-	jsr Enter_PracticeTitleMenu
-	lda OperMode_Task
+    jsr Enter_PracticeTitleMenu
+    lda OperMode_Task
     cmp #4
     bne NoGoTime
     ldx LevelNumber
@@ -311,10 +311,20 @@ RunTitleScreen:
     jsr Enter_LoadAreaPointer
     inc Hidden1UpFlag
     inc FetchNewGameTimerFlag
-	inc WRAM_FetchNewGameTimerFlag
+    inc WRAM_FetchNewGameTimerFlag
     inc OperMode
     lda #$00
     sta OperMode_Task
+    lda WRAM_AdvRNG
+    beq @not_running
+    lda WRAM_EntrySockTimer
+    clc
+    adc #5
+    cmp #21
+    bcc @store_sock_timer
+    sbc #21
+@store_sock_timer:
+    sta IntervalTimerControl
 @not_running:
     rts
 

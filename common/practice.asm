@@ -47,8 +47,6 @@ RNGQuickResume:
 		sta DisplayDigits+RULE_COUNT_OFFSET-3, x
 		dex
 		bpl @CopyRule
-;		lda #$00
-;		sta DisplayDigits+RULE_COUNT_OFFSET-5
 		lda FrameruleNumber+2        		 ; get hundreds and thousands digits of bcd framerule value
 		jsr MulByTen                     	 ;
 		adc FrameruleNumber+3        		 ;
@@ -243,64 +241,36 @@ RNGByte6LookupTable:
     .byte $d5,$e1,$8f,$64,$4f,$32,$fc,$2a,$a6,$af,$3d,$ee,$9d,$f7,$d5,$73
     .byte $4e,$b2,$8a,$d2,$c5,$29,$59,$e8,$1d,$b7,$3c,$58,$de,$8c,$9b,$53
     .byte $05,$b6,$8a,$1b,$a5,$c2,$bb,$18,$01,$b6,$43,$7b,$4e,$20,$4b,$04
+
 SetRNGFromNumber:
-	lda FrameruleNumber+2
+	lda FrameruleNumber+2       ;RNG number queued?
 	ora FrameruleNumber+3
 	ora FrameruleNumber+4
 	ora FrameruleNumber+5
-	bne @do_normal_rng
-	sta PowerUps
-	rts
+	bne @do_normal_rng          ;yes, load appropiate RNG state
+	rts                         ;otherwise, just leave
 @do_normal_rng:
-	;
-	; Regardless of rule, always honor powerups
-	;
-	ldy #0
-	ldx PowerUps
-	beq @no_power_ups
-	iny
+	ldx PowerUps                ;fetch appropiate power-up state
+	lda PlayerStatusState,x
+	sta PlayerStatus
+	lda PlayerSizeState,x
+	sta PlayerSize
+	ldx #$03                    ;copy queued RNG number to status bar display
+@copy_rng_number:
+	lda FrameruleNumber+2,x
+	sta DisplayDigits+RULE_COUNT_OFFSET-3, x
 	dex
-	beq @power_ups
-	iny 
-	dex
-	beq @power_ups
-	ldx #1
-	ldy #2
-	;
-	; Big mario
-	;
-@power_ups:
-	stx PlayerSize
-	sty PlayerStatus
-@no_power_ups:
-	ldx #4
-@copy_rng_loop:
-	lda FrameruleNumber+1,x
-	sta DisplayDigits+RULE_COUNT_OFFSET-4, x
-	dex
-	bne @copy_rng_loop
-	lda #0
-	sta DisplayDigits+RULE_COUNT_OFFSET-5
-	;
-	; Advance to correct RNG
-	;
-	lda FrameruleNumber+5
-	sec
-	sbc #$01
-	and #$0f
-	sta FrameruleNumber+5
-	lda FrameruleNumber+4
-	sbc #$00
-	and #$0f
-	sta FrameruleNumber+4
-	lda FrameruleNumber+3
-	sbc #$00
-	and #$0f
-	sta FrameruleNumber+3
-	lda FrameruleNumber+2
-	sbc #$00
-	and #$0f
-	sta FrameruleNumber+2
+	bpl @copy_rng_number
+	ldx #$03                    ;subtract one from RNG number for computation
+@borrow_the_one:
+	dec FrameruleNumber+2,x     ;decrement digit
+	bpl @done                   ;if within range, branch ahead
+	lda #$0f                    ;otherwise, we need to borrow the one
+	sta FrameruleNumber+2,x
+	dex                         ;decrement index and next digit
+	bpl @borrow_the_one
+@done:
+	lda FrameruleNumber+2       ;use d14-d9 of RNG number as offset into lookup table
 	asl
 	asl
 	asl
@@ -310,7 +280,7 @@ SetRNGFromNumber:
 	clc
 	adc $00
 	tax
-	lda RNGByte0LookupTable,x
+	lda RNGByte0LookupTable,x   ;save contents of lookup table entry as RNG
 	sta PseudoRandomBitReg
 	lda RNGByte1LookupTable,x
 	sta PseudoRandomBitReg+1
@@ -324,35 +294,21 @@ SetRNGFromNumber:
 	sta PseudoRandomBitReg+5
 	lda RNGByte6LookupTable,x
 	sta PseudoRandomBitReg+6
-	lda FrameruleNumber+3
-	lsr
-	lda #$00
-	rol
-	tay
+	lda FrameruleNumber+3       ;step RNG by d8-d0
+	and #$01
+	tax
 	lda FrameruleNumber+4
 	asl
 	asl
 	asl
 	asl
 	adc FrameruleNumber+5
-	tax
-@advance_rng_loop:
-	cpy #$00
-	bne @advance_rng
-	cpx #$00
-	beq @rng_advance_done
-@advance_rng:
-	jsr SingleStepRNG
-	dex
-	cpx #$ff
-	bne @advance_rng_loop
-	dey
-	bpl @advance_rng_loop
-@rng_advance_done:
-	stx FrameruleNumber+2
-	stx FrameruleNumber+3
-	stx FrameruleNumber+4
-	stx FrameruleNumber+5
+	tay
+	jsr StepRNGByXY
+	sty FrameruleNumber+2       ;clear RNG number queue
+	sty FrameruleNumber+3
+	sty FrameruleNumber+4
+	sty FrameruleNumber+5
 	rts
 
 TopText:
@@ -541,20 +497,13 @@ UpdateRNGNumber:
 	ora CurrentRule+3
     beq @exit                   ;if it is, do not modify the RNG number
 	ldx #3						;otherwise increment
-	lda #$01
 @update_rng_loop:
-	clc
-	adc CurrentRule,x
+	inc CurrentRule,x
+	lda CurrentRule,x
 	cmp #$10
-	bcc @store_digit
+	bcc @exit
 	lda #$00
 	sta CurrentRule,x
-	lda #$01
-	bne @rng_loop_condition
-@store_digit:
-	sta CurrentRule,x
-	lda #$00
-@rng_loop_condition:
 	dex
 	bpl @update_rng_loop
 @exit:
@@ -592,7 +541,7 @@ GetSelectedValue:
 @get_slots:
 		lda WRAM_AdvRNG
 		beq @selected_slot
-		lda #$0A ; A
+		lda WRAM_EntrySockTimer
 		rts
 @selected_slot:
 		lda WRAM_SelectedSlot
@@ -876,18 +825,34 @@ menu_input:
 @slot_number:
 		dex
 		bne @hero_selected
+		ldx WRAM_AdvRNG
+		bne @entry_sock_timer
 		lda WRAM_SelectedSlot
 		clc
 		adc $00
-		bpl @right
+		bpl @slot_right
 		lda #$04
-		bne @store
-@right:
+		bne @slot_store
+@slot_right:
 		cmp #$05
-		bcc @store
+		bcc @slot_store
 		lda #$00
-@store:
+@slot_store:
 		sta WRAM_SelectedSlot
+		rts
+@entry_sock_timer:
+		lda WRAM_EntrySockTimer
+		clc
+		adc $00
+		bpl @sock_right
+		lda #$14
+		bne @sock_store
+@sock_right:
+		cmp #$15
+		bcc @sock_store
+		lda #$00
+@sock_store:
+		sta WRAM_EntrySockTimer
 		rts
 @hero_selected:
 		lda WRAM_IsContraMode

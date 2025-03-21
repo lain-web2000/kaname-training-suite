@@ -14423,6 +14423,20 @@ GameMenuRoutine:
 .endif
     inc Hidden1UpFlag
     inc FetchNewGameTimerFlag
+    lda WRAM_AdvRNG
+    beq @not_running
+    lda WRAM_EntrySockTimer
+    clc
+.ifdef ANN
+    adc #10
+.else
+    adc #9
+.endif
+    cmp #21
+    bcc @store_sock_timer
+    sbc #21
+@store_sock_timer:
+    sta IntervalTimerControl
 @not_running:
     rts
 

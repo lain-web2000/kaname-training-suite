@@ -1,96 +1,74 @@
-# SMB & SMB2J Practice ROM
+# SMB Practice Hack
 
-A speedrun practice ROM for Super Mario Bros. and Super Mario Bros 2 - The Lost Levels.
+A speedrun practice ROM for Super Mario Bros., Super Mario Bros. 2 (FDS), and All Night Nippon Super Mario Bros.
 
-For feature requests or bug reports, please visit the [issue tracker](https://github.com/lain-web2000/pellsson-irq/issues).
+# Features
+## All Games
+- Custom status bar with additional information
+    - Framerule numbers.
+    - Frame counter display for key actions.
+    - Framerule remainder display at the end of levels.
+	- Sockfolder-style position display.
+	- Sockfolder-style entrance frame/room score display.
+	- Two user-defined addresses in internal RAM ($0000-$07FF).
 
-Looking to practice on PAL? [Try out threecreepio's independent PAL-conversion.](https://github.com/threecreepio/pallsson)
+- Practice menu with options, opened by pausing during gameplay
+    - Set power-up state and player size, with selections also applying to quick restart.
+	- Switch between Mario and Luigi.
+	- Toggle between showing the current framerule number and a Sockfolder-style position display.
+    - Set current coin count, primarily useful for practicing firework avoidance in SMB2 and ANNSMB.
+    - Enable or disable practice information. 
+    - Enable or disable the input display.
+    - Set the two user-defined addresses to desired internal RAM values.
+    - Grant invincibility to practice sections without risk of contact damage.
+    - Restart the level.
+    - Create a savestate.
+    - Load a savestate.
+    - Return to the in-game title screen.
+    - Return to the practice ROM title screen.
+	
+- Advanced features for those who want to experiment.
+    - This is accessed by holding the A button while pressing start on the practice ROM title screen.
+    - Ability to select one of the 32,767 possible RNG states during normal gameplay. This is useful for messing around with frame offsets and can be calculated at this page: https://web-2000.neocities.org/practicerom/rng
+    - Select where in the 21-frame cycle you would like to enter the level at, useful for practicing judges in 8-1 of SMB1 for example.
 
- **Please note this version of the Practice ROM uses the MMC5 mapper, this ROM will not work with certain flashcarts such as KrzysioCart, or on cheap clone consoles.**
+- Toggle pre-set frame offsets for specific categories by pressing the A button on the in-game title screen.
+    - SMB1: Both Quests
+    - SMB2: Both Endings and All Stages
+    - ANNSMB: All Stages
+- Infinite lives, so you never have to worry about getting a game over.
+- 5 selectable save slots for framerules.
+- Integrated [Inputlog by Threecreepio](https://github.com/threecreepio/nes-inputlog). This can be accessed by holding the A and B buttons while resetting. 
+
+## Super Mario Bros.:
+- Integrated Game Genie code support for select Category Extensions, which can be selected in the settings menu.
+    - AISSON
+    - STAGEO
+    - PIGOAP
+
+- Minus World (Disk) and Minus World (Cart) support integrated, which can also be toggled in settings.
+- Toggle between first and second quest by pressing the B button on the in-game title screen.
+
+## Super Mario Bros. 2 (FDS):
+- Toggle for Warpless game-states by pressing the B button on the in-game title screen. 
  
-## Major Version 6 (Current 6.0)
+This sets up wrong-warps for 8-1 and C-1, and allows you to enter 9-1 from 8-4. Dying in 9-1 will return you to the title screen, similarly to the original game.
 
-### New Features 
-- Lost Levels now uses IRQ handling rather than Sprite 0, meaning there will be less lag frames!
-- Every 100th framerule is no longer broken, all framerules are now functional.
-- FDS Minus World and NES Minus World added for those wanting to practice "Minus World Ending" and "Minus World NES". You can toggle between them in the settting menu.
-- Input Display added.
+## All Night Nippon Super Mario Bros.:
+- Toggle between first and second quest by pressing the B button on the in-game title screen.
 
-### Bug Fixes
-- 6.0 bug fixes
-	- Fixed stack overflow bug in Lost Levels.
-	- "100th Framerule" bug now fixed, thank you threecreepio.
-   	- Alternate sound vector restored for 8-4 and D-4 of Lost Levels, no more looping game over music.
-   	- Axe metatile bug is now fixed. You will no longer fall down if you grab the axe low.
-   	- Lost Levels codebase overhauled using Simplistic6502's MMC1 codebase, thank you Simplistic.
-- 5.6 bug fixes
-	- Fixed bug where loading state would cause a subsequent save if select was still held.
-	- Fixed sprite & WRAM corruption.
-	- Sanity check settings.
-- 5.5 bug fixes
-	- Fixed bug where early input to pause menu would overflow ppubuffer.
-	- Fixed bugs relating to running it on physical carts.
-	- Fixed bugs relating to save states.
-	- Updated faces to reflect new leader board.
-- 5.4 bug fixes
-	- When starting on a specific rule in Lost Levels the frame counter was set incorrectly, which could cause rule-deviations vs. vanilla.
-	- Use the coin-sprite for sprite0 (no more glitchy garbage under the coin).
-	- The Save-state is no longer invalidated as you power the machine on and off.
-- 5.3 bug fixes
-	- Disabled **B** in pause menu.
-	- Fixed a million bugs related to save states
-	- Fix rendering issue when showing RTA time @ 8-4s and D-4
-- 5.2 bugs fixes
-	- The 8-4s and D-4 records are tracked and shown @ Axe grab.
-	- Slowmotion doesn't crash arbitrarily (I think)
-	- Now possible to save while in slow motion mode.
-- 5.1 bugs fixes
-	- Support for physical hardware.
-	- Save states won't break PBs
-	- Slow motion in Original doesn't brick Top Loader.
-- Remove artifact in the statusbar where the bottom portion of certain letters would jitter with scrolling.
-- There is no longer a horribly ugly flicker when you save or load states (unless you load from a level with a different background color than the save state).
-- Fix "Restart Level" that would glitch Lost Levels in some scenarios.
-- Fix bug where only parts of the font-set was copied if using a custom one.
-- Lots of other smaller things...
+# Required checksums for BPS patches.
 
-## Persistence
+- Super Mario Bros.: `EA343F4E445A9050D4B4FBAC2C77D0693B1D0922`
+- Super Mario Bros. 2: `20E50128742162EE47561DB9E82B2836399C880C`
+- All Night Nippon Super Mario Bros.: `F30BDD3C556604D7EAA6D0F4864D5566E519B5D4`
 
-To keep settings, frame rules and stuff persistent; configure your game
-system (emulator, PowerPAK, EverDrive etc.) to allow the SMB Practice ROM
-battery-backed WRAM. Essentially, figure out how to make it so that you can
-save in Zelda (without savestates), power off the system, and load (without using save states). Then do the same for the SMB Practice ROM.
+# Credits
+- Developers: web2000, Simplistic6502
+- Original Developers: Threecreepio, pellsson
+- Sprites for Peach shamelessly stolen from [Super Mario Bros.: Peach Edition](https://www.romhacking.net/hacks/1229)
 
-## Feature list
-- Practice both **SMB** and **SMB Lost Levels**
-- **Start** the game from **any frame rule**
-- **Start** on **any level**.
-- Keeps **track of prefered start rule** for each level.
-- **Battery backed WRAM** for persistent memory.
-	- Level rules.
-	- One save state.
-	- Personal bests.
-	- Settings.
-- **Restart the level** from the **frame-rule** you entered.
-- Monitor **two user-defined RAM addresses**.
-- Built-in **save-states**.
-- Customizable **hotkeys**.
-- **In-game menu** with lots of stuff.
-- **Pause** completely **freezes** the game (does not advance frame rules).
-- **Advanced settings** menu in the loader.
-- **Real-time** counter for each level, and persistent records.
-- Start directly on the **Second Quest** in SMB1.
-- And a lot more...
-
-## Download & Installation
-
-First download the desired version below:
-
-- [Version 6.0 - BPS](https://github.com/lain-web2000/pellsson-irq/raw/master/pellsson-2000.bps)
-
-Then simply apply that BPS (using for instance Floating Lunar IPS) to the an original, unmodified version of the Super Mario Bros. (US/World) ROM. *DO NOT* use The Lost Levels. The MD5 checksum for the ROM you should be using is `811b027eaf99c2def7b933c5208636de`.
-
-Have fun!
-
-## Credits
-Sprites for peach shamelessly stolen from [Super Mario Bros.: Peach Edition](https://www.romhacking.net/hacks/1229)
+# Repositories Forked From
+- https://github.com/pellsson/smb
+- https://github.com/threecreepio/smb1-practiserom
+- https://github.com/threecreepio/nes-inputlog

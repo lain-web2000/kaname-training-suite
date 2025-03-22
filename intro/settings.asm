@@ -178,8 +178,8 @@ _draw_savedelay_opt:
 		draw_hexopt_at 11, 0
 
 .ifdef ORG
-	_char_fds: draw_simple_at 12, "FDS"
-	_char_nes: draw_simple_at 12, "NES"
+	_char_fds: draw_simple_at 12, "DISK"
+	_char_nes: draw_simple_at 12, "CART"
 
 	_draw_minusworld_opt:
 			lda WRAM_MinusWorld
@@ -339,7 +339,7 @@ _select_value:
 		jmp set_selection_sprites
 		
 _select_minusworld:
-		ldx #3
+		ldx #4
 @draw:
 		jmp set_selection_sprites
 

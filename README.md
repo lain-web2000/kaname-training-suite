@@ -57,7 +57,7 @@ This sets up wrong-warps for 8-1 and C-1, and allows you to enter 9-1 from 8-4. 
 ## All Night Nippon Super Mario Bros.:
 - Toggle between first and second quest by pressing the B button on the in-game title screen.
 
-# Improvments over Pellsson's practice ROM (v6.0 Prototype)
+# Improvements over Pellsson's practice ROM (v6.0 Prototype)
 - Every 100th framerule is no longer broken thanks to threecreepio's quick resume code.
 - Dying in the cartridge version of World -1 will not take you to the disk version.
 - User-defined addresses are hidden when "INFO" is set to "OFF".

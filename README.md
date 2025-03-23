@@ -57,6 +57,16 @@ This sets up wrong-warps for 8-1 and C-1, and allows you to enter 9-1 from 8-4. 
 ## All Night Nippon Super Mario Bros.:
 - Toggle between first and second quest by pressing the B button on the in-game title screen.
 
+# Improvments over Pellsson's practice ROM (v6.0 Prototype)
+- Every 100th framerule is no longer broken thanks to threecreepio's quick resume code.
+- Dying in the cartridge version of World -1 will not take you to the disk version.
+- User-defined addresses are hidden when "INFO" is set to "OFF".
+- Completely rebuilt SMB2 FDS to NES conversion by Simplistic6502 using doppelganger's disassembly, fixing issues such as the broken ending in 8-4 and D-4.
+- Added extra frame counter updates for specific instances, such as when Bowser starts moving.
+- Disabled frame numbers when collecting a coin or shattering a brick.
+- Remainders now display on the intermediate screen when starting from the title screen or exiting a warp zone.
+- Each game has its own ROM now using the MMC3 mapper to maximize compatibility.
+
 # Required checksums for BPS patches.
 
 - Super Mario Bros.: `EA343F4E445A9050D4B4FBAC2C77D0693B1D0922`

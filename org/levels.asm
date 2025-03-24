@@ -979,11 +979,11 @@ L_WaterArea3:
       .byte $49, $0f
       .byte $1e, $01, $39, $73, $5e, $07, $ae, $0b, $1e, $82
 .ifndef PAL
-      .byte $6e, $88, $9e, $02, $0d, $04, $2e, $0b, $45, $09
+      .byte $6e, $88, $9e, $02, $0d, $04, $2e, $0b, $45, $09, $4e, $0f
 .else
-	  .byte $6e, $88, $9e, $02, $0d, $04, $2e, $0b, $3e, $0f ;PAL bugfix: Close 1-tile gap above exit pipe
+	  .byte $6e, $88, $9e, $02, $0d, $04, $2e, $0b, $3e, $0f, $45, $09 ;PAL bugfix: Close 1-tile gap above exit pipe
 .endif
-      .byte $4e, $0f, $ed, $47
+      .byte $ed, $47
       .byte $fd
 ;-------------------------------------------------------------------------------------
 

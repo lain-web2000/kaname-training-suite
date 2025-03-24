@@ -1,6 +1,6 @@
 # SMB Practice Hack
 
-A speedrun practice ROM for Super Mario Bros., Super Mario Bros. 2 (FDS), and All Night Nippon Super Mario Bros.
+A speedrun practice ROM for Super Mario Bros. (NTSC and PAL), Super Mario Bros. 2 (FDS), and All Night Nippon Super Mario Bros.
 
 # Features
 ## All Games

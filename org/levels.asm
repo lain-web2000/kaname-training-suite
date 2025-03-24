@@ -387,7 +387,11 @@ E_GroundArea18:
 
 ;level 8-2
 E_GroundArea19:
+.ifndef PAL
       .byte $29, $8e, $52, $11, $83, $0e, $0f, $03, $9b, $0e
+.else
+	  .byte $19, $8e, $52, $11, $93, $0e, $0f, $03, $9b, $0e ;PAL diff: Koopa Paratroopas in slightly different positions
+.endif
       .byte $2b, $8e, $5b, $0e, $cb, $8e, $fb, $0e, $fb, $82
       .byte $9b, $82, $bb, $02, $fe, $42, $e8, $bb, $8e, $0f, $0a
       .byte $ab, $0e, $cb, $0e, $f9, $0e, $88, $86, $a6, $06
@@ -942,7 +946,11 @@ L_WaterArea1:
       .byte $0d, $c9, $1e, $01, $6c, $01, $62, $35, $63, $53
       .byte $8a, $41, $ac, $01, $b3, $53, $e9, $51, $26, $c3
       .byte $27, $33, $63, $43, $64, $33, $ba, $60, $c9, $61
+.ifndef PAL
       .byte $ce, $0b, $e5, $09, $ee, $0f, $7d, $ca, $7d, $47
+.else
+	  .byte $ce, $0b, $de, $0f, $e5, $09, $7d, $ca, $7d, $47 ;PAL bugfix: Close 1-tile gap above exit pipe
+.endif
       .byte $fd
 
 ;level 2-2/7-2
@@ -959,14 +967,22 @@ L_WaterArea2:
       .byte $c3, $67, $d3, $31, $dc, $06, $f7, $42, $fa, $42
       .byte $23, $b1, $43, $67, $c3, $34, $c7, $34, $d1, $51
       .byte $43, $b3, $47, $33, $9a, $30, $a9, $61, $b8, $62
+.ifndef PAL
       .byte $be, $0b, $d5, $09, $de, $0f, $0d, $ca, $7d, $47
+.else
+	  .byte $be, $0b, $ce, $0f, $d5, $09, $0d, $ca, $7d, $47 ;PAL bugfix: Close 1-tile gap above exit pipe
+.endif
       .byte $fd
 
 ;water area used in level 8-4
 L_WaterArea3:
       .byte $49, $0f
       .byte $1e, $01, $39, $73, $5e, $07, $ae, $0b, $1e, $82
+.ifndef PAL
       .byte $6e, $88, $9e, $02, $0d, $04, $2e, $0b, $45, $09
+.else
+	  .byte $6e, $88, $9e, $02, $0d, $04, $2e, $0b, $3e, $0f ;PAL bugfix: Close 1-tile gap above exit pipe
+.endif
       .byte $4e, $0f, $ed, $47
       .byte $fd
 ;-------------------------------------------------------------------------------------

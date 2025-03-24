@@ -532,6 +532,9 @@ PauseModeFlag         = $07c6
 GroundMusicHeaderOfs  = $07c7
 AltRegContentFlag     = $07ca
 
+NameTableSelect       = $077a
+IRQAckFlag            = $077b
+
 ;-------------------------------------------------------------------------------------
 ;CONSTANTS
 

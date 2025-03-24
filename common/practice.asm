@@ -1265,9 +1265,19 @@ begin_save:
 		lda IRQUpdateFlag
 		sta WRAM_IRQUpdateFlag
 .endif
+
+.ifdef PAL
+		lda Sprite0HitDetectFlag
+		sta WRAM_IRQUpdateFlag
+.endif
+
 		lda #0
 .ifndef ORG 
 		sta IRQUpdateFlag
+.endif
+
+.ifdef PAL
+		sta Sprite0HitDetectFlag
 .endif
 		sta SND_MASTERCTRL_REG
 		rts
@@ -1288,6 +1298,10 @@ begin_load:
 		lda #$00
 .ifndef ORG
 		sta IRQUpdateFlag
+.endif
+
+.ifdef PAL
+		sta Sprite0HitDetectFlag
 .endif
 		sta SND_MASTERCTRL_REG
 @invalid_save:
@@ -1560,6 +1574,11 @@ LoadState:
 		lda WRAM_IRQUpdateFlag
 		sta IRQUpdateFlag
 .endif
+
+.ifdef PAL
+		lda WRAM_IRQUpdateFlag
+		sta Sprite0HitDetectFlag
+.endif
 		; Controllers will be read again this frame. Reset them (very buggy otherwise ;)).
 		sta SavedJoypad1Bits
 		sta JoypadBitMask
@@ -1667,6 +1686,11 @@ SaveState:
 .ifndef ORG
 		lda WRAM_IRQUpdateFlag
 		sta IRQUpdateFlag
+.endif
+
+.ifdef PAL
+		lda WRAM_IRQUpdateFlag
+		sta Sprite0HitDetectFlag
 .endif
 		rts
 

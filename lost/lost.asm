@@ -15694,7 +15694,7 @@ DelS: 	dey
 		bne DelS
 		lda Mirror_PPU_CTRL_REG1
 		and #$ef                 ;mask out sprite address high reg of ctrl reg mirror
-		ora $77a      			 ;mask in whatever's set here
+		ora NameTableSelect      ;mask in whatever's set here
 		sta Mirror_PPU_CTRL_REG1 ;update the register and its mirror
 		sta PPU_CTRL_REG1
 		lda #$00
@@ -15704,7 +15704,7 @@ DelS: 	dey
 		lda VerticalScroll       ;to achieve the split screen effect
 		sta PPU_SCROLL_REG
 		lda #$00
-		sta $77b           		 ;indicate IRQ was acknowledged
+		sta IRQAckFlag           ;indicate IRQ was acknowledged
 		pla
 		tay                      ;return regs, reenable IRQs and leave
 		pla

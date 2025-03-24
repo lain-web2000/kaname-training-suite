@@ -278,6 +278,11 @@ draw_prepared_row:
 .ifndef ORG
         lda NameTableSelect
 .endif
+
+.ifdef PAL
+        lda NameTableSelect
+.endif
+
 @okok:
 		and #3
 		beq @ntbase_selected

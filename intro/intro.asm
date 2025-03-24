@@ -134,7 +134,7 @@ dont_wipe_bank_selection:
 		jsr StartBank
 @No_InputLog:		
 		jsr enter_loader
-
+		
 		ldx #$00
 		stx PPU_SCROLL_REG ; No scrolling
 		stx PPU_SCROLL_REG
@@ -149,6 +149,81 @@ dont_wipe_bank_selection:
 hang:
 		jmp hang
 
+MenuPage1:
+m_start:
+	.byte "START"
+m_setting:
+	.byte "SETTINGS"
+MenuPage2:
+m_input:
+	.byte "INPUTLOG"
+m_blank:
+	.byte $24, $24, $24, $24, $24, $24, $24, $24
+	
+MenuLength:
+	.byte m_setting-m_start
+	.byte m_input-m_setting
+	.byte m_blank-m_input
+
+MenuOffset:
+	.byte m_start-m_start
+	.byte m_setting-m_start
+	.byte m_input-m_start
+	.byte m_blank-m_start
+
+draw_menu:
+		lda PPU_STATUS
+		;
+		; Copycopycopycopy
+		;
+		lda PPU_STATUS
+		lda #$22
+		sta PPU_ADDRESS
+		lda #$8C
+		sta PPU_ADDRESS
+
+		ldx CreditsIndex
+		ldy MenuLength, x
+		lda MenuOffset, x
+		tax
+@more:
+		lda m_start, x
+		sta PPU_DATA
+		inx
+		dey
+		bne @more
+		sty PPU_SCROLL_REG ; No scrolling
+		sty PPU_SCROLL_REG
+		ldx #$01
+		stx CreditsIndex
+draw_menu_2:
+		lda PPU_STATUS
+		;
+		; Copycopycopycopy
+		;
+		lda PPU_STATUS
+		lda #$22
+		sta PPU_ADDRESS
+		lda #$CC
+		sta PPU_ADDRESS
+
+		ldx CreditsIndex
+		ldy MenuLength, x
+		lda MenuOffset, x
+		tax
+@more:
+		lda m_start, x
+		sta PPU_DATA
+		inx
+		dey
+		bne @more
+		sty PPU_SCROLL_REG ; No scrolling
+		sty PPU_SCROLL_REG
+		ldx #$00
+@done:
+		stx CreditsIndex
+		rts
+		
 CreditsTextYadaYada:
 	.byte $20, $6a, "DEVELOPERS", $FF
 	.byte $20, $88, "--------------", $FF
@@ -288,6 +363,7 @@ enter_loader:
 		;
 		; Copy static sprite-data over
 		;
+		jsr draw_menu
 		ldx #$00
 copy_more_sprites:
 		lda static_sprite_data, x
@@ -496,13 +572,13 @@ move_stars_up: ; This code is literally lifted from the FDS BIOS (they used bwaa
 		lda #$04
 		sta $84
 		ldx #$d0
-bwaaa:
+:
 		dec $022c,x
 		dex
 		dex
 		dex
 		dex
-		bne bwaaa
+		bne :-
 gotorotate:
 		dec $84
 		ldy #$04
@@ -517,9 +593,9 @@ rotate_star_palette:
 		dex
 		dex
 		dex
-		bne bitch
+		bne :+
 		ldx #$d0
-bitch:
+:
 		stx $24
 		dey
 		bne rotate_star_palette
@@ -568,7 +644,7 @@ bank_table:
 .else
 		.byte BANK_ANN
 .endif
-
+		
 	.include "settings.asm"
 	.include "smlsound.asm"
 	.include "faxsound.asm"

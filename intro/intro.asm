@@ -622,7 +622,11 @@ palette_data:
 		.byte $0f, $01, $00, $01
 		.byte $0f, $02, $02, $0f 
 .ifdef ORG
+	.ifndef PAL
 		.byte $0f, $30, $25, $05
+	.else
+		.byte $0f, $21, $01, $0f
+	.endif
 .elseif .defined(LOST)
 		.byte $0f, $30, $21, $01
 .else

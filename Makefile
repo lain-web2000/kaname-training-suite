@@ -9,7 +9,7 @@ OBJECTS-O = $(OUT)/intro-o.o \
           $(OUT)/dummy-o.o \
           $(OUT)/ines.o
 		  
-OBJECTS-P = $(OUT)/intro-o.o \
+OBJECTS-P = $(OUT)/intro-p.o \
           $(OUT)/pal.o \
           $(OUT)/levels-p.o \
           $(OUT)/common-p.o \
@@ -63,6 +63,9 @@ $(OUT)/ines-p.o: $(INCS-2) common/ines.asm
 $(OUT)/intro-o.o: $(INCS-1) intro/intro.asm intro/faxsound.asm intro/intro.inc intro/smlsound.asm intro/nt.asm intro/settings.asm
 	$(AS) $(AFLAGS) -l $(OUT)/intro-o.map -D ORG=1 intro/intro.asm -o $@
 	
+$(OUT)/intro-p.o: $(INCS-1) intro/intro.asm intro/faxsound.asm intro/intro.inc intro/smlsound.asm intro/nt.asm intro/settings.asm
+	$(AS) $(AFLAGS) -l $(OUT)/intro-p.map -D ORG=1 -D PAL=1 intro/intro.asm -o $@
+	
 $(OUT)/original.o: $(INCS-1) org/original.asm
 	$(AS) $(AFLAGS) -l $(OUT)/original.map -D ORG=1 org/original.asm -o $@
 	
@@ -99,7 +102,7 @@ smb1.nes: $(OBJECTS-O)
 smb1-pal.nes: $(OBJECTS-P)
 	$(LD) -C scripts/smb1.cfg\
 		$(OUT)/ines-p.o\
-		$(OUT)/intro-o.o\
+		$(OUT)/intro-p.o\
 		$(OUT)/dummy-o.o \
 		$(OUT)/levels-p.o \
 		$(OUT)/pal.o \

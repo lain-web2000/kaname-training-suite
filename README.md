@@ -1,6 +1,6 @@
-# SMB Practice Hack
+# Kaname Training Suite 
 
-A speedrun practice ROM for Super Mario Bros. (NTSC and PAL), Super Mario Bros. 2 (FDS), and All Night Nippon Super Mario Bros.
+A collection of speedrun practice ROMs for Super Mario Bros. (NTSC and PAL), Super Mario Bros. 2 (FDS), and All Night Nippon Super Mario Bros.
 
 # Features
 ## All Games
@@ -82,3 +82,4 @@ This sets up wrong-warps for 8-1 and C-1, and allows you to enter 9-1 from 8-4. 
 - https://github.com/pellsson/smb
 - https://github.com/threecreepio/smb1-practiserom
 - https://github.com/threecreepio/nes-inputlog
+- https://github.com/MrWint/smb-dis

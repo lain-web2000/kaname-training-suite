@@ -342,6 +342,12 @@ screen_off:
 		lda #$00
 		sta MMC3_IRQDisable
 .endif
+
+.ifdef PAL
+		lda #$00
+		sta MMC3_IRQDisable
+.endif
+
 		lda MirrorPPUCTRL
 		and #$7F
 		sta PPU_CTRL_REG1 ; No NMI
@@ -625,12 +631,12 @@ palette_data:
 	.ifndef PAL
 		.byte $0f, $30, $25, $05
 	.else
-		.byte $0f, $21, $01, $0f
+		.byte $0f, $30, $27, $07
 	.endif
 .elseif .defined(LOST)
-		.byte $0f, $30, $21, $01
+		.byte $0f, $30, $2c, $0c
 .else
-		.byte $0f, $30, $2a, $0a
+		.byte $0f, $30, $26, $06
 .endif
 		.byte $0f, $10, $00, $16
 palette_star_shuffle:

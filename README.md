@@ -1,6 +1,10 @@
 # Kaname Training Suite 
 
+<<<<<<< Updated upstream
 A collection of speedrun practice ROMs for Super Mario Bros. (NTSC and PAL), Super Mario Bros. 2 (FDS), and All Night Nippon Super Mario Bros.
+=======
+A collection of speedrun practice ROMs for Super Mario Bros. (NTSC & PAL), Super Mario Bros. 2 (FDS), and All Night Nippon Super Mario Bros.
+>>>>>>> Stashed changes
 
 # Features
 ## All Games
@@ -52,7 +56,7 @@ A collection of speedrun practice ROMs for Super Mario Bros. (NTSC and PAL), Sup
 ## Super Mario Bros. 2 (FDS):
 - Toggle for Warpless game-states by pressing the B button on the in-game title screen. 
  
-This sets up wrong-warps for 8-1 and C-1, and allows you to enter 9-1 from 8-4. Dying in 9-1 will return you to the title screen, similarly to the original game.
+This sets up wrong-warps for Worlds 8-1 and C-1, and allows you to enter 9-1 from 8-4. Dying in 9-1 will return you to the title screen, similarly to the original game.
 
 ## All Night Nippon Super Mario Bros.:
 - Toggle between first and second quest by pressing the B button on the in-game title screen.
@@ -65,7 +69,7 @@ This sets up wrong-warps for 8-1 and C-1, and allows you to enter 9-1 from 8-4. 
 - Added extra frame counter updates for specific instances, such as when Bowser starts moving.
 - Disabled frame numbers when collecting a coin or shattering a brick.
 - Remainders now display on the intermediate screen when starting from the title screen or exiting a warp zone.
-- Each game has its own ROM now using the MMC3 mapper to maximize compatibility.
+- Each game has its own ROM now, and each ROM uses the MMC3 mapper to maximize compatibility.
 
 # Required checksums for BPS patches.
 

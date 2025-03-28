@@ -1,10 +1,6 @@
 # Kaname Training Suite 
 
-<<<<<<< Updated upstream
-A collection of speedrun practice ROMs for Super Mario Bros. (NTSC and PAL), Super Mario Bros. 2 (FDS), and All Night Nippon Super Mario Bros.
-=======
 A collection of speedrun practice ROMs for Super Mario Bros. (NTSC & PAL), Super Mario Bros. 2 (FDS), and All Night Nippon Super Mario Bros.
->>>>>>> Stashed changes
 
 # Features
 ## All Games

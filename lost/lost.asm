@@ -6717,12 +6717,17 @@ FindLoop: dey
           lda Player_State          ;check to see if the player is
           cmp #$00                  ;on solid ground (i.e. not jumping or falling)
           bne WrongChk              ;if not, player fails to pass loop, and loopback
-          lda #Sfx_CoinGrab			;play if player goes through correct path
           inc MultiLoopCorrectCntr  ;increment counter for correct progression
+          ldx #Sfx_CoinGrab			;play if player goes through correct path
 		  bne skipFailSound
-WrongChk: lda #Sfx_TimerTick		;play if player goes through incorrect path
+WrongChk: ldx #Sfx_TimerTick		;play if player goes through incorrect path
 skipFailSound:
-          sta Square2SoundQueue
+		  lda WRAM_PracticeFlags
+		  and #PF_DisablePracticeInfo
+		  bne NoSFX
+          stx Square2SoundQueue
+NoSFX:
+		  ldx ObjectOffset
 		  inc MultiLoopPassCntr     ;increment master multi-part counter
           lda MultiLoopPassCntr     ;have we done all parts?
           cmp MultiLoopCount,y

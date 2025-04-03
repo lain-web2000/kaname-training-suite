@@ -4939,8 +4939,12 @@ FindLoop: dey
           lda Player_State          ;check to see if the player is
           cmp #$00                  ;on solid ground (i.e. not jumping or falling)
           bne WrongChk              ;if not, player fails to pass loop, and loopback
+		  lda WRAM_PracticeFlags
+		  and #PF_DisablePracticeInfo
+		  bne SkipCoin
           lda #Sfx_CoinGrab
           sta Square2SoundQueue
+SkipCoin:
           lda WorldNumber           ;are we in world 7? (check performed on correct
           cmp #World7               ;vertical position and on solid ground)
           bne InitMLp               ;if not, initialize flags used there, otherwise
@@ -4953,9 +4957,12 @@ IncMLoop: inc MultiLoopPassCntr     ;increment master multi-part counter
           cmp #$03
           beq InitMLp               ;if so, branch past unnecessary check here
           bne DoLpBack              ;unconditional branch if previous branch fails
-WrongChk: lda #Sfx_TimerTick
+WrongChk: lda WRAM_PracticeFlags
+		  and #PF_DisablePracticeInfo
+		  bne SkipTick
+          lda #Sfx_TimerTick
           sta Square2SoundQueue
-          lda WorldNumber           ;are we in world 7? (check performed on
+SkipTick: lda WorldNumber           ;are we in world 7? (check performed on
           cmp #World7               ;incorrect vertical position or not on solid ground)
           beq IncMLoop
 DoLpBack: jsr ExecGameLoopback      ;if player is not in right place, loop back

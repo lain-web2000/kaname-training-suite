@@ -981,7 +981,11 @@ next_task:
 		lda WRAM_AdvRNG
 		bne @selected_sock_timer
 .ifdef ORG
+	.ifndef PAL
 		lda #$0e+5
+	.else
+		lda #$0b+5
+	.endif
 .elseif .defined(LOST)
 		lda #$0c+9
 .else
@@ -990,7 +994,11 @@ next_task:
 		ldy LevelNumber
 		bne @store_sock_timer
 .ifdef ORG
+	.ifndef PAL
 		lda #$0f+5
+	.else
+		lda #$0c+5
+	.endif
 .elseif .defined(LOST)
 		lda #$0d+9
 .else

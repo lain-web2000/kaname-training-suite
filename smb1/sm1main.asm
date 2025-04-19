@@ -16,6 +16,15 @@ Start:
              sta PPU_CTRL_REG1
              lda #0
              sta PPU_CTRL_REG2
+.ifdef PAL
+             bit $2002
+             lda #%00001010
+@CLK_IRQ:               				  ; clock MMC3 IRQ correctly (thank you TakuikaNinja)
+             sta PPU_ADDRESS
+             sta PPU_ADDRESS
+             asl a
+             bcc @CLK_IRQ
+.endif
              ldx #$ff                     ;reset stack pointer
              txs
 VBlank1:     lda PPU_STATUS               ;wait two frames
@@ -13846,13 +13855,6 @@ InitCHRBanks:
 		sta MMC3_IRQDisable
 		inx
 		stx BANK_SELECTED
-		bit $2002
-		lda #%00001010
-	@CLK_IRQ:						; clock MMC3 IRQ correctly (thank you TakuikaNinja)
-		sta PPU_ADDRESS
-		sta PPU_ADDRESS
-		asl a
-		bcc @CLK_IRQ
 		jsr SetBankFromA
 		jmp InitCHRBanks
 

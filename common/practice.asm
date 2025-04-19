@@ -1099,7 +1099,7 @@ toggle_second_quest:
 		lda #$0f ; Warpless color
 		ldy CompletedWorlds
 		bne @set_color
-		lda #$22 ; Lost color
+		lda #$22 ; SMB2 color
 		bne @set_color
 		rts
 .endif
@@ -1556,10 +1556,10 @@ LoadState:
 		inx
 		bne @copy_nt
 
-		ldx #(WRAM_LostEnd - WRAM_LostStart)-1
+		ldx #(WRAM_SM2End - WRAM_SM2Start)-1
 @copy_lost:
 		lda WRAM_SaveLost, x
-		sta WRAM_LostStart, x
+		sta WRAM_SM2Start, x
 		dex
 		bpl @copy_lost
 		lda GamePauseStatus
@@ -1667,9 +1667,9 @@ SaveState:
 		inx
 		bne @copy_nt
 
-		ldx #(WRAM_LostEnd - WRAM_LostStart)-1
+		ldx #(WRAM_SM2End - WRAM_SM2Start)-1
 @copy_lost:
-		lda WRAM_LostStart, x
+		lda WRAM_SM2Start, x
 		sta WRAM_SaveLost, x
 		dex
 		bpl @copy_lost

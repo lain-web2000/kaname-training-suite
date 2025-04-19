@@ -189,7 +189,7 @@ WRAM_Timer:
 ;
 ; Number of stars collected
 ;
-WRAM_LostStart:
+WRAM_SM2Start:
 	
 	GamesBeatenCount:
 		.byte $24
@@ -199,10 +199,10 @@ WRAM_LostStart:
 	LeavesYPosCopy:
 		.res $0c, $00
 	
-WRAM_LostEnd:
+WRAM_SM2End:
 
 WRAM_SaveLost:
-		.res WRAM_LostEnd - WRAM_LostStart, $00
+		.res WRAM_SM2End - WRAM_SM2Start, $00
 
 WRAM_SaveRAM:
 		.res $800, $00

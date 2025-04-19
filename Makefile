@@ -49,8 +49,8 @@ all: smb1.nes smb1-pal.nes smb2.nes annsmb.nes
 inc/wram.inc: wram/ram_layout.asm $(OUT)/ram_layout.map
 	python scripts/genram.py $(OUT)/ram_layout.map inc/wram.inc
 
-lost/wram-init.bin: wram/full.bin $(OUT)/ram_layout.map
-	python scripts/segram.py $(OUT)/ram_layout.map wram/full.bin WRAM_SM2Start WRAM_SM2End lost/wram-init.bin
+smb2/wram-init.bin: wram/full.bin $(OUT)/ram_layout.map
+	python scripts/segram.py $(OUT)/ram_layout.map wram/full.bin WRAM_SM2Start WRAM_SM2End smb2/wram-init.bin
 
 wram/full.bin $(OUT)/ram_layout.map: wram/ram_layout.asm
 	$(AS) $(AFLAGS) -l $(OUT)/ram_layout.map wram/ram_layout.asm -o build/ram_layout.o
@@ -119,7 +119,7 @@ $(OUT)/intro-l.o: $(INCS-2) intro/intro.asm intro/faxsound.asm intro/intro.inc i
 	$(AS) $(AFLAGS) -l $(OUT)/intro-l.map -D LOST=1 intro/intro.asm -o $@
 
 $(OUT)/sm2main.o: $(INCS-2) $(WRAM) smb2/sm2main.asm
-	$(AS) $(AFLAGS) -l $(OUT)/lost.map -D LOST=1 smb2/sm2main.asm -o $@
+	$(AS) $(AFLAGS) -l $(OUT)/sm2main.map -D LOST=1 smb2/sm2main.asm -o $@
 
 $(OUT)/smb2-levels.o: smb2/levels.asm
 	$(AS) $(AFLAGS) -l $(OUT)/smb2-levels.map -D LOST=1 smb2/levels.asm -o $@

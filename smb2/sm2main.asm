@@ -2137,7 +2137,10 @@ ShufAmtLoop: lda DefaultSprOffsets,x
              sta SprDataOffset,x
              dex                       ;do this until they're all set
              bpl ShufAmtLoop
-             jsr DoNothing
+			 lda WRAM_AdvRNG
+			 beq @no_advrng
+			 jsr Enter_RedrawFramerule
+@no_advrng:  jsr DoNothing
              inc IRQUpdateFlag
              inc OperMode_Task
              rts
@@ -2271,7 +2274,10 @@ ChkSwimE: ldy AreaType                ;if level not water-type,
 SetPESub: lda #$07                    ;set to run player entrance subroutine
           sta GameEngineSubroutine    ;on the next frame of game engine
 		  jsr Enter_RedrawFrameNumbers
-          rts
+		  lda WRAM_AdvRNG
+		  bne @no_rule
+		  jmp Enter_RedrawFramerule
+@no_rule: rts
 
 ;-------------------------------------------------------------------------------------
 
@@ -15516,6 +15522,11 @@ SuperPlayerMsg:
 		lda #BANK_COMMON
 		jsr SetBankFromA
 		jmp HideRemainingFrames
+		
+	Enter_RedrawFramerule:
+		lda #BANK_COMMON
+		jsr SetBankFromA
+		jmp RedrawFramerule
 		
 	Enter_RedrawFrameNumbers:
 		lda #BANK_COMMON

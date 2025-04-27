@@ -46,6 +46,7 @@ NonMaskableInterrupt: ; Dummy
 	.export LoadMarioPhysics
 	.export RedrawUserVars
 	.export RedrawAll
+	.export RedrawFramerule
 	.export HideRemainingFrames
 	.export UpdateFrameRule
 	.export UpdateRNGNumber

@@ -423,15 +423,38 @@ RedrawFrameNumbersInner:
 		sta VRAM_Buffer1+0,y                         ; and store it in vram
 
 		lda OperMode
-		beq @PrintRule ; force RULE if on title screen
+		beq RedrawFrameruleInner ; force RULE if on title screen
 		lda WRAM_PracticeFlags
 		and #PF_SockMode
 	.ifndef ORG
-		bne @dont_draw_rule
+		bne @dont_draw_frame
 	.else
-		beq @dont_draw_rule
+		beq @dont_draw_frame
 	.endif
-@PrintRule:
+@dont_draw_frame:
+		rts
+
+RedrawFramerule:
+		txa
+		pha
+		ldx #$03
+@Copy_Rule:
+		lda CurrentRule,x
+		sta WRAM_AreaFramerule,x
+		dex
+		bpl @Copy_Rule
+		lda WRAM_PracticeFlags
+		and #PF_SockMode
+		beq @exit
+		jsr RedrawFrameruleInner
+@exit:	pla
+		tax
+		jmp ReturnBank
+		
+RedrawFrameruleInner:
+		lda WRAM_PracticeFlags
+		and #PF_DisablePracticeInfo
+		bne @dont_draw_rule
 		lda VRAM_Buffer1_Offset                      ; get the current buffer offset
 		tay                                          ;
 		adc #(3+4)                                   ; shift over based on length of the framerule text
@@ -459,6 +482,37 @@ RedrawFrameNumbersInner:
 @dont_draw_rule:		
 		rts                                          ;
 
+RedrawFramerulePauseMenu:
+		lda WRAM_PracticeFlags
+		and #PF_DisablePracticeInfo
+		bne @dont_draw_rule
+		lda VRAM_Buffer1_Offset                      ; get the current buffer offset
+		tay                                          ;
+		adc #(3+4)                                   ; shift over based on length of the framerule text
+		sta VRAM_Buffer1_Offset                      ; store the ppu location of the framerule counter
+		lda #$20                                     ;
+		sta VRAM_Buffer1,y                           ;
+		lda #$64                                     ;
+		sta VRAM_Buffer1+1,y                         ;
+		lda #$04                                     ; store the number of digits to draw
+		sta VRAM_Buffer1+2,y                         ;
+		iny                                          ; increment past the ppu location
+		iny                                          ;
+		iny                                          ;
+		lda #0                                       ; place our null terminator
+		sta VRAM_Buffer1+4,y                         ;
+	@PrintRuleDataAtY:
+		lda WRAM_AreaFramerule+3          					 ; then copy the framerule numbers into the buffer
+		sta VRAM_Buffer1+3,y                         ;
+		lda WRAM_AreaFramerule+2          					 ;
+		sta VRAM_Buffer1+2,y                         ;
+		lda WRAM_AreaFramerule+1         					 ;
+		sta VRAM_Buffer1+1,y                         ;
+		lda WRAM_AreaFramerule+0          					 ;
+		sta VRAM_Buffer1+0,y                         ;
+@dont_draw_rule:		
+		rts                                          ;
+		
 RedrawFrameNumbers:
 		txa
 		pha
@@ -1857,6 +1911,7 @@ RequestRestartLevel:
 		sta GamePauseStatus
 		ldx #0
 		stx PauseModeFlag
+		stx PauseSoundBuffer
 		inx
 		stx GamePauseTimer
 		inx

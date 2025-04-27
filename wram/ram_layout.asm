@@ -69,6 +69,8 @@ WRAM_EntrySockTimer:
 	.byte $00
 WRAM_AreaSockTimer:
 	.byte $00
+WRAM_AreaFramerule:
+	.dword 0, 0, 0, 0
 WRAM_CoinTally:
 	.byte $00
 WRAM_CoinDisplay:

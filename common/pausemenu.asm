@@ -470,7 +470,7 @@ pm_toggle_show:
 		clc
 		adc #$05
 		sta VRAM_Buffer1_Offset
-		jmp RedrawFrameNumbersInner
+		jmp RedrawFramerulePauseMenu
 @SockMode:
 		jmp ForceUpdateSockHashInner
 
@@ -569,7 +569,8 @@ pm_toggle_info:
 		clc
 		adc #$04
 		sta VRAM_Buffer1_Offset
-        jmp RedrawFrameNumbersInner
+        jsr RedrawFrameNumbersInner
+		jmp RedrawFramerulePauseMenu
 
 pm_toggle_input:
 		lda WRAM_PracticeFlags

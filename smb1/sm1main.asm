@@ -1606,7 +1606,10 @@ ISpr0Loop:   lda Sprite0Data,y
              dey
              bpl ISpr0Loop
 .endif
-             jsr DoNothing2            ;these jsrs doesn't do anything useful
+			 lda WRAM_AdvRNG
+			 beq @no_advrng
+			 jsr Enter_RedrawFramerule
+@no_advrng:  jsr DoNothing2            ;these jsrs doesn't do anything useful
              jsr DoNothing1
              inc Sprite0HitDetectFlag
              inc OperMode_Task
@@ -1728,7 +1731,10 @@ ChkSwimE: ldy AreaType                ;if level not water-type,
 SetPESub: lda #$07                    ;set to run player entrance subroutine
           sta GameEngineSubroutine    ;on the next frame of game engine
           jsr Enter_RedrawFrameNumbers
-          rts
+		  lda WRAM_AdvRNG
+		  bne @no_rule
+		  jmp Enter_RedrawFramerule
+@no_rule: rts
 
 ;-------------------------------------------------------------------------------------
 
@@ -13727,6 +13733,11 @@ NoHammer: ldx ObjectOffset         ;get original enemy object offset
 		lda #BANK_COMMON
 		jsr SetBankFromA
 		jmp RedrawFrameNumbers
+		
+	Enter_RedrawFramerule:
+		lda #BANK_COMMON
+		jsr SetBankFromA
+		jmp RedrawFramerule
 
 	Enter_ProcessLevelLoad:
 		lda #BANK_COMMON

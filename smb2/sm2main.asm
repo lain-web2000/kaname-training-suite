@@ -15523,20 +15523,21 @@ SuperPlayerMsg:
 		jsr SetBankFromA
 		jmp HideRemainingFrames
 		
-	Enter_RedrawFramerule:
-		lda #BANK_COMMON
-		jsr SetBankFromA
-		jmp RedrawFramerule
-		
 	Enter_RedrawFrameNumbers:
 		lda #BANK_COMMON
 		jsr SetBankFromA
 		jmp RedrawFrameNumbers
+		
+	Enter_RedrawFramerule:
+		lda #BANK_COMMON
+		jsr SetBankFromA
+		jmp RedrawFramerule
 
 	Enter_ProcessLevelLoad:
 		lda #BANK_COMMON
 		jsr SetBankFromA
 		jmp ProcessLevelLoad
+		
 .ifdef LOST
 	Enter_LL_GetAreaDataAddrs:
 			lda #BANK_LLDATA

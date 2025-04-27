@@ -445,7 +445,11 @@ RedrawFramerule:
 		bpl @Copy_Rule
 		lda WRAM_PracticeFlags
 		and #PF_SockMode
+.ifdef ORG
 		beq @exit
+.else
+		bne @exit
+.endif
 		jsr RedrawFrameruleInner
 @exit:	pla
 		tax

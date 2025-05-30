@@ -30,9 +30,8 @@ bcdNum = $70C
 .endif
 
 CreditsIndex = $712
-PrincessThrowingTimer = $714
-PrincessNextThrow = $715
-ThrowDir = $716
+
+FCEUX_Fail = $714
 
 MirrorPPUCTRL = $720
 RndSeed = $721
@@ -96,7 +95,7 @@ Start_I:
 		;
 wait_vbl0:
 		lda PPU_STATUS
-		bpl wait_vbl0
+		bpl wait_vbl0	
 wait_vbl1:
 		lda PPU_STATUS
 		bpl wait_vbl1
@@ -117,16 +116,44 @@ dont_wipe_bank_selection:
 		sta $0200, x
 		inx
 		bne clear_memory
-
+detect_fceux:
+		jsr screen_off 	;disable rendering
+		lda #$20
+		ldx #$a5
+		sta $2006
+		sta $2006
+		sta $2007  ; write $20 to vram
+		stx $2007  ; write $a5 to vram
+		sta $2006
+		sta $2006
+		lda $2007 ; the buffer now holds $20
+		ldx #$67
+		lda $3ff0, x ; dummy read $3f57 (a mirror of $2007), then read $4057 (open bus emulation is not needed to pass this test!)
+		lda $2007    ; if the dummy read was on a mirror of $2007, then the ppu read buffer should be updated, and $a5 is the value to be read next. otherwise, read $20, failing the test.
+		bpl test_fail
+		;
+		; Turn on rendering (Sprites, background)
+		;
+		lda #$1E
+		sta PPU_CTRL_REG2
+		bne load_chr
+test_fail:
+		lda #$1E
+		sta PPU_CTRL_REG2
+		inc FCEUX_Fail
+load_chr:
 		ldx #CHR_INTRO_BG
 		jsr LoadChrDataFromX
 		ldx #CHR_INTRO_SPR
 		jsr LoadChrDataFromX
+		lda FCEUX_Fail
+		bne WarningScreen
 		jsr ReadJoypads
 		cmp #Start_Button+Select_Button
-		bne @NoCredits
+		bne NoCredits
+WarningScreen:
 		jmp PracticeCredits
-@NoCredits:
+NoCredits:
 		jsr ReadJoypads
 		cmp #A_Button+B_Button
 		bne @No_InputLog
@@ -247,6 +274,8 @@ PracticeCredits:
 			  jsr screen_off
 			  jsr InitializeNameTables
 			  ldx #$00
+			  cmp FCEUX_Fail
+			  bne DoAnotherLine
 DoAnotherLineDawg:
 			  lda CreditsTextYadaYada,x
 			  sta PPU_ADDRESS
@@ -267,11 +296,57 @@ wedone:
 			  lda #$00
 			  sta PPU_SCROLL_REG
 			  sta PPU_SCROLL_REG
-		lda #%00001000
-		sta PPU_CTRL_REG1
-		lda #%00001110
-		sta PPU_CTRL_REG2
+			lda #%00001000
+			sta PPU_CTRL_REG1
+			lda #%00001110
+			sta PPU_CTRL_REG2
 			  jmp hang
+	
+DoAnotherLine:
+			  lda FCEUXWarningText,x
+			  sta PPU_ADDRESS
+			  inx
+			  lda FCEUXWarningText,x
+			  sta PPU_ADDRESS
+			  inx
+MoreText:
+			  lda FCEUXWarningText,x
+			  inx
+			  cmp #$ff
+			  beq DoAnotherLine
+			  cmp #$fe
+			  beq load_warning
+			  sta PPU_DATA
+			  bne MoreText
+
+load_warning:
+			  lda #$00
+			  sta PPU_SCROLL_REG
+			  sta PPU_SCROLL_REG
+			lda #%00001000
+			sta PPU_CTRL_REG1
+			lda #%00001110
+			sta PPU_CTRL_REG2
+@wait_for_input:
+			jsr ReadJoypads
+			cmp #Start_Button
+			bne @wait_for_input
+			jmp NoCredits
+			  
+FCEUXWarningText:
+	.byte $20, $ad, "WARNING", $FF
+	.byte $21, $02, "INACCURATE EMULATOR DETECTED", $FF
+	.byte $21, $63, "SOME FEATURES MAY NOT WORK", $FF
+	.byte $21, $a8, "ON THIS EMULATOR.", $FF
+	
+	.byte $22, $02, "PLEASE CONSIDER SWITCHING TO", $FF
+	.byte $22, $44, "A MORE ACCURATE EMULATOR", $FF
+	.byte $22, $84, "FOR THE BEST EXPERIENCE.", $FF
+	.byte $23, $05, "PRESS START TO CONTINUE", $FF
+
+	.byte $3f, $05, $16, $ff
+	.byte $23, $cb, $55, $55, $ff
+	.byte $3f, $00, $0f, $30, $fe
 			  
 InitializeNameTables:
               lda PPU_STATUS            ;reset flip-flop

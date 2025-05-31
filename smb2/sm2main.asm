@@ -1889,29 +1889,30 @@ WriteBufferToScreen:
                lda ($00),y               ;load next byte (second)
                sta PPU_ADDRESS           ;store low byte of vram address
                iny
+               ldx #%00001000
                lda ($00),y               ;load next byte (third)
-               asl                       ;shift to left and save in stack
-               pha
-               lda Mirror_PPU_CTRL
-               ora #%00000100            ;set ppu to increment by 32 by default
-               bcs SetupWrites           ;if d7 of third byte was clear, ppu will
-               and #%11111011            ;only increment by 1
-SetupWrites:   jsr WritePPUReg1          ;write to register
-               pla                       ;pull from stack and shift to left again
-               asl
-               bcc GetLength             ;if d6 of third byte was clear, do not repeat byte
-               ora #%00000010            ;otherwise set d1 and increment Y
-               iny
-GetLength:     lsr                       ;shift back to the right to get proper length
-               lsr                       ;note that d1 will now be in carry
+               bpl SetupWrite
+               ldx #%00001100
+SetupWrite:    stx PPU_CTRL_REG1
+               and #%01111111
+               cmp #%01000000
+               bcc LiteralData
+               and #%00111111
                tax
-OutputToVRAM:  bcs RepeatByte            ;if carry set, repeat loading the same byte
                iny                       ;otherwise increment Y to load next byte
-RepeatByte:    lda ($00),y               ;load more data from buffer and write to vram
-               sta PPU_DATA
+               lda ($00),y               ;load more data from buffer and write to vram
+RepeatByte:    sta PPU_DATA
                dex                       ;done writing?
-               bne OutputToVRAM
-               sec          
+               bne RepeatByte
+               beq UpdateAddr
+LiteralData:   and #%00111111
+               tax
+NextByte:      iny                       ;otherwise increment Y to load next byte
+               lda ($00),y
+               sta PPU_DATA
+               dex
+               bne NextByte
+UpdateAddr:    sec
                tya
                adc $00                   ;add end length plus one to the indirect at $00
                sta $00                   ;to allow this routine to read another set of updates
@@ -1924,8 +1925,7 @@ RepeatByte:    lda ($00),y               ;load more data from buffer and write t
                sta PPU_ADDRESS
                sta PPU_ADDRESS           ;then reinitializes it for some reason
                sta PPU_ADDRESS
-UpdateScreen:  ldx PPU_STATUS            ;reset flip-flop
-               ldy #$00                  ;load first byte from indirect as a pointer
+UpdateScreen:  ldy #$00                  ;load first byte from indirect as a pointer
                lda ($00),y  
                bne WriteBufferToScreen   ;if byte is zero we have no further updates to make here
 InitScroll:    sta PPU_SCROLL            ;store contents of A into scroll registers

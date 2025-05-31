@@ -116,7 +116,7 @@ dont_wipe_bank_selection:
 		sta $0200, x
 		inx
 		bne clear_memory
-detect_fceux:
+detect_fceux:			;shoutouts to 100th_coin!
 		jsr screen_off 	;disable rendering
 		lda #$20
 		ldx #$a5

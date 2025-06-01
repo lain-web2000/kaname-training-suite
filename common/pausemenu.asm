@@ -4,7 +4,7 @@
 CustomRow = WRAM_Temp+$10
 
 .define MENU_ROW_LENGTH 16
-.define MENU_ROW_COUNT 16
+.define MENU_ROW_COUNT 15
 
 pm_empty_row:
 	.byte "                "
@@ -25,11 +25,6 @@ pm_hero_luigi_row:
 	.byte $24, " HERO  LUIGI", $24, $24, $24
 pm_hero_peach_row:
 	.byte $24, " HERO  PEACH", $24, $24, $24
-
-pm_show_rule_row:
-	.byte $24, " SHOW  RULE ", $24, $24, $24
-pm_show_sock_row:
-	.byte $24, " SHOW  SOCK ", $24, $24, $24
 
 pm_coins_row:
 	.byte $24, " COINS      ", $24, $24, $24
@@ -116,19 +111,6 @@ _draw_pm_row_4:
 		row_render_data $23D0, pm_attr_data
 		inc $07
 		jsr draw_prepared_row
-		row_render_data $2100, pm_show_sock_row
-		lda WRAM_PracticeFlags
-		and #PF_SockMode
-	.ifndef ORG
-		bne @is_sock
-	.else
-		beq @is_sock
-	.endif
-		row_render_data $2100, pm_show_rule_row
-	@is_sock:
-		rts
-
-_draw_pm_row_5:
 		ldx #(MENU_ROW_LENGTH - 1)
 @copy_more:
 		lda pm_coins_row, x
@@ -139,24 +121,24 @@ _draw_pm_row_5:
 		jsr DivByTen
 		stx CustomRow+$08
 		sta CustomRow+$09
-		row_render_data $2120, CustomRow
+		row_render_data $2100, CustomRow
 		rts
 
-_draw_pm_row_6:
-		row_render_data $2140, pm_info_on_row
+_draw_pm_row_5:
+		row_render_data $2120, pm_info_on_row
 		lda WRAM_PracticeFlags
 		and #PF_DisablePracticeInfo
 		beq @info_on
-		row_render_data $2140, pm_info_off_row
+		row_render_data $2120, pm_info_off_row
 	@info_on:
 		rts
 
-_draw_pm_row_7:
-		row_render_data $2160, pm_input_on_row
+_draw_pm_row_6:
+		row_render_data $2140, pm_input_on_row
 		lda WRAM_PracticeFlags
 		and #PF_EnableInputDisplay
 		bne @input_on
-		row_render_data $2160, pm_input_off_row
+		row_render_data $2140, pm_input_off_row
 	@input_on:
 		rts
 
@@ -184,7 +166,7 @@ copy_user_row:
 		sta CustomRow+$0A
 		rts
 
-_draw_pm_row_8:
+_draw_pm_row_7:
 		lda WRAM_UserVarA
 		ldx WRAM_UserVarA+1
 @save:
@@ -193,10 +175,10 @@ _draw_pm_row_8:
 		lda #$0A ; A
 		sta $02
 		jsr copy_user_row
-		row_render_data $2180, CustomRow
+		row_render_data $2160, CustomRow
 		rts
 
-_draw_pm_row_9:
+_draw_pm_row_8:
 		lda WRAM_UserVarB
 		ldx WRAM_UserVarB+1
 @save:
@@ -205,41 +187,41 @@ _draw_pm_row_9:
 		lda #$0B ; B
 		sta $02
 		jsr copy_user_row
-		row_render_data $21A0, CustomRow
+		row_render_data $2180, CustomRow
 		rts
 
-_draw_pm_row_10:
+_draw_pm_row_9:
 		row_render_data $23D8, pm_attr_data
 		inc $07
 		jsr draw_prepared_row
-		row_render_data $21C0, pm_star_row
+		row_render_data $21A0, pm_star_row
+		rts
+
+_draw_pm_row_10:
+		row_render_data $21C0, pm_restart_row
 		rts
 
 _draw_pm_row_11:
-		row_render_data $21E0, pm_restart_row
-		rts
-
-_draw_pm_row_12:
 		row_render_data $23E0, pm_attr_data
 		inc $07
 		jsr draw_prepared_row
-		row_render_data $2200, pm_save_row
+		row_render_data $21E0, pm_save_row
+		rts
+
+_draw_pm_row_12:
+		row_render_data $2200, pm_load_row
 		rts
 
 _draw_pm_row_13:
-		row_render_data $2220, pm_load_row
+		row_render_data $2220, pm_title_row
 		rts
 
 _draw_pm_row_14:
-		row_render_data $2240, pm_title_row
+		row_render_data $2240, pm_intro_row
 		rts
 
 _draw_pm_row_15:
-		row_render_data $2260, pm_intro_row
-		rts
-
-_draw_pm_row_16:
-		row_render_data $2280, pm_empty_row
+		row_render_data $2260, pm_empty_row
 		rts
 
 
@@ -260,7 +242,6 @@ pm_row_initializers:
 		.word _draw_pm_row_13
 		.word _draw_pm_row_14
 		.word _draw_pm_row_15
-		.word _draw_pm_row_16
 
 prepare_draw_row:
 		asl ; *=2
@@ -441,39 +422,6 @@ pm_toggle_hero:
 		jsr LL_UpdatePlayerChange
 		jmp RedrawMario
 
-pm_toggle_show:
-		lda WRAM_PracticeFlags
-		eor #PF_SockMode
-		sta WRAM_PracticeFlags
-		and #PF_SockMode
-	.ifndef ORG
-		bne @SockMode
-	.else
-		beq @SockMode
-	.endif
-		;
-		; If we change back to rule mode we must remove top sock bytes
-		;
-		ldx VRAM_Buffer1_Offset
-		lda #$20
-		sta VRAM_Buffer1,x
-		lda #$62 ;
-		sta VRAM_Buffer1+1,x
-		lda #$02 ; len
-		sta VRAM_Buffer1+2,x
-		lda #$24
-		sta VRAM_Buffer1+3, x
-		sta VRAM_Buffer1+4, x
-		lda #$00
-		sta VRAM_Buffer1+5, x
-		lda VRAM_Buffer1_Offset
-		clc
-		adc #$05
-		sta VRAM_Buffer1_Offset
-		jmp RedrawFramerulePauseMenu
-@SockMode:
-		jmp ForceUpdateSockHashInner
-
 pm_low_coins:
 		lda CoinTally
 		clc
@@ -523,9 +471,9 @@ pm_toggle_info:
 		ldx VRAM_Buffer1_Offset
 		lda #$20
 		sta VRAM_Buffer1,x
-		lda #$62 ; addr
+		lda #$64 ; addr
 		sta VRAM_Buffer1+1,x
-		lda #$08 ; len
+		lda #$06 ; len
 		sta VRAM_Buffer1+2,x
 		lda #$24 ; blank
 		sta VRAM_Buffer1+3, x
@@ -534,23 +482,29 @@ pm_toggle_info:
 		sta VRAM_Buffer1+6, x
 		sta VRAM_Buffer1+7, x
 		sta VRAM_Buffer1+8, x
-		sta VRAM_Buffer1+9, x
-		sta VRAM_Buffer1+10, x
 		lda #$20
-		sta VRAM_Buffer1+11, x
+		sta VRAM_Buffer1+9, x
 		lda #$4d
-		sta VRAM_Buffer1+12, x
+		sta VRAM_Buffer1+10, x
 		lda #$03
-		sta VRAM_Buffer1+13, x
+		sta VRAM_Buffer1+11, x
 		lda #$24
+		sta VRAM_Buffer1+12, x
+		sta VRAM_Buffer1+13, x
 		sta VRAM_Buffer1+14, x
-		sta VRAM_Buffer1+15, x
-		sta VRAM_Buffer1+16, x
+		lda #$20
+		sta VRAM_Buffer1+15,x
+		lda #$44 ; addr
+		sta VRAM_Buffer1+16,x
+		lda #$44 ; len
+		sta VRAM_Buffer1+17,x
+		lda #$24 ; blank
+		sta VRAM_Buffer1+18, x
 		lda #0
-		sta VRAM_Buffer1+17, x
+		sta VRAM_Buffer1+19, x
 		lda VRAM_Buffer1_Offset
 		clc
-		adc #17
+		adc #19
 		sta VRAM_Buffer1_Offset
 		rts
 @keepinfo:
@@ -579,7 +533,7 @@ pm_toggle_input:
 		and #PF_EnableInputDisplay
 		bne @inputon
 		;
-		; If we disable input display, restore " X   Y " text
+		; If we disable input display, restore " A   B " text
 		;
 		ldx VRAM_Buffer1_Offset
 		lda #$20
@@ -651,7 +605,6 @@ pm_activation_slots:
 		.word pm_toggle_powerup
 		.word pm_toggle_size
 		.word pm_toggle_hero
-		.word pm_toggle_show
 		.word pm_low_coins
 		.word pm_toggle_info
 		.word pm_toggle_input
@@ -728,7 +681,7 @@ do_coins_input:
 
 get_user_selected:
 		ldx WRAM_MenuIndex
-		cpx #7
+		cpx #6
 		beq @is_org_0
 		lda #<WRAM_UserVarB
 		ldx #>WRAM_UserVarB
@@ -854,14 +807,14 @@ RunPauseMenu:
 		stx WRAM_MenuIndex
 @exit:
 		ldx WRAM_MenuIndex
-		cpx #4
+		cpx #3
 		bne @chk_uservar
 		jmp do_coins_input
 @chk_uservar:
-		cpx #7
+		cpx #6
 		bcc @doneso
-		cpx #9
-		bcs @doneso ;7-8
+		cpx #8
+		bcs @doneso ;6-7
 		jmp do_uservar_input
 @doneso:
 		rts

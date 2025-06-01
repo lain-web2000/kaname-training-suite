@@ -109,17 +109,7 @@ ScrnSwch:
    sta PPU_SPR_ADDR
    lda #$02                  ;dump OAM data to PPU's sprite RAM
    sta SPR_DMA
-
-   lda WRAM_PracticeFlags
-   and #PF_EnableInputDisplay
-   beq DrawBuffer
-   lda OperMode
-   beq DrawBuffer
-   lda #<WRAM_StoredInputs
-   sta $00
-   lda #>WRAM_StoredInputs
-   sta $01
-   jsr UpdateScreen
+   jsr update_practice_vram
 DrawBuffer:
    lda VRAM_Buffer_AddrCtrl
    asl
@@ -2154,7 +2144,7 @@ InitializeMemory:
 InitPageLoop: stx $07
 InitByteLoop: cpx #$01          ;check to see if we're on the stack ($0100-$01ff)
               bne InitByte      ;if not, go ahead anyway
-              cpy #$60          ;otherwise, check to see if we're at $0160-$01ff
+              cpy #$40          ;otherwise, check to see if we're at $0140-$01ff
               bcs SkipByte      ;if so, skip write
               cpy #$09          ;otherwise, check to see if we're at $0100-$0108
               bcc SkipByte      ;if so, skip write
@@ -14429,6 +14419,17 @@ GameMenuRoutine:
 @not_running:
     rts
 
+ClearBuffersDrawIcon:
+             lda OperMode               ;check game mode
+             bne IncModeTask_B          ;if not attract mode, leave
+             ldx #$00                   ;otherwise, clear buffer space
+TScrClear:   sta VRAM_Buffer1-1,x
+             sta VRAM_Buffer1-1+$100,x
+             dex
+             bne TScrClear
+             inc ScreenRoutineTask      ;move onto next task
+             rts
+			 
 ;-------------------------------------------------------------------------------------
 ;$00 - used to store low byte of VRAM address
 ;$01 - used to store number of title screen stars drawn per line
@@ -14958,7 +14959,6 @@ DrawFinalRoom:
     lda #$00
     sta IRQUpdateFlag
 NextScreenTask:
-ClearBuffersDrawIcon:
     inc ScreenRoutineTask
     rts
 .ifdef ANN
@@ -15582,7 +15582,71 @@ SuperPlayerMsg:
 			jmp SetBankFromA
 .endif
 		
+;-------------------------------------------------------
+; VRAM AND OAM UPDATE LOGIC
 
+; Popslide-based VRAM update
+; Format of each packet:
+;     Byte 0:
+;         - D7 = 0 -> VRAM packet, D7 = 1 -> end of buffer
+;         - D6 = 0 -> horizontal, D6 = 1 -> vertical
+;         - D5-D0 -> high byte of PPU address
+;     Byte 1: low byte of PPU address
+;     Byte 2:
+;         - D7 = 0 -> literal, D7 = 1 -> run
+;         - D6-D0 -> length - 1
+;     Byte 3+: data
+update_practice_vram:
+      tsx
+      stx $00
+      ldx #<(vramBuffer-1)
+      txs
+parse_vram_string:
+      pla
+      bmi done
+      ldx #%00001000
+      cmp #$40
+      bcc set_vram_dir
+      ldx #%00001100
+set_vram_dir:
+      stx PPU_CTRL
+      sta PPU_ADDRESS
+      pla
+      sta PPU_ADDRESS
+      pla
+      tax
+      bmi run
+update_vram:
+      pla
+      sta PPU_DATA
+      dex
+      bpl update_vram
+      bmi parse_vram_string
+run:
+      pla
+update_vram_run:
+      sta PPU_DATA
+      dex
+      bmi update_vram_run
+      bpl parse_vram_string
+done:
+      ldx $00
+      txs
+      lda #$3F
+      sta PPU_ADDRESS
+      lda #$00
+      sta PPU_ADDRESS
+      sta PPU_ADDRESS
+      sta PPU_ADDRESS
+	  sta vramBufferOffset_Prac
+      ldx #%00001000
+      stx PPU_CTRL
+      sta PPU_SCROLL
+      sta PPU_SCROLL
+      lda #$FF
+      sta vramBuffer
+      rts
+	  
 ;
 ; Lower banks
 ; 

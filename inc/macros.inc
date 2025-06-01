@@ -6,13 +6,6 @@
 
 .macro DoUpdateSockHash
 		.local @dont_render
-		lda WRAM_PracticeFlags
-		and #PF_SockMode
-	.ifndef ORG
-		beq @dont_render	;enable RULE as default on SMB2J and Nippon
-	.else
-		bne @dont_render	;enable SOCK as default on SMB1
-	.endif
 		lda IntervalTimerControl
 		and #3
 		cmp #2

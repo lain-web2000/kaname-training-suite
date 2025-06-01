@@ -86,17 +86,7 @@ EndlessLoop: jmp EndlessLoop              ;endless loop, need I say more?
 				   sta PPU_SPR_ADDR          ;reset spr-ram address register
 				   lda #$02                  ;perform spr-ram DMA access on $0200-$02ff
 				   sta SPR_DMA
-
-				   lda WRAM_PracticeFlags
-				   and #PF_EnableInputDisplay
-				   beq DrawBuffer
-				   lda OperMode
-				   beq DrawBuffer
-				   lda #<WRAM_StoredInputs   ;otherwise set indirect at $00 to WRAM stored inputs
-				   sta $00
-				   lda #>WRAM_StoredInputs
-				   sta $01
-				   jsr UpdateScreen          ;update input display
+				   jsr update_practice_vram
 	DrawBuffer:    ldx VRAM_Buffer_AddrCtrl  ;load control for pointer to buffer contents
 				   lda VRAM_AddrTable_Low,x  ;set indirect at $00 to pointer
 				   sta $00
@@ -226,17 +216,8 @@ EndlessLoop: jmp EndlessLoop              ;endless loop, need I say more?
 	   sta PPU_SPR_ADDR
 	   lda #$02                  ;dump OAM data to PPU's sprite RAM
 	   sta SPR_DMA
-
-	   lda WRAM_PracticeFlags
-	   and #PF_EnableInputDisplay
-	   beq DrawBuffer
-	   lda OperMode
-	   beq DrawBuffer
-	   lda #<WRAM_StoredInputs
-	   sta $00
-	   lda #>WRAM_StoredInputs
-	   sta $01
-	   jsr UpdateScreen
+	   
+	   jsr update_practice_vram
 DrawBuffer:    
 	   ldx VRAM_Buffer_AddrCtrl  ;load control for pointer to buffer contents
 	   lda VRAM_AddrTable_Low,x  ;set indirect at $00 to pointer
@@ -870,6 +851,13 @@ ChkHiByte:  lda $01                      ;check high byte?
 ;-------------------------------------------------------------------------------------
 
 ClearBuffersDrawIcon:
+             lda OperMode               ;check game mode
+             bne IncModeTask_B          ;if not attract mode, leave
+             ldx #$00                   ;otherwise, clear buffer space
+TScrClear:   sta VRAM_Buffer1-1,x
+             sta VRAM_Buffer1-1+$100,x
+             dex
+             bne TScrClear
              inc ScreenRoutineTask      ;move onto next task
              rts
 
@@ -5674,7 +5662,7 @@ InitializeMemory:
 InitPageLoop: stx $07
 InitByteLoop: cpx #$01          ;check to see if we're on the stack ($0100-$01ff)
               bne InitByte      ;if not, go ahead anyway
-              cpy #$60          ;otherwise, check to see if we're at $0160-$01ff
+              cpy #$40          ;otherwise, check to see if we're at $0140-$01ff
               bcs SkipByte      ;if so, skip write
 InitByte:     sta ($06),y       ;otherwise, initialize byte with current low byte in Y
 SkipByte:     dey
@@ -13765,6 +13753,71 @@ NoHammer: ldx ObjectOffset         ;get original enemy object offset
 		lda #BANK_ORG
 		jmp SetBankFromA		
 
+;-------------------------------------------------------
+; VRAM AND OAM UPDATE LOGIC
+
+; Popslide-based VRAM update
+; Format of each packet:
+;     Byte 0:
+;         - D7 = 0 -> VRAM packet, D7 = 1 -> end of buffer
+;         - D6 = 0 -> horizontal, D6 = 1 -> vertical
+;         - D5-D0 -> high byte of PPU address
+;     Byte 1: low byte of PPU address
+;     Byte 2:
+;         - D7 = 0 -> literal, D7 = 1 -> run
+;         - D6-D0 -> length - 1
+;     Byte 3+: data
+update_practice_vram:
+      tsx
+      stx $00
+      ldx #<(vramBuffer-1)
+      txs
+parse_vram_string:
+      pla
+      bmi done
+      ldx #%00001000
+      cmp #$40
+      bcc set_vram_dir
+      ldx #%00001100
+set_vram_dir:
+      stx PPU_CTRL_REG1
+      sta PPU_ADDRESS
+      pla
+      sta PPU_ADDRESS
+      pla
+      tax
+      bmi run
+update_vram:
+      pla
+      sta PPU_DATA
+      dex
+      bpl update_vram
+      bmi parse_vram_string
+run:
+      pla
+update_vram_run:
+      sta PPU_DATA
+      dex
+      bmi update_vram_run
+      bpl parse_vram_string
+done:
+      ldx $00
+      txs
+      lda #$3F
+      sta PPU_ADDRESS
+      lda #$00
+      sta PPU_ADDRESS
+      sta PPU_ADDRESS
+      sta PPU_ADDRESS
+	  sta vramBufferOffset_Prac
+      ldx #%00001000
+      stx PPU_CTRL_REG1
+      sta PPU_SCROLL_REG
+      sta PPU_SCROLL_REG
+      lda #$FF
+      sta vramBuffer
+      rts
+	  
 ;
 ; Lower banks
 ; 

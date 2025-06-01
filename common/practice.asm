@@ -319,8 +319,9 @@ SetRNGFromNumber:
 	rts
 
 TopText:
-	text_block $2044, "RULE * F*"
+	text_block $2042, "R*     * F*"
 	text_block $2051, " A   B  TIME"
+	text_block $2062, "S*"
 	.byte $20, $6b, $02, $2e, $29 ; score trailing digit and coin display
 	.byte $23, $c0, $7f, $aa ; attribute table data, clears name table 0 to palette 2
 	.byte $23, $c2, $01, $ea ; attribute table data, used for coin icon in status bar
@@ -423,15 +424,7 @@ RedrawFrameNumbersInner:
 		sta VRAM_Buffer1+0,y                         ; and store it in vram
 
 		lda OperMode
-		beq RedrawFrameruleInner ; force RULE if on title screen
-		lda WRAM_PracticeFlags
-		and #PF_SockMode
-	.ifndef ORG
-		bne @dont_draw_frame
-	.else
-		beq @dont_draw_frame
-	.endif
-@dont_draw_frame:
+		beq RedrawFrameruleInner                     ; force RULE if on title screen
 		rts
 
 RedrawFramerule:
@@ -443,13 +436,6 @@ RedrawFramerule:
 		sta WRAM_AreaFramerule,x
 		dex
 		bpl @Copy_Rule
-		lda WRAM_PracticeFlags
-		and #PF_SockMode
-.ifdef ORG
-		beq @exit
-.else
-		bne @exit
-.endif
 		jsr RedrawFrameruleInner
 @exit:	pla
 		tax
@@ -459,61 +445,61 @@ RedrawFrameruleInner:
 		lda WRAM_PracticeFlags
 		and #PF_DisablePracticeInfo
 		bne @dont_draw_rule
-		lda VRAM_Buffer1_Offset                      ; get the current buffer offset
-		tay                                          ;
-		adc #(3+4)                                   ; shift over based on length of the framerule text
-		sta VRAM_Buffer1_Offset                      ; store the ppu location of the framerule counter
-		lda #$20                                     ;
-		sta VRAM_Buffer1,y                           ;
-		lda #$64                                     ;
-		sta VRAM_Buffer1+1,y                         ;
-		lda #$04                                     ; store the number of digits to draw
-		sta VRAM_Buffer1+2,y                         ;
-		iny                                          ; increment past the ppu location
-		iny                                          ;
-		iny                                          ;
-		lda #0                                       ; place our null terminator
-		sta VRAM_Buffer1+4,y                         ;
+		lda vramBufferOffset_Prac                  ; get the current buffer offset
+		tay                                        ;
+		adc #(3+4)                                 ; shift over based on length of the framerule text
+		sta vramBufferOffset_Prac                  ; store the ppu location of the framerule counter
+		lda #$20                                   ;
+		sta vramBuffer,y                           ;
+		lda #$44                                   ;
+		sta vramBuffer+1,y                         ;
+		lda #$03                                   ; store the number of digits to draw
+		sta vramBuffer+2,y                         ;
+		iny                                        ; increment past the ppu location
+		iny                                        ;
+		iny                                        ;
 	@PrintRuleDataAtY:
-		lda CurrentRule+3          					 ; then copy the framerule numbers into the buffer
-		sta VRAM_Buffer1+3,y                         ;
-		lda CurrentRule+2          					 ;
-		sta VRAM_Buffer1+2,y                         ;
-		lda CurrentRule+1         					 ;
-		sta VRAM_Buffer1+1,y                         ;
-		lda CurrentRule+0          					 ;
-		sta VRAM_Buffer1+0,y                         ;
+		lda CurrentRule+3                          ; then copy the framerule numbers into the buffer
+		sta vramBuffer+3,y                         ;
+		lda CurrentRule+2                          ;
+		sta vramBuffer+2,y                         ;
+		lda CurrentRule+1                          ;
+		sta vramBuffer+1,y                         ;
+		lda CurrentRule+0                          ;
+		sta vramBuffer+0,y                         ;
+		lda #$ff
+		sta vramBuffer+4,y
 @dont_draw_rule:		
-		rts                                          ;
+		rts                                        ;
 
 RedrawFramerulePauseMenu:
 		lda WRAM_PracticeFlags
 		and #PF_DisablePracticeInfo
 		bne @dont_draw_rule
-		lda VRAM_Buffer1_Offset                      ; get the current buffer offset
+		lda vramBufferOffset_Prac                    ; get the current buffer offset
 		tay                                          ;
 		adc #(3+4)                                   ; shift over based on length of the framerule text
-		sta VRAM_Buffer1_Offset                      ; store the ppu location of the framerule counter
+		sta vramBufferOffset_Prac                    ; store the ppu location of the framerule counter
 		lda #$20                                     ;
-		sta VRAM_Buffer1,y                           ;
-		lda #$64                                     ;
-		sta VRAM_Buffer1+1,y                         ;
-		lda #$04                                     ; store the number of digits to draw
-		sta VRAM_Buffer1+2,y                         ;
+		sta vramBuffer,y                             ;
+		lda #$44                                     ;
+		sta vramBuffer+1,y                           ;
+		lda #$03                                     ; store the number of digits to draw
+		sta vramBuffer+2,y                           ;
 		iny                                          ; increment past the ppu location
 		iny                                          ;
 		iny                                          ;
-		lda #0                                       ; place our null terminator
-		sta VRAM_Buffer1+4,y                         ;
+		lda #$ff                                     ; place our null terminator
+		sta vramBuffer+4,y                           ;
 	@PrintRuleDataAtY:
 		lda WRAM_AreaFramerule+3          					 ; then copy the framerule numbers into the buffer
-		sta VRAM_Buffer1+3,y                         ;
+		sta vramBuffer+3,y                                   ;
 		lda WRAM_AreaFramerule+2          					 ;
-		sta VRAM_Buffer1+2,y                         ;
+		sta vramBuffer+2,y                                   ;
 		lda WRAM_AreaFramerule+1         					 ;
-		sta VRAM_Buffer1+1,y                         ;
+		sta vramBuffer+1,y                                   ;
 		lda WRAM_AreaFramerule+0          					 ;
-		sta VRAM_Buffer1+0,y                         ;
+		sta vramBuffer+0,y                                   ;
 @dont_draw_rule:		
 		rts                                          ;
 		
@@ -1190,7 +1176,7 @@ toggle_rng_offset:
 		ldy #$00
 @InRange:
 		sty CategorySelect
-		ldx VRAM_Buffer1_Offset
+		ldx vramBufferOffset_Prac
 		tya
 		asl
 		tay
@@ -1205,45 +1191,45 @@ toggle_rng_offset:
 		lda ($00),y
 		cmp #$ff
 		beq @ExitTitleChange
-		sta VRAM_Buffer1,x
+		sta vramBuffer,x
 		inx
 		iny
 		bne @VRAMBufferLoop
 @ExitTitleChange:
-		lda #$00
-		sta VRAM_Buffer1,x
-		lda VRAM_Buffer1_Offset
+		lda #$ff
+		sta vramBuffer,x
+		lda vramBufferOffset_Prac
 		adc #$11
-		sta VRAM_Buffer1_Offset
+		sta vramBufferOffset_Prac
 		rts
 
 .ifdef ORG
 	CopyrightText1985:
-	.byte $21, $ed, $0e, $cf, $01, $09, $08, $05, $24, $17, $12, $17, $1d
+	.byte $21, $ed, $0d, $cf, $01, $09, $08, $05, $24, $17, $12, $17, $1d
 	.byte $0e, $17, $0d, $18, $ff
 
 	BothQuestText:
-		.byte $21, $ed, $0e, $24, $24, $24, $0b, $18, $1d, $11, $24, $1a, $1e 
+		.byte $21, $ed, $0d, $24, $24, $24, $0b, $18, $1d, $11, $24, $1a, $1e 
 		.byte $0e, $1c, $1d, $1c, $ff
 .elseif .defined(LOST)
 	CopyrightText1986_L:
-		.byte $21, $ef, $0e, $cf, $01, $09, $08, $06, $24, $17, $12, $17, $1d
+		.byte $21, $ef, $0d, $cf, $01, $09, $08, $06, $24, $17, $12, $17, $1d
 		.byte $0e, $17, $0d, $18, $ff
 
 	BothEndText:
-		.byte $21, $ef, $0e, $24, $24, $0b, $18, $1d, $11, $24, $0e, $17, $0d 
+		.byte $21, $ef, $0d, $24, $24, $0b, $18, $1d, $11, $24, $0e, $17, $0d 
 		.byte $12, $17, $10, $1c, $ff
 		
 	AllStagesText:
-		.byte $21, $ef, $0e, $24, $24, $24, $24, $0a, $15, $15, $24, $1c, $1d
+		.byte $21, $ef, $0d, $24, $24, $24, $24, $0a, $15, $15, $24, $1c, $1d
 		.byte $0a, $10, $0e, $1c, $ff
 .else
 	CopyrightText1986:
-		.byte $21, $ee, $0e, $cf, $01, $09, $08, $06, $24, $17, $12, $17, $1d
+		.byte $21, $ee, $0d, $cf, $01, $09, $08, $06, $24, $17, $12, $17, $1d
 		.byte $0e, $17, $0d, $18, $ff	
 		
 	AllStagesText:
-		.byte $21, $ee, $0e, $24, $24, $24, $24, $0a, $15, $15, $24, $1c, $1d
+		.byte $21, $ee, $0d, $24, $24, $24, $24, $0a, $15, $15, $24, $1c, $1d
 		.byte $0a, $10, $0e, $1c, $ff
 .endif
 	
@@ -1453,7 +1439,7 @@ PrintHexByte:
 		lda $0
 DoNibble:
 		and #$0f
-		sta VRAM_Buffer1+3,x
+		sta vramBuffer+3,x
 		inx
 DontUpdateSockHash:
 		rts
@@ -1469,8 +1455,6 @@ ForceUpdateSockHashInner:
 		sta $3
 		lda SprObject_X_Position ; Player X
 		sta $2
-		lda SprObject_PageLoc ; Player page
-		sta $1
 		lda SprObject_Y_Position ; Player Y
 		eor #$ff
 		lsr
@@ -1485,9 +1469,6 @@ ForceUpdateSockHashInner:
 		lda $2
 		adc #2
 		sta $2
-		lda $1
-		adc #0
-		sta $1
 		pla
 something_or_other:
 		sta $04
@@ -1496,29 +1477,24 @@ something_or_other:
 		adc $04
 		adc $2
 		sta $2
-		lda $1
-		adc #0
-		sta $1
-		ldx VRAM_Buffer1_Offset 
+		ldx vramBufferOffset_Prac
 		bne skip_sock_hash
 draw_sock_hash:
 		lda #$20
-		sta VRAM_Buffer1
-		lda #$62 ;
-		sta VRAM_Buffer1+1
-		lda #$06 ; len
-		sta VRAM_Buffer1+2
+		sta vramBuffer
+		lda #$64 ;
+		sta vramBuffer+1
+		lda #$03 ; len
+		sta vramBuffer+2
 		ldx #0
-		lda $1
-		jsr PrintHexByte
 		lda $2
 		jsr PrintHexByte
 		lda $3
 		jsr PrintHexByte
-		lda #0
-		sta VRAM_Buffer1+3, x
-		lda #$09
-		sta VRAM_Buffer1_Offset
+		lda #$ff
+		sta vramBuffer+3, x
+		lda #$07
+		sta vramBufferOffset_Prac
 skip_sock_hash:
 		rts
 
@@ -1768,18 +1744,18 @@ SaveState:
 		sta $01
 		lda ($00), y
 		jsr DivByTen
-		sta VRAM_Buffer1+off+2
+		sta vramBuffer+off+2
 		txa
 		jsr DivByTen
-		sta VRAM_Buffer1+off+1
-		stx VRAM_Buffer1+off+0
+		sta vramBuffer+off+1
+		stx vramBuffer+off+0
 .endmacro
 
 .macro HideRedrawUserVar off
 		lda #$24
-		sta VRAM_Buffer1+off+2
-		sta VRAM_Buffer1+off+1
-		sta VRAM_Buffer1+off+0
+		sta vramBuffer+off+2
+		sta vramBuffer+off+1
+		sta vramBuffer+off+0
 .endmacro
 
 noredraw_dec:
@@ -1794,16 +1770,16 @@ hide:
 RedrawUserVars:
 		lda UserFramesLeft
 		bne noredraw_dec
-		ldy VRAM_Buffer1_Offset
+		ldy vramBufferOffset_Prac
 		bne noredraw
 		lda #$20
-		sta VRAM_Buffer1
+		sta vramBuffer
 		lda #$71
-		sta VRAM_Buffer1+1
-		lda #$07
-		sta VRAM_Buffer1+2
+		sta vramBuffer+1
+		lda #$06
+		sta vramBuffer+2
 		lda #$24
-		sta VRAM_Buffer1+6
+		sta vramBuffer+6
 		lda WRAM_PracticeFlags
         and #PF_DisablePracticeInfo
         bne hide
@@ -1812,104 +1788,71 @@ RedrawUserVars:
 		RedrawUserVar WRAM_UserVarB, 7
 
 terminate:
-		sty VRAM_Buffer1+$0A
+		lda #$ff
+		sta vramBuffer+$0A
+		lda #$0a
+		sta vramBufferOffset_Prac
 		lda WRAM_DelayUserFrames
-		sta UserFramesLeft
-		
+		sta UserFramesLeft		
+
 UpdateStatusInput:
     lda WRAM_PracticeFlags
-	and #PF_EnableInputDisplay
-	beq @exit
-	jsr DrawInputButtons
-@exit:
-	jmp ReturnBank
-DrawInputButtons:
-	ldy JoypadBitMask
-	sty $03
-	lda #$20
-	sta WRAM_StoredInputs
-	lda #$51
-	sta WRAM_StoredInputs+1
-	lda #$07
-	sta WRAM_StoredInputs+2
-	lda #$24
-	sta WRAM_StoredInputs+7
-	;
-	; Up
-	;
-	lda $03
+    and #PF_EnableInputDisplay
+    beq @exit
+    ldy #$00
+    ldx vramBufferOffset_Prac
+    stx $00
+@WriteStatusInput:
+    lda InputDisplayPacket,y
+    sta vramBuffer,x
+    inx
+    iny
+    cpy #$0b
+    bcc @WriteStatusInput
+    stx vramBufferOffset_Prac
+    ldx $00
+@UpInp:
+	lda JoypadBitMask
 	and #Up_Dir
-	beq NoUpStatus
-	lda #$1e
-	jmp WriteUp
-NoUpStatus:
+	bne @LeftInp
 	lda #$28
-WriteUp:
-	sta WRAM_StoredInputs+3
-	;
-	; Left
-	;
-	lda $03
+	sta vramBuffer+3,x
+@LeftInp:
+	lda JoypadBitMask
 	and #Left_Dir
-	beq NoLeftStatus
-	lda #$15
-	jmp WriteLeft
-NoLeftStatus:
+	bne @DownInp
 	lda #$28
-WriteLeft:
-	sta WRAM_StoredInputs+4
-	;
-	; Down
-	;
-	lda $03
+	sta vramBuffer+4,x
+@DownInp:
+	lda JoypadBitMask
 	and #Down_Dir
-	beq NoDownStatus
-	lda #$0d
-	jmp WriteDown
-NoDownStatus:
+	bne @RightInp
 	lda #$28
-WriteDown:
-	sta WRAM_StoredInputs+5
-	;
-	; Right
-	;
-	lda $03
+	sta vramBuffer+5,x
+@RightInp:
+	lda JoypadBitMask
 	and #Right_Dir
-	beq NoRightStatus
-	lda #$1b
-	jmp WriteRight
-NoRightStatus:
+	bne @B_Button
 	lda #$28
-WriteRight:
-	sta WRAM_StoredInputs+6
-	;
-	; B
-	;
-	lda $03
+	sta vramBuffer+6,x
+@B_Button:
+	lda JoypadBitMask
 	and #B_Button
-	beq NoBStatus
-	lda #$0b
-	jmp WriteB
-NoBStatus:
+	bne @A_Button
 	lda #$28
-WriteB:
-	sta WRAM_StoredInputs+8
-	;
-	; A
-	;
-	lda $03
+	sta vramBuffer+8,x
+@A_Button:
+	lda JoypadBitMask
 	and #A_Button
-	beq NoAStatus
-	lda #$0a
-	jmp WriteA
-NoAStatus:
+	bne @exit
 	lda #$28
-WriteA:
-	sta WRAM_StoredInputs+9
-	lda #$00
-	sta WRAM_StoredInputs+10 ; maybe redundant due to WRAM init?
-	rts
+	sta vramBuffer+9,x
+@exit:
+    jmp ReturnBank
 
+InputDisplayPacket:
+    .byte $20,$51,$06,$1E,$15,$0D,$1B,$24,$0B,$0A,$FF
+	
 RequestRestartLevel:
 		lda #$80 ; REMOVE 0x80?
 		sta GamePauseStatus
@@ -2079,6 +2022,9 @@ PracticeInit:
 		sta WRAM_Timer
 		sta WRAM_Timer+1
 		sta WRAM_MenuIndex
+		sta vramBufferOffset_Prac
+		lda #$ff
+		sta vramBuffer
 		;
 		; Dont reset the SaveStateBank right?
 		;

@@ -27,6 +27,9 @@ PowerUps = $07e3 ; Previously unused
 CategorySelect = $07e4
 CurrentRule = $7df
 
+vramBuffer = $141
+vramBufferOffset_Prac = $140
+
 .define PF_SockMode $01 ; Todo move elsewhere...
 .define PF_SaveState $02
 .define PF_LoadState $04

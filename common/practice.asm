@@ -2131,6 +2131,9 @@ SetDefaultWRAM:
 		sta WRAM_SaveButtons
 		lda #LOAD_STATE_BUTTONS
 		sta WRAM_LoadButtons
+		
+		lda #PF_EnableInputDisplay
+		sta WRAM_PracticeFlags
 		;
 		; TODO : Sane init values
 		;

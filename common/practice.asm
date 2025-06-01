@@ -318,18 +318,33 @@ SetRNGFromNumber:
 	sty FrameruleNumber+5
 	rts
 
-TopText:
-	text_block $2042, "R*     * F*"
-	text_block $2051, " A   B  TIME"
-	text_block $2062, "S*"
-	.byte $20, $6b, $02, $2e, $29 ; score trailing digit and coin display
-	.byte $23, $c0, $7f, $aa ; attribute table data, clears name table 0 to palette 2
-	.byte $23, $c2, $01, $ea ; attribute table data, used for coin icon in status bar
-	.byte $00
-
 WritePracticeTop:
-	inline_write_block TopText
-	jmp ReturnBank
+		clc                                          ;
+		ldy VRAM_Buffer1_Offset                      ; get current vram offset
+		lda #(@TopStatusTextEnd-@TopStatusText+1)    ; get text length
+		adc VRAM_Buffer1_Offset                      ; add to vram offset
+		sta VRAM_Buffer1_Offset                      ; and store new offset
+		ldx #0                                       ;
+@CopyData:                                       	 ;
+		lda @TopStatusText,x                         ; copy bytes of the status bar text to vram
+		sta VRAM_Buffer1,y                           ;
+		iny                                          ; advance vram offset
+		inx                                          ; advance text offset
+		cpx #(@TopStatusTextEnd-@TopStatusText)      ; check if we're at the end
+		bne @CopyData                                ; if not, loop
+		lda #0                                       ; then set null terminator at the end
+		sta VRAM_Buffer1,y                           ;
+		jmp ReturnBank 
+		
+@TopStatusText:
+		.byte $20, $42, $0b, $1b, $29, $24, $24, $24, $24, $24, $29, $24, $0f, $29
+		.byte $20, $51, $0c, $24, $0a, $24, $24, $24, $0b, $24, $24, $1d, $12, $16, $0e
+		.byte $20, $62, $02, $1c, $29			
+		.byte $20, $6b, $02, $2e, $29                ; score trailing digit and coin display
+		.byte $23, $c0, $7f, $aa                     ; attribute table data, clears name table 0 to palette 2
+		.byte $23, $c2, $01, $ea                     ; set palette for the flashing coin ; attribute table data, used for coin icon in status bar
+@TopStatusTextEnd:
+		.byte $00
 
 RedrawFramesRemainingInner:
 		lda WRAM_PracticeFlags
@@ -619,35 +634,35 @@ GetSelectedValue:
 		jmp PrintableWorldNumber
 
 DrawRuleNumber:
-		ldx VRAM_Buffer1_Offset
+		ldx vramBufferOffset_Prac
 		lda #$22
-		sta VRAM_Buffer1, x
+		sta vramBuffer, x
 .ifdef ORG
 		lda #$F0
 .else
 		lda #$F2
 .endif
-		sta VRAM_Buffer1+1, x
-		lda #$04
-		sta VRAM_Buffer1+2, x
+		sta vramBuffer+1, x
+		lda #$03
+		sta vramBuffer+2, x
 		ldy #0
 @copy_next:
 		lda ($04),y
 		pha
 		lsr_by 4
-		sta VRAM_Buffer1+3, x
+		sta vramBuffer+3, x
 		pla
 		and #$0f
-		sta VRAM_Buffer1+4, x
+		sta vramBuffer+4, x
 		inx
 		inx
 		iny
 		cpy #2
 		bne @copy_next
-		lda VRAM_Buffer1_Offset
+		lda vramBufferOffset_Prac
 		clc 
 		adc #7
-		sta VRAM_Buffer1_Offset
+		sta vramBufferOffset_Prac
 		rts
 
 

@@ -15650,7 +15650,7 @@ done:
 ;
 ; Lower banks
 ; 
-	.res $F200 - *, $EA
+	.res $FF00 - *, $EA
 
 .import NonMaskableInterrupt
 

@@ -668,21 +668,21 @@ DrawRuleNumber:
 
 menu_text:
 .ifdef ORG
-	text_block $222B, "WORLD %"
-	text_block $224B, "LEVEL %"
-	text_block $226B, "P-UP  %"
-	text_block $228B, "SLOT  %"
-	text_block $22AB, "HERO  %"
-	text_block $22EB, "RULE"
+		text_block $222B, "WORLD %"
+		text_block $224B, "LEVEL %"
+		text_block $226B, "P-UP  %"
+		text_block $228B, "SLOT  %"
+		text_block $22AB, "HERO  %"
+		text_block $22EB, "RULE"
 .else
-	text_block $222D, "WORLD %"
-	text_block $224D, "LEVEL %"
-	text_block $226D, "P-UP  %"
-	text_block $228D, "SLOT  %"
-	text_block $22AD, "HERO  %"
-	text_block $22ED, "RULE"
+		text_block $222D, "WORLD %"
+		text_block $224D, "LEVEL %"
+		text_block $226D, "P-UP  %"
+		text_block $228D, "SLOT  %"
+		text_block $22AD, "HERO  %"
+		text_block $22ED, "RULE"
 .endif
-	.byte $00
+		.byte $00
 
 draw_menu:
 		lda FrameCounter
@@ -1988,14 +1988,33 @@ ProcessLevelLoad:
 		dex
 		bpl @save_rule
 		
-.ifdef LOST
+.ifdef ORG
+		lda WRAM_GameGenie
+		cmp #$01
+		beq @aisson
+.elseif .defined(LOST)
 		lda BANK_SELECTED
 		cmp #BANK_SMBLL
 		beq @warpless_2j
 .endif
 @done:
 		jmp ReturnBank
-.ifdef LOST
+		
+.ifdef ORG
+@aisson:
+		lda WorldNumber
+		cmp #World8									 ; Are we in World 8?
+		bne @done								 	 ; No? Leave.
+		lda LevelNumber								 ; Are we in 8-3 or 8-4?
+		cmp #$02									 ; Yes, set up the funny.
+		bcc @done								 	 ; No, get out.
+@aisson_setup:										 ;
+		lda #$08									 ;	
+		sta EntrancePage							 ;
+		sta WRAM_LevelEntrancePage					 ;
+		bne @done								 	 ;
+		
+.elseif .defined(LOST)
 @warpless_2j:
 		lda CompletedWorlds
 		cmp #$ff

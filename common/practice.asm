@@ -2072,13 +2072,13 @@ RedrawSockTimer:
 		lda WRAM_PracticeFlags
 		and #PF_DisablePracticeInfo
 		bne nosock
-		ldx VRAM_Buffer1_Offset
+		ldx vramBufferOffset_Prac
 		lda #$20
-		sta VRAM_Buffer1,x
+		sta vramBuffer,x
 		lda #$69
-      	sta VRAM_Buffer1+1,x
-      	lda #$01
-      	sta VRAM_Buffer1+2,x
+      	sta vramBuffer+1,x
+      	lda #$00
+      	sta vramBuffer+2,x
       	lda WRAM_PracticeFlags
       	and #PF_LevelEntrySaved
       	bne @already_saved
@@ -2095,14 +2095,14 @@ RedrawSockTimer:
 		lda IntervalTimerControl
 @write_it:
 		sta WRAM_AreaSockTimer
-		sta VRAM_Buffer1+3,x
+		sta vramBuffer+3,x
 		lda #0
-		sta VRAM_Buffer1+4,x
+		sta vramBuffer+4,x
 		inx
 		inx
 		inx
 		inx
-		stx VRAM_Buffer1_Offset
+		stx vramBufferOffset_Prac
 		jmp RedrawFrameNumbers
 
 MagicalBytes:

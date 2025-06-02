@@ -1593,9 +1593,9 @@ ISpr0Loop:   lda Sprite0Data,y
              sta Sprite_Data,y
              dey
              bpl ISpr0Loop
-.endif
 			 lda WRAM_AdvRNG
 			 beq @no_advrng
+.endif
 			 jsr Enter_RedrawFramerule
 @no_advrng:  jsr DoNothing2            ;these jsrs doesn't do anything useful
              jsr DoNothing1
@@ -1718,10 +1718,12 @@ ChkSwimE: ldy AreaType                ;if level not water-type,
           jsr SetupBubble             ;otherwise, execute sub to set up air bubbles
 SetPESub: lda #$07                    ;set to run player entrance subroutine
           sta GameEngineSubroutine    ;on the next frame of game engine
-          jsr Enter_RedrawFrameNumbers
+          jsr Enter_RedrawFrameNumbers ; i am sorry for commiting sins with this jsr + rts combo
+.ifndef PAL
 		  lda WRAM_AdvRNG
 		  bne @no_rule
 		  jmp Enter_RedrawFramerule
+.endif
 @no_rule: rts
 
 ;-------------------------------------------------------------------------------------

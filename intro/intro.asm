@@ -296,10 +296,10 @@ wedone:
 			  lda #$00
 			  sta PPU_SCROLL_REG
 			  sta PPU_SCROLL_REG
-			lda #%00001000
-			sta PPU_CTRL_REG1
-			lda #%00001110
-			sta PPU_CTRL_REG2
+			  lda #%00001000
+			  sta PPU_CTRL_REG1
+			  lda #%00001110
+			  sta PPU_CTRL_REG2
 			  jmp hang
 	
 DoAnotherLine:
@@ -337,7 +337,7 @@ FCEUXWarningText:
 	.byte $20, $ad, "WARNING", $FF
 	.byte $21, $02, "INACCURATE EMULATOR DETECTED", $FF
 	.byte $21, $63, "SOME FEATURES MAY NOT WORK", $FF
-	.byte $21, $a8, "ON THIS EMULATOR.", $FF
+	.byte $21, $a6, "OR BEHAVE ABNORMALLY.", $FF
 	
 	.byte $22, $02, "PLEASE CONSIDER SWITCHING TO", $FF
 	.byte $22, $44, "A MORE ACCURATE EMULATOR", $FF

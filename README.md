@@ -2,6 +2,12 @@
 
 A collection of speedrun practice ROMs for Super Mario Bros. (NTSC & PAL), Super Mario Bros. 2 (FDS), and All Night Nippon Super Mario Bros.
 
+# Required checksums for BPS patches.
+
+- Super Mario Bros. (NTSC): `EA343F4E445A9050D4B4FBAC2C77D0693B1D0922`
+- Super Mario Bros. (PAL): `B4140688F9A5B3434276C5A7394B56022436E57A`
+- Super Mario Bros. 2: `20E50128742162EE47561DB9E82B2836399C880C`
+- All Night Nippon Super Mario Bros.: `F30BDD3C556604D7EAA6D0F4864D5566E519B5D4`
 # Features
 ## All Games
 - Custom status bar with additional information
@@ -15,7 +21,6 @@ A collection of speedrun practice ROMs for Super Mario Bros. (NTSC & PAL), Super
 - Practice menu with options, opened by pausing during gameplay
     - Set power-up state and player size, with selections also applying to quick restart.
 	- Switch between Mario and Luigi.
-	- Toggle between showing the current framerule number and a Sockfolder-style position display.
     - Set current coin count, primarily useful for practicing firework avoidance in SMB2 and ANNSMB.
     - Enable or disable practice information. 
     - Enable or disable the input display.
@@ -58,28 +63,26 @@ This sets up wrong-warps for Worlds 8-1 and C-1, and allows you to enter 9-1 fro
 - Toggle between first and second quest by pressing the B button on the in-game title screen.
 
 # Improvements over Pellsson's practice ROM (v6.0 Prototype)
-- Every 100th framerule is no longer broken thanks to threecreepio's quick resume code.
+- Every 100th framerule is no longer broken thanks to [threecreepio's](https://github.com/threecreepio/) quick resume code.
 - Dying in the cartridge version of World -1 will not take you to the disk version.
 - User-defined addresses are hidden when "INFO" is set to "OFF".
-- Completely rebuilt SMB2 FDS to NES conversion by Simplistic6502 using doppelganger's disassembly, fixing issues such as the broken ending in 8-4 and D-4.
+- Completely rebuilt SMB2 FDS to NES conversion by [Simplistic6502](https://github.com/simplistic6502/) using doppelganger's disassembly, fixing issues such as the broken ending in 8-4 and D-4.
 - Added extra frame counter updates for specific instances, such as when Bowser starts moving.
 - Disabled frame numbers when collecting a coin or shattering a brick.
 - Remainders now display on the intermediate screen when starting from the title screen or exiting a warp zone.
-- Each game has its own ROM now, and each ROM uses the MMC3 mapper to maximize compatibility.
-
-# Required checksums for BPS patches.
-
-- Super Mario Bros.: `EA343F4E445A9050D4B4FBAC2C77D0693B1D0922`
-- Super Mario Bros. 2: `20E50128742162EE47561DB9E82B2836399C880C`
-- All Night Nippon Super Mario Bros.: `F30BDD3C556604D7EAA6D0F4864D5566E519B5D4`
+- Each game has its own ROM now, and each ROM uses the [MMC3 mapper](https://www.nesdev.org/wiki/MMC3) to maximize compatibility.
+- Updated VRAM buffer system using the [Popslide](https://forums.nesdev.org/viewtopic.php?t=15440) library to allow for additional practice information to be displayed.
 
 # Credits
 - Developers: web2000, Simplistic6502
 - Original Developers: Threecreepio, pellsson
 - Sprites for Peach shamelessly stolen from [Super Mario Bros.: Peach Edition](https://www.romhacking.net/hacks/1229)
 
-# Repositories Forked From
+# Repositories Referenced
 - https://github.com/pellsson/smb
 - https://github.com/threecreepio/smb1-practiserom
+- https://github.com/simplistic6502/smb2j-mmc1
+- https://github.com/threecreepio/smbann-disassembly
 - https://github.com/threecreepio/nes-inputlog
 - https://github.com/MrWint/smb-dis
+

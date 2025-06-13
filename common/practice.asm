@@ -409,7 +409,7 @@ RedrawAll:
 		
 RedrawFrameNumbersInner:
 		lda OperMode
-		beq @draw ; slighty dumb
+		beq @draw ; slightly dumb (<- this was spelled wrong in like various builds)
 		lda WRAM_PracticeFlags
 		and #PF_DisablePracticeInfo
 		bne nodraw
@@ -659,6 +659,8 @@ DrawRuleNumber:
 		iny
 		cpy #2
 		bne @copy_next
+		lda #$ff
+		sta vramBuffer+3, x
 		lda vramBufferOffset_Prac
 		clc 
 		adc #7
@@ -1811,12 +1813,9 @@ terminate:
 		sta UserFramesLeft		
 
 UpdateStatusInput:
-	lda OperMode
-	beq @title					;this is a band-aid solution, find the problem later.
     lda WRAM_PracticeFlags
     and #PF_EnableInputDisplay
     beq @exit
-@title:
     ldy #$00
     ldx vramBufferOffset_Prac
     stx $00

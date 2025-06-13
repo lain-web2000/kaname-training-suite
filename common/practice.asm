@@ -1811,9 +1811,12 @@ terminate:
 		sta UserFramesLeft		
 
 UpdateStatusInput:
+	lda OperMode
+	beq @title					;this is a band-aid solution, find the problem later.
     lda WRAM_PracticeFlags
     and #PF_EnableInputDisplay
     beq @exit
+@title:
     ldy #$00
     ldx vramBufferOffset_Prac
     stx $00

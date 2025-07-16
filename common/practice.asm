@@ -437,7 +437,6 @@ RedrawFrameNumbersInner:
 		sta VRAM_Buffer1+1,y                         ; store remainder in vram buffer
 		txa                                          ; get the result of the divide
 		sta VRAM_Buffer1+0,y                         ; and store it in vram
-
 		lda OperMode
 		beq RedrawFrameruleInner                     ; force RULE if on title screen
 		rts
@@ -2098,7 +2097,7 @@ RedrawSockTimer:
 @write_it:
 		sta WRAM_AreaSockTimer
 		sta vramBuffer+3,x
-		lda #0
+		lda #$ff
 		sta vramBuffer+4,x
 		inx
 		inx

@@ -4,10 +4,13 @@ A collection of speedrun practice ROMs for Super Mario Bros. (NTSC & PAL), Super
 
 # Required checksums for BPS patches.
 
-- Super Mario Bros. (NTSC): `EA343F4E445A9050D4B4FBAC2C77D0693B1D0922`
-- Super Mario Bros. (PAL): `B4140688F9A5B3434276C5A7394B56022436E57A`
+- Super Mario Bros. (NTSC - NES 2.0 Header): `33D23C2F2CFA4C9EFEC87F7BC1321CE3CE6C89BD`
+- Super Mario Bros. (PAL - NES 2.0 Header): `B4140688F9A5B3434276C5A7394B56022436E57A`
 - Super Mario Bros. 2: `20E50128742162EE47561DB9E82B2836399C880C`
 - All Night Nippon Super Mario Bros.: `F30BDD3C556604D7EAA6D0F4864D5566E519B5D4`
+
+### Please note that ROMs with an iNES header will produce a different checksum than expected, but will still function correctly when patched.
+
 # Features
 ## All Games
 - Custom status bar with additional information

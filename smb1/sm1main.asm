@@ -4768,7 +4768,7 @@ StatusBarNybbles:
 GiveOneCoin:
       lda #$01               ;set digit modifier to add 1 coin
       sta DigitModifier+5    ;to the current player's coin tally
-      ldx CurrentPlayer      ;get current player on the screen
+      ldx #$00			     ;get current player on the screen
       ldy CoinTallyOffsets,x ;get offset for player's coin tally
       jsr DigitsMathRoutine  ;update the coin tally
       inc CoinTally          ;increment onscreen player's coin amount
@@ -4791,7 +4791,6 @@ AddToScore:
 
 GetSBNybbles:
       lda #$a2                ;get nybbles used to update score and coins
-
 UpdateNumber:
         jsr PrintStatusBarNumbers ;print status bar numbers based on nybbles, whatever they be
         ldx ObjectOffset

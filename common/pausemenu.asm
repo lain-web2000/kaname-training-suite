@@ -3,7 +3,7 @@
 
 CustomRow = WRAM_Temp+$10
 
-.define MENU_ROW_LENGTH 16
+.define MENU_ROW_LENGTH 17
 .define MENU_ROW_COUNT 15
 
 pm_empty_row:
@@ -29,6 +29,11 @@ pm_hero_peach_row:
 pm_coins_row:
 	.byte $24, " COINS      ", $24, $24, $24
 
+pm_1up_on_row:
+	.byte $24, " 1-UP  ON   ", $24, $24, $24
+pm_1up_off_row:
+	.byte $24, " 1-UP  OFF  ", $24, $24, $24
+	
 pm_info_on_row:
 	.byte $24, " INFO  ON   ", $24, $24, $24
 pm_info_off_row:
@@ -125,20 +130,28 @@ _draw_pm_row_4:
 		rts
 
 _draw_pm_row_5:
-		row_render_data $2120, pm_info_on_row
+		row_render_data $2120, pm_1up_on_row
+		lda Hidden1UpFlag
+		bne @1up_on
+		row_render_data $2120, pm_1up_off_row
+	@1up_on:
+		rts
+		
+_draw_pm_row_6:
+		row_render_data $2140, pm_info_on_row
 		lda WRAM_PracticeFlags
 		and #PF_DisablePracticeInfo
 		beq @info_on
-		row_render_data $2120, pm_info_off_row
+		row_render_data $2140, pm_info_off_row
 	@info_on:
 		rts
 
-_draw_pm_row_6:
-		row_render_data $2140, pm_input_on_row
+_draw_pm_row_7:
+		row_render_data $2160, pm_input_on_row
 		lda WRAM_PracticeFlags
 		and #PF_EnableInputDisplay
 		bne @input_on
-		row_render_data $2140, pm_input_off_row
+		row_render_data $2160, pm_input_off_row
 	@input_on:
 		rts
 
@@ -166,7 +179,7 @@ copy_user_row:
 		sta CustomRow+$0A
 		rts
 
-_draw_pm_row_7:
+_draw_pm_row_8:
 		lda WRAM_UserVarA
 		ldx WRAM_UserVarA+1
 @save:
@@ -175,10 +188,10 @@ _draw_pm_row_7:
 		lda #$0A ; A
 		sta $02
 		jsr copy_user_row
-		row_render_data $2160, CustomRow
+		row_render_data $2180, CustomRow
 		rts
 
-_draw_pm_row_8:
+_draw_pm_row_9:
 		lda WRAM_UserVarB
 		ldx WRAM_UserVarB+1
 @save:
@@ -187,41 +200,41 @@ _draw_pm_row_8:
 		lda #$0B ; B
 		sta $02
 		jsr copy_user_row
-		row_render_data $2180, CustomRow
-		rts
-
-_draw_pm_row_9:
-		row_render_data $23D8, pm_attr_data
-		inc $07
-		jsr draw_prepared_row
-		row_render_data $21A0, pm_star_row
+		row_render_data $21A0, CustomRow
 		rts
 
 _draw_pm_row_10:
-		row_render_data $21C0, pm_restart_row
+		row_render_data $23D8, pm_attr_data
+		inc $07
+		jsr draw_prepared_row
+		row_render_data $21C0, pm_star_row
 		rts
 
 _draw_pm_row_11:
-		row_render_data $23E0, pm_attr_data
-		inc $07
-		jsr draw_prepared_row
-		row_render_data $21E0, pm_save_row
+		row_render_data $21E0, pm_restart_row
 		rts
 
 _draw_pm_row_12:
-		row_render_data $2200, pm_load_row
+		row_render_data $23E0, pm_attr_data
+		inc $07
+		jsr draw_prepared_row
+		row_render_data $2200, pm_save_row
 		rts
 
 _draw_pm_row_13:
-		row_render_data $2220, pm_title_row
+		row_render_data $2220, pm_load_row
 		rts
 
 _draw_pm_row_14:
-		row_render_data $2240, pm_intro_row
+		row_render_data $2240, pm_title_row
 		rts
 
 _draw_pm_row_15:
-		row_render_data $2260, pm_empty_row
+		row_render_data $2260, pm_intro_row
+		rts
+
+_draw_pm_row_16:
+		row_render_data $2280, pm_empty_row
 		rts
 
 
@@ -242,6 +255,7 @@ pm_row_initializers:
 		.word _draw_pm_row_13
 		.word _draw_pm_row_14
 		.word _draw_pm_row_15
+		.word _draw_pm_row_16
 
 prepare_draw_row:
 		asl ; *=2
@@ -459,6 +473,13 @@ pm_low_coins:
 @exit:
 		rts
 
+pm_toggle_1up:
+		lda Hidden1UpFlag
+		eor #1
+		sta Hidden1UpFlag
+exit:
+		rts
+		
 pm_toggle_info:
 		lda WRAM_PracticeFlags
 		eor #PF_DisablePracticeInfo
@@ -606,6 +627,7 @@ pm_activation_slots:
 		.word pm_toggle_size
 		.word pm_toggle_hero
 		.word pm_low_coins
+		.word pm_toggle_1up
 		.word pm_toggle_info
 		.word pm_toggle_input
 		.word pm_low_user ; user

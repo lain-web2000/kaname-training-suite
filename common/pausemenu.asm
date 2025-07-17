@@ -833,10 +833,10 @@ RunPauseMenu:
 		bne @chk_uservar
 		jmp do_coins_input
 @chk_uservar:
-		cpx #6
+		cpx #7
 		bcc @doneso
-		cpx #8
-		bcs @doneso ;6-7
+		cpx #9
+		bcs @doneso ;7-8
 		jmp do_uservar_input
 @doneso:
 		rts

@@ -7,8 +7,6 @@ WRAM_Magic:
 
 WRAM_MenuIndex:
 	.byte $00
-WRAM_PracticeFlags:
-	.byte $00
 WRAM_SelectedSlot:
 	.byte $00
 WRAM_AdvRNG:
@@ -45,6 +43,8 @@ WRAM_IRQUpdateFlag:
 	.byte $00
 
 WRAM_ToSaveFile:
+WRAM_PracticeFlags:
+	.byte $00
 WRAM_LoadedLevel:
 	.byte $00
 WRAM_LoadedWorld:
@@ -70,7 +70,7 @@ WRAM_EntrySockTimer:
 WRAM_AreaSockTimer:
 	.byte $00
 WRAM_AreaFramerule:
-	.dword 0, 0, 0, 0
+	.res $04, $00
 WRAM_CoinTally:
 	.byte $00
 WRAM_CoinDisplay:
@@ -79,6 +79,8 @@ WRAM_LevelRandomData:
 	.res $07, $00
 WRAM_LevelFrameRuleData:
 	.res $04, $00
+WRAM_ToSaveFile_End:
+
 WRAM_EnemyData:
 	.res $100, $00
 WRAM_LevelData:
@@ -219,9 +221,6 @@ WRAM_SaveNT:
 
 WRAM_SavePAL:
 		.res $20, $00
-
-WRAM_StoredInputs:
-        .res $0b, $00
 		
 BANK_SELECTED:
 		.byte $00

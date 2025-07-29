@@ -1526,7 +1526,7 @@ LoadState:
 		sta GamePauseStatus
 		rts
 @do_loadstate:
-		ldx #$7F
+		ldx #(WRAM_ToSaveFile_End - WRAM_ToSaveFile)-1
 @save_wram:
 		lda WRAM_SaveWRAM, x
 		sta WRAM_ToSaveFile, x
@@ -1539,18 +1539,18 @@ LoadState:
 		inx
 		bne @save_level
 
-		lda OperMode
-		cmp WRAM_SaveRAM+OperMode
-		bne @restore_pal
-		lda OperMode_Task
-		cmp WRAM_SaveRAM+OperMode_Task
-		bne @restore_pal
-		lda CurrentPlayer
-		cmp WRAM_SaveRAM+CurrentPlayer
-		bne @restore_pal
-		lda AreaType
-		cmp WRAM_SaveRAM+AreaType
-		beq @copy_ram
+		;lda OperMode
+		;cmp WRAM_SaveRAM+OperMode
+		;bne @restore_pal
+		;lda OperMode_Task
+		;cmp WRAM_SaveRAM+OperMode_Task
+		;bne @restore_pal
+		;lda CurrentPlayer
+		;cmp WRAM_SaveRAM+CurrentPlayer
+		;bne @restore_pal
+		;lda AreaType
+		;cmp WRAM_SaveRAM+AreaType
+		;beq @copy_ram
 @restore_pal:
 		lda PPU_STATUS
 		lda #$3F
@@ -1623,9 +1623,9 @@ LoadState:
 		lda GamePauseStatus
 		ora #2
 		sta GamePauseStatus
-		lda WRAM_PracticeFlags
-		and #PF_LoadState^$FF
-		sta WRAM_PracticeFlags
+		;lda WRAM_PracticeFlags
+		;and #PF_LoadState^$FF
+		;sta WRAM_PracticeFlags
 		lda #0
 		sta DisableScreenFlag
 .ifndef ORG
@@ -1650,6 +1650,9 @@ SaveState:
 		sta GamePauseStatus
 		rts
 @do_savestate:
+        lda WRAM_PracticeFlags
+		and #PF_SaveState^$FF
+		sta WRAM_PracticeFlags
 		lda PPU_STATUS
 		lda #$3F
 		sta PPU_ADDRESS
@@ -1666,7 +1669,7 @@ SaveState:
 		dey
 		bne @copy_pal
 
-		ldx #$7F
+		ldx #(WRAM_ToSaveFile_End - WRAM_ToSaveFile)-1
 @save_wram:
 		lda WRAM_ToSaveFile, x
 		sta WRAM_SaveWRAM, x
@@ -1736,9 +1739,6 @@ SaveState:
 		lda GamePauseStatus
 		ora #2
 		sta GamePauseStatus
-		lda WRAM_PracticeFlags
-		and #PF_SaveState^$FF
-		sta WRAM_PracticeFlags
 		lda #0
 		sta DisableScreenFlag
 .ifndef ORG

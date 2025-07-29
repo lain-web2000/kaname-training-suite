@@ -13339,7 +13339,11 @@ PosJSpr:   lda Jumpspring_FixedYPos,x  ;get permanent vertical position
            beq BounceJS                ;skip to next part if A not pressed
            and PreviousA_B_Buttons     ;check for A button pressed in previous frame
            bne BounceJS                ;skip to next part if so
+		   tya
+		   pha
 		   jsr Enter_RedrawFrameNumbers
+		   pla
+		   tay
 .ifndef PAL
            lda #$f4
 .else

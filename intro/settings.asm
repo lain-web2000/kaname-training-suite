@@ -97,7 +97,10 @@ draw_buttons:
 		bcc @no_up
 		add_button 'U'
 @no_up:
-		ror ; fuck start
+		ror
+		bcc @no_start
+		add_button 'T'
+@no_start:
 		ror
 		bcc @no_select
 		add_button 'S'
@@ -657,7 +660,6 @@ recordbuttons_input:
 		sty RECORD_BUTTONS
 		sty SETTINGS_ATTR
 		lda SavedJoypadBits
-		and #(Start_Button^$ff)
 		sta ($00), Y
 		rts
 @normalinput:

@@ -5394,6 +5394,7 @@ PosJSpr:   lda Jumpspring_FixedYPos,x  ;get permanent vertical position
            bne BounceJS                ;skip to next part if so
            tya
            pha
+		   jsr Enter_RedrawFrameNumbers
            lda #$f4                    ;set jumpspring force for red jumpsprings
 .ifdef ANN
            ldy HardWorldFlag

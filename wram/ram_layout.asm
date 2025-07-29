@@ -3,7 +3,7 @@
 
 WRAM_StartAddress:
 WRAM_Magic:
-	.res $09, $00
+	.res $0a, $00
 
 WRAM_MenuIndex:
 	.byte $00
@@ -215,7 +215,9 @@ WRAM_SaveWRAM:
 		.res $80, $00
 WRAM_SaveLevel:
 		.res $100, $00
-
+WRAM_SaveEnemy:
+		.res $100, $00
+		
 WRAM_SaveNT:
 		.res $800, $00
 

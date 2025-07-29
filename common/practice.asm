@@ -1407,18 +1407,26 @@ PracticeOnFrameInner:
 		beq @pause_things
 		cmp LastInputBits
 		beq @pause_things
+		tax ;evasion
+		and WRAM_SaveButtons
 		cmp WRAM_SaveButtons
 		bne @no_begin_save
 		jmp begin_save
 @no_begin_save:
+		txa
+		and WRAM_LoadButtons
 		cmp WRAM_LoadButtons
 		bne @no_begin_load
 		jmp begin_load
 @no_begin_load:
+		txa
+		and WRAM_RestartButtons
 		cmp WRAM_RestartButtons
 		bne @no_restart_level
 		jmp RequestRestartLevel
 @no_restart_level:
+		txa
+		and WRAM_TitleButtons
 		cmp WRAM_TitleButtons
 		bne @pause_things
 		lda BANK_SELECTED
@@ -1527,17 +1535,22 @@ LoadState:
 		rts
 @do_loadstate:
 		ldx #(WRAM_ToSaveFile_End - WRAM_ToSaveFile)-1
-@save_wram:
+@load_wram:
 		lda WRAM_SaveWRAM, x
 		sta WRAM_ToSaveFile, x
 		dex
-		bpl @save_wram
+		bpl @load_wram
 		ldx #0
-@save_level:
+@load_level:
 		lda WRAM_SaveLevel, x
 		sta WRAM_LevelData, x
 		inx
-		bne @save_level
+		bne @load_level
+@load_enemy:
+		lda WRAM_SaveEnemy, x
+		sta WRAM_EnemyData, x
+		inx
+		bne @load_enemy
 
 		;lda OperMode
 		;cmp WRAM_SaveRAM+OperMode
@@ -1681,6 +1694,11 @@ SaveState:
 		sta WRAM_SaveLevel, x
 		inx
 		bne @save_level
+@save_enemy:
+		lda WRAM_EnemyData, x
+		sta WRAM_SaveEnemy, x
+		inx
+		bne @save_enemy
 @copy_ram:
 		lda $000, x
 		sta WRAM_SaveRAM, x
@@ -2108,15 +2126,15 @@ RedrawSockTimer:
 
 MagicalBytes:
 .ifdef ORG
-		.byte $6D, $61, $64, $6F, $70, $6C, $75, $73, $68 ;madoplush
+		.byte $6D, $61, $64, $6F, $70, $6C, $75, $73, $68, $99 ;madoplush
 .elseif .defined(LOST)
-		.byte $73, $61, $79, $61, $70, $6C, $75, $73, $68 ;sayaplush
+		.byte $73, $61, $79, $61, $70, $6C, $75, $73, $68, $99 ;sayaplush
 .else
-		.byte $6B, $79, $6F, $75, $70, $6C, $75, $73, $68 ;kyouplush
+		.byte $6B, $79, $6F, $75, $70, $6C, $75, $73, $68, $99 ;kyouplush
 .endif
 
 ValidWRAMMagic:
-		ldx #$09
+		ldx #$0a
 @WRAMLoop:
 		lda WRAM_Magic-1,x
 		cmp MagicalBytes-1,x
@@ -2141,7 +2159,7 @@ SetDefaultWRAM:
 		lda MagicalBytes,x
 		sta WRAM_Magic,x
 		inx
-		cpx #$09
+		cpx #$0a
 		bcc @WRAMLoop	
 		lda #<Player_Rel_XPos
 		sta WRAM_UserVarA

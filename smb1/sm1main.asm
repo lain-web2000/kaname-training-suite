@@ -4187,6 +4187,7 @@ ProcFireball_Bubble:
       sty FireballThrowingTimer  ;into fireball throwing timer
       dey
       sty PlayerAnimTimer        ;decrement and store in player's animation timer
+	  jsr Enter_RedrawFrameNumbers
       inc FireballCounter        ;increment fireball counter
 
 ProcFireballs:

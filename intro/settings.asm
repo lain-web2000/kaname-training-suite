@@ -59,16 +59,21 @@ SETTINGS_MENU_PPU = $1FF3
 		.local @is_set
 		cmp #0
 		bne @is_set
+		pla
+		pla
 		draw_simple_at at, "UNBOUND"
 @is_set:
-	pha
 		lda PPU_STATUS
 		lda #>(SETTINGS_MENU_PPU + (at * $20))
 		sta PPU_ADDRESS
 		lda #<(SETTINGS_MENU_PPU + (at * $20))
 		sta PPU_ADDRESS
-	pla
-		jmp draw_buttons
+		pla
+	ldy SNES_Pad
+	bne @Draw_SNES
+	jmp draw_buttons
+@Draw_SNES:
+	jmp draw_buttons_snes
 .endmacro
 
 .macro add_button v
@@ -80,6 +85,48 @@ SETTINGS_MENU_PPU = $1FF3
 .endmacro
 
 draw_buttons:
+		ldx #0
+		lsr
+		bcc @no_right
+		add_button 'R'
+@no_right:
+		lsr
+		bcc @no_left
+		add_button 'L'
+@no_left:
+		lsr 
+		bcc @no_down
+		add_button 'D'
+@no_down:
+		lsr
+		bcc @no_up
+		add_button 'U'
+@no_up:
+		lsr
+		bcc @no_start
+		add_button 'T'
+@no_start:
+		lsr
+		bcc @no_select
+		add_button 'S'
+@no_select:
+		lsr
+		bcc @no_b
+		add_button 'B'
+@no_b:
+		lsr
+		bcc @finalize
+		add_button 'A'
+@finalize:
+		cpx #4
+		bpl @done
+		add_button ' '
+		jmp @finalize
+@done:
+		pla
+		rts
+		
+draw_buttons_snes:
 		ldx #0
 		ror
 		bcc @no_right
@@ -105,13 +152,30 @@ draw_buttons:
 		bcc @no_select
 		add_button 'S'
 @no_select:
-		ror
+		lsr
+		bcc @no_b
+		add_button 'Y'
+@no_y:
+		lsr
 		bcc @no_b
 		add_button 'B'
 @no_b:
-		ror
-		bcc @finalize
+		pla
+		asl
+		bcc @no_a
 		add_button 'A'
+@no_a:
+		asl
+		bcc @no_x
+		add_button 'X'
+@no_x:
+		asl
+		bcc @no_l
+		add_button 'l'
+@no_l:
+		asl
+		bcc @finalize
+		add_button 'r'
 @finalize:
 		cpx #4
 		bpl @done
@@ -119,7 +183,7 @@ draw_buttons:
 		jmp @finalize
 @done:
 		rts
-
+		
 _music_on: draw_simple_at 6, "ON "
 _music_off: draw_simple_at 6, "OFF"
 
@@ -209,7 +273,19 @@ _draw_savedelay_opt:
 .endif
 		
 _draw_button_restart_opt:
+		lda SNES_Pad
+		bne @SNES_Mode
 		lda WRAM_RestartButtons
+		pha
+		pha
+		jmp @draw
+@SNES_Mode:
+		lda WRAM_RestartButtons_SNES+1
+		pha
+		lda WRAM_RestartButtons_SNES
+		pha
+		ora WRAM_RestartButtons_SNES+1
+@draw:
 .ifndef ORG
 		draw_button_opt 12
 .else
@@ -217,7 +293,19 @@ _draw_button_restart_opt:
 .endif
 
 _draw_button_title_opt:
+		lda SNES_Pad
+		bne @SNES_Mode
 		lda WRAM_TitleButtons
+		pha
+		pha
+		jmp @draw
+@SNES_Mode:
+		lda WRAM_TitleButtons_SNES+1
+		pha
+		lda WRAM_TitleButtons_SNES
+		pha
+		ora WRAM_TitleButtons_SNES+1
+@draw:
 .ifndef ORG
 		draw_button_opt 13
 .else
@@ -225,7 +313,19 @@ _draw_button_title_opt:
 .endif
 
 _draw_button_save_opt:
+		lda SNES_Pad
+		bne @SNES_Mode
 		lda WRAM_SaveButtons
+		pha
+		pha
+		jmp @draw
+@SNES_Mode:
+		lda WRAM_SaveButtons_SNES+1
+		pha
+		lda WRAM_SaveButtons_SNES
+		pha
+		ora WRAM_SaveButtons_SNES+1
+@draw:
 .ifndef ORG
 		draw_button_opt 14
 .else
@@ -233,7 +333,19 @@ _draw_button_save_opt:
 .endif
 
 _draw_button_load_opt:
+		lda SNES_Pad
+		bne @SNES_Mode
 		lda WRAM_LoadButtons
+		pha
+		pha
+		jmp @draw
+@SNES_Mode:
+		lda WRAM_LoadButtons_SNES+1
+		pha
+		lda WRAM_LoadButtons_SNES
+		pha
+		ora WRAM_LoadButtons_SNES+1
+@draw:
 .ifndef ORG
 		draw_button_opt 15
 .else
@@ -365,19 +477,43 @@ select_buttons:
 		jmp set_selection_sprites
 
 _select_retry_buttons:
+		lda SNES_Pad
+		bne @SNES
 		lda WRAM_RestartButtons
+		jmp select_buttons
+@SNES:
+		lda WRAM_RestartButtons_SNES
+		ora WRAM_RestartButtons_SNES+1
 		jmp select_buttons
 
 _select_title_buttons:
+		lda SNES_Pad
+		bne @SNES
 		lda WRAM_TitleButtons
+		jmp select_buttons
+@SNES:
+		lda WRAM_TitleButtons_SNES
+		ora WRAM_TitleButtons_SNES+1
 		jmp select_buttons
 
 _select_save_buttons:
+		lda SNES_Pad
+		bne @SNES
 		lda WRAM_SaveButtons
+		jmp select_buttons
+@SNES:
+		lda WRAM_SaveButtons_SNES
+		ora WRAM_SaveButtons_SNES+1
 		jmp select_buttons
 
 _select_load_buttons:
+		lda SNES_Pad
+		bne @SNES
 		lda WRAM_LoadButtons
+		jmp select_buttons
+@SNES:
+		lda WRAM_LoadButtons_SNES
+		ora WRAM_LoadButtons_SNES+1
 		jmp select_buttons
 
 _select_reset_wram:
@@ -679,33 +815,104 @@ recordbuttons_input:
 		sta RECORD_FRAMES
 		rts
 		
+recordbuttons_input_snes:
+		ldx RECORD_BUTTONS
+		beq @normalinput
+		dec RECORD_FRAMES
+		beq @savebuttons
+		lda RECORD_FRAMES
+		and #7
+		bne @nothing
+		lda SETTINGS_ATTR
+		eor #1
+		sta SETTINGS_ATTR
+		rts
+@savebuttons:
+		ldy #0
+		sty RECORD_BUTTONS
+		sty SETTINGS_ATTR
+		lda SavedJoypadBits
+		sta ($00), Y
+		lda SavedJoypadBits+1
+		iny
+		sta ($00), Y
+		rts
+@normalinput:
+		lda SavedJoypadBits
+		cmp #B_Button
+		bne @checka
+		lda #0
+		ldy #0
+		sta ($00), Y
+@nothing:
+		rts
+@checka:
+		cmp #A_Button
+		bne @nothing
+		inc RECORD_BUTTONS
+		lda #120
+		sta RECORD_FRAMES
+		rts
+		
 _retrybuttons_input:
+		lda SNES_Pad
+		bne @SNES_Input
 		lda #<WRAM_RestartButtons
 		sta $00
 		lda #>WRAM_RestartButtons
 		sta $01
 		jmp recordbuttons_input
+@SNES_Input:
+		lda #<WRAM_RestartButtons_SNES
+		sta $00
+		lda #>WRAM_RestartButtons_SNES
+		sta $01
+		jmp recordbuttons_input_snes
 
 _titlebuttons_input:
+		lda SNES_Pad
+		bne @SNES_Input
 		lda #<WRAM_TitleButtons
 		sta $00
 		lda #>WRAM_TitleButtons
 		sta $01
 		jmp recordbuttons_input
+@SNES_Input:
+		lda #<WRAM_TitleButtons_SNES
+		sta $00
+		lda #>WRAM_TitleButtons_SNES
+		sta $01
+		jmp recordbuttons_input_snes
 
 _savebuttons_input:
+		lda SNES_Pad
+		bne @SNES_Input
 		lda #<WRAM_SaveButtons
 		sta $00
 		lda #>WRAM_SaveButtons
 		sta $01
 		jmp recordbuttons_input
+@SNES_Input:
+		lda #<WRAM_SaveButtons_SNES
+		sta $00
+		lda #>WRAM_SaveButtons_SNES
+		sta $01
+		jmp recordbuttons_input_snes
 
 _loadbuttons_input:
+		lda SNES_Pad
+		bne @SNES_Input
 		lda #<WRAM_LoadButtons
 		sta $00
 		lda #>WRAM_LoadButtons
 		sta $01
 		jmp recordbuttons_input
+@SNES_Input:
+		lda #<WRAM_LoadButtons_SNES
+		sta $00
+		lda #>WRAM_LoadButtons_SNES
+		sta $01
+		jmp recordbuttons_input_snes
 
 records_offsets:
 		.byte $00, $03, $07, $0A
@@ -742,7 +949,7 @@ _reset_wram_input:
 		beq @nothing
 		jsr Enter_FactoryResetWRAM
 		pla
-		pla ; Ghetto-attack
+		pla
 		jmp enter_loader
 @nothing:
 		rts

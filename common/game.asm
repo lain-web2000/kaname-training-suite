@@ -5,28 +5,49 @@ ReadJoypads:
 		sta JOYPAD_PORT
 		ldy #$08
 PortLoop:
-	pha
+		pha
 		lda JOYPAD_PORT
 		sta $00                ;check d1 and d0 of port output
 		lsr                    ;this is necessary on the old
 		ora $00                ;famicom systems in japan
 		lsr
-	pla
+		pla
 		rol                    ;rotate bit from carry flag
 		dey
 		bne PortLoop           ;count down bits left
 		sta SavedJoypadBits
-	pha
+		pha
 		and #%00110000
 		and JoypadBitMask
 		beq Save8Bits
-	pla
+		pla
 		and #%11001111
 		sta SavedJoypadBits
-		rts
+		jmp ANewBitOfCode
 Save8Bits:
-	pla
+		pla
 		sta JoypadBitMask
+ANewBitOfCode:
+		lda SNES_Pad
+		beq @exit
+		ldy #$04
+@SNES_PortLoop:
+		pha
+		lda JOYPAD_PORT
+		sta $00                ;check d1 and d0 of port output
+		lsr                    ;this is necessary on the old
+		ora $00                ;famicom systems in japan
+		lsr
+		pla
+		rol                    ;rotate bit from carry flag
+		dey
+		bne @SNES_PortLoop           ;count down bits left
+		asl
+		asl
+		asl
+		asl
+		sta SavedJoypadBits+1	
+@exit:
 		rts
 
 

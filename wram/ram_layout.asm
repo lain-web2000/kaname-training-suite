@@ -4,7 +4,8 @@
 WRAM_StartAddress:
 WRAM_Magic:
 	.res $0a, $00
-
+SNES_Pad:
+	.byte $00
 WRAM_MenuIndex:
 	.byte $00
 WRAM_SelectedSlot:
@@ -31,6 +32,7 @@ WRAM_DisableMusic:
 	.byte $00
 WRAM_DisableSound:
 	.byte $00
+	
 WRAM_SaveButtons:
 	.byte $00
 WRAM_LoadButtons:
@@ -39,6 +41,16 @@ WRAM_TitleButtons:
 	.byte $00
 WRAM_RestartButtons:
 	.byte $00
+	
+WRAM_SaveButtons_SNES:
+	.byte $00, $00
+WRAM_LoadButtons_SNES:
+	.byte $00, $00
+WRAM_TitleButtons_SNES:
+	.byte $00, $00
+WRAM_RestartButtons_SNES:
+	.byte $00, $00
+
 WRAM_IRQUpdateFlag:
 	.byte $00
 

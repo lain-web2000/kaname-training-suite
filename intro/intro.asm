@@ -71,6 +71,8 @@ HEART_SPRITE = $18
 Start:
 .endif
 Start_I:
+		lda #$c0
+		sta JOYPAD_PORT+1
 		lda #$00
 		sta MirrorPPUCTRL
 		sta PPU_CTRL_REG1
@@ -159,7 +161,19 @@ NoCredits:
 		bne @No_InputLog
 		lda #BANK_CHR
 		jsr StartBank
-@No_InputLog:		
+@No_InputLog:
+		lda JOYPAD_PORT
+		lsr
+		bcc @NES_Controller
+		lda SavedJoypadBits+1
+		and #$0f
+		bne @NES_Controller
+		lda #$01
+		bne @SNES_Controller
+@NES_Controller:
+		lda #$00
+@SNES_Controller:
+		sta SNES_Pad
 		jsr enter_loader
 		
 		ldx #$00
@@ -380,6 +394,10 @@ ReadJoypads:
 		sta JOYPAD_PORT
 		lsr
 		sta JOYPAD_PORT
+		ldx #$00
+		jsr SNESThingy
+		inx
+SNESThingy:
 		ldy #$08
 PortLoop:
 		pha
@@ -392,7 +410,7 @@ PortLoop:
 		rol
 		dey
 		bne PortLoop
-		sta SavedJoypadBits
+		sta SavedJoypadBits, x
 		rts
 
 get_random:
@@ -436,7 +454,7 @@ enter_loader:
 		sta SEL_INDEX
 		sta LDR_MODE
 		tax
-		jsr sml_export_init
+		;jsr sml_export_init
 		;
 		; Install nametable
 		;
@@ -485,7 +503,7 @@ next_palette_entry:
 			lda #BANK_ORG
 			jmp StartBank
 	@wait_more:
-			jsr fax_update
+			;jsr fax_update
 			rti
 .endif
 NonMaskableInterrupt:
@@ -542,7 +560,7 @@ dont_update_cursor:
 		;
 		lda WRAM_DisableMusic
 		bne @disabled
-		jsr sml_export_play
+		;jsr sml_export_play
 @disabled:
 		lda SavedJoypadBits
 		cmp LAST_INPUT
@@ -573,7 +591,7 @@ dont_update_cursor:
 .endif
 		ldx #0
 		lda #41
-		jsr fax_load_song
+		;jsr fax_load_song
 		jmp exit_nmi
 @resetcode:
 .ifdef ORG

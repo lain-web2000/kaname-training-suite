@@ -1374,7 +1374,9 @@ begin_load:
 		sta SND_MASTERCTRL_REG
 @invalid_save:
 		rts
-
+pause_things_stub:
+		jmp pause_things
+		
 run_save_load:
 		and #PF_SaveState
 		beq @load_state
@@ -1397,16 +1399,65 @@ PracticeOnFrameInner:
 .else
 		jsr LL_SoundEngine
 .endif
+
 @read_keypads:
 		lda SavedJoypad1Bits
+		ora SavedJoypadBits+1
 		ora JoypadBitMask
 		sta LastInputBits
 		jsr ReadJoypads
 		lda JoypadBitMask
 		ora SavedJoypadBits
-		beq @pause_things
+		ora SavedJoypadBits+1
+		beq pause_things_stub
 		cmp LastInputBits
-		beq @pause_things
+		beq pause_things_stub
+		ldy SNES_Pad
+		beq NES_Controller
+		tax ;evasion
+		lda SavedJoypadBits+1
+		tay
+		txa
+		and WRAM_SaveButtons_SNES
+		cmp WRAM_SaveButtons_SNES
+		bne @no_begin_save
+		tya
+		and WRAM_SaveButtons_SNES+1
+		cmp WRAM_SaveButtons_SNES+1
+		bne @no_begin_save
+		jmp begin_save
+@no_begin_save:
+		txa
+		and WRAM_LoadButtons_SNES
+		cmp WRAM_LoadButtons_SNES
+		bne @no_begin_load
+		tya
+		and WRAM_LoadButtons_SNES+1
+		cmp WRAM_LoadButtons_SNES+1
+		bne @no_begin_load
+		jmp begin_load
+@no_begin_load:
+		txa
+		and WRAM_RestartButtons_SNES
+		cmp WRAM_RestartButtons_SNES
+		bne @no_restart_level
+		tya
+		and WRAM_RestartButtons_SNES+1
+		cmp WRAM_RestartButtons_SNES+1
+		bne @no_restart_level
+		jmp RequestRestartLevel
+@no_restart_level:
+		txa
+		and WRAM_TitleButtons_SNES
+		cmp WRAM_TitleButtons_SNES
+		bne pause_things
+		tya
+		and WRAM_TitleButtons_SNES+1
+		cmp WRAM_TitleButtons_SNES+1
+		bne pause_things
+		lda BANK_SELECTED
+		jmp StartBank		
+NES_Controller:
 		tax ;evasion
 		and WRAM_SaveButtons
 		cmp WRAM_SaveButtons
@@ -1428,10 +1479,10 @@ PracticeOnFrameInner:
 		txa
 		and WRAM_TitleButtons
 		cmp WRAM_TitleButtons
-		bne @pause_things
+		bne pause_things
 		lda BANK_SELECTED
 		jmp StartBank
-@pause_things:
+pause_things:
 		lda OperMode
 		cmp #VictoryModeValue
 		beq @check_pause
@@ -2178,18 +2229,34 @@ SetDefaultWRAM:
 
 		lda #RESTART_LEVEL_BUTTONS
 		sta WRAM_RestartButtons
+		sta WRAM_RestartButtons_SNES
 		lda #RESTART_GAME_BUTTONS
 		sta WRAM_TitleButtons
+		sta WRAM_TitleButtons_SNES
 		lda #SAVE_STATE_BUTTONS
 		sta WRAM_SaveButtons
+		sta WRAM_SaveButtons_SNES
 		lda #LOAD_STATE_BUTTONS
 		sta WRAM_LoadButtons
+		sta WRAM_LoadButtons_SNES
 		
 		lda #PF_EnableInputDisplay
 		sta WRAM_PracticeFlags
 		;
 		; TODO : Sane init values
 		;
+		lda JOYPAD_PORT
+		lsr
+		bcc @NES_Controller
+		lda SavedJoypadBits+1
+		and #$0f
+		bne @NES_Controller
+		lda #$01
+		bne @SNES_Controller
+@NES_Controller:
+		lda #$00
+@SNES_Controller:
+		sta SNES_Pad
 		jmp ReturnBank
 
 FactoryResetWRAM:

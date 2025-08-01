@@ -393,7 +393,7 @@ Attributes:
 AttributesEnd:
 
 ;-----------------------------------------------------------------
-
+	
 .include "chr/chrramlayout.asm"
 
 CHRSourceAddress:

@@ -1401,10 +1401,10 @@ PracticeOnFrameInner:
 .endif
 
 @read_keypads:
-;		lda SavedJoypad1Bits
+		lda SavedJoypad1Bits
 ;		ora SavedJoypadBits+1
-;		ora JoypadBitMask
-;		sta LastInputBits
+		ora JoypadBitMask
+		sta LastInputBits
 		jsr ReadJoypads
 		lda JoypadBitMask
 		ora SavedJoypadBits

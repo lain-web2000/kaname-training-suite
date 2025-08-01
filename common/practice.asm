@@ -1895,6 +1895,17 @@ UpdateStatusInput:
     cpy #$0b
     bcc @WriteStatusInput
     stx vramBufferOffset_Prac
+	lda SNES_Pad
+	beq @NES_Pad
+	dex
+	dex
+	dex
+	lda #$22
+	sta vramBuffer,x
+	inx
+	lda #$0b
+	sta vramBuffer,x
+@NES_Pad:
     ldx $00
 @UpInp:
 	lda JoypadBitMask

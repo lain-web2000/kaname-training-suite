@@ -1417,6 +1417,9 @@ PracticeOnFrameInner:
 		tax ;evasion
 		lda SavedJoypadBits+1
 		tay
+		lda WRAM_SaveButtons_SNES
+		ora WRAM_SaveButtons_SNES+1
+		beq @no_begin_save
 		txa
 		and WRAM_SaveButtons_SNES
 		cmp WRAM_SaveButtons_SNES
@@ -1427,6 +1430,9 @@ PracticeOnFrameInner:
 		bne @no_begin_save
 		jmp begin_save
 @no_begin_save:
+		lda WRAM_LoadButtons_SNES
+		ora WRAM_LoadButtons_SNES+1
+		beq @no_begin_load
 		txa
 		and WRAM_LoadButtons_SNES
 		cmp WRAM_LoadButtons_SNES
@@ -1437,6 +1443,9 @@ PracticeOnFrameInner:
 		bne @no_begin_load
 		jmp begin_load
 @no_begin_load:
+		lda WRAM_RestartButtons_SNES
+		ora WRAM_RestartButtons_SNES+1
+		beq @no_restart_level
 		txa
 		and WRAM_RestartButtons_SNES
 		cmp WRAM_RestartButtons_SNES
@@ -1447,6 +1456,9 @@ PracticeOnFrameInner:
 		bne @no_restart_level
 		jmp RequestRestartLevel
 @no_restart_level:
+		lda WRAM_TitleButtons_SNES
+		ora WRAM_TitleButtons_SNES+1
+		beq pause_things
 		txa
 		and WRAM_TitleButtons_SNES
 		cmp WRAM_TitleButtons_SNES
@@ -1458,24 +1470,32 @@ PracticeOnFrameInner:
 		lda BANK_SELECTED
 		jmp StartBank		
 NES_Controller:
+		lda WRAM_SaveButtons
+		beq @no_begin_save
 		tax ;evasion
 		and WRAM_SaveButtons
 		cmp WRAM_SaveButtons
 		bne @no_begin_save
 		jmp begin_save
 @no_begin_save:
+		lda WRAM_LoadButtons
+		beq @no_begin_load
 		txa
 		and WRAM_LoadButtons
 		cmp WRAM_LoadButtons
 		bne @no_begin_load
 		jmp begin_load
 @no_begin_load:
+		lda WRAM_RestartButtons
+		beq @no_restart_level
 		txa
 		and WRAM_RestartButtons
 		cmp WRAM_RestartButtons
 		bne @no_restart_level
 		jmp RequestRestartLevel
 @no_restart_level:
+		lda WRAM_TitleButtons
+		beq pause_things
 		txa
 		and WRAM_TitleButtons
 		cmp WRAM_TitleButtons

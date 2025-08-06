@@ -1414,9 +1414,8 @@ PracticeOnFrameInner:
 ;		beq pause_things_stub
 		ldy SNES_Pad
 		beq NES_Controller
-		tax ;evasion
-		lda SavedJoypadBits+1
-		tay
+		ldy SavedJoypadBits+1
+		ldx SavedJoypadBits
 		lda WRAM_SaveButtons_SNES
 		ora WRAM_SaveButtons_SNES+1
 		beq @no_begin_save

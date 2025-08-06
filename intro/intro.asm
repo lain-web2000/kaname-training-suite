@@ -152,12 +152,14 @@ load_chr:
 		lda FCEUX_Fail
 		bne WarningScreen
 		jsr ReadJoypads
+		lda SavedJoypadBits
 		cmp #Start_Button+Select_Button
 		bne NoCredits
 WarningScreen:
 		jmp PracticeCredits
 NoCredits:
 		jsr ReadJoypads
+		lda SavedJoypadBits
 		cmp #A_Button+B_Button
 		bne @No_InputLog
 		lda #BANK_CHR
@@ -344,6 +346,7 @@ load_warning:
 			sta PPU_CTRL_REG2
 @wait_for_input:
 			jsr ReadJoypads
+			lda SavedJoypadBits
 			cmp #Start_Button
 			bne @wait_for_input
 			jmp NoCredits

@@ -29,6 +29,7 @@ A collection of speedrun practice ROMs for Super Mario Bros. (NTSC & PAL), Super
     - Set power-up state and player size, with selections also applying to quick restart.
 	- Switch between Mario and Luigi.
     - Set current coin count, primarily useful for practicing firework avoidance in SMB2 and ANNSMB.
+    - Enable or disable the hidden 1-Up Mushroom.
     - Enable or disable practice information. 
     - Enable or disable the input display.
     - Set the two user-defined addresses to desired internal RAM values.

@@ -1277,6 +1277,15 @@ PracticeTitleMenu:
 		lda JoypadBitMask
 		ora SavedJoypadBits
 		beq nuke_timer
+.ifndef ORG
+		cmp #A_Button+Start_Button
+		bne @no_bypass
+		lda #$09
+		sta WorldNumber
+		inc OperMode_Task
+		jmp ReturnBank
+.endif
+@no_bypass:
 		ldx SelectTimer
 		bne @dec_timer
 		ldx #32

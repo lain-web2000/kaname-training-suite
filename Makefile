@@ -60,10 +60,10 @@ wram/full.bin $(OUT)/ram_layout.map: wram/ram_layout.asm
 $(OUT)/ines-p.o: $(INCS-2) common/ines.asm
 	$(AS) $(AFLAGS) -l $(OUT)/ines-p.map -D PAL=1 common/ines.asm -o $@
 
-$(OUT)/intro-o.o: $(INCS-1) intro/intro.asm intro/faxsound.asm intro/intro.inc intro/smlsound.asm intro/nt.asm intro/settings.asm
+$(OUT)/intro-o.o: $(INCS-1) intro/intro.asm intro/famistudio_ca65.s intro/intro.inc  intro/nt.asm intro/settings.asm
 	$(AS) $(AFLAGS) -l $(OUT)/intro-o.map -D ORG=1 intro/intro.asm -o $@
 
-$(OUT)/intro-p.o: $(INCS-1) intro/intro.asm intro/faxsound.asm intro/intro.inc intro/smlsound.asm intro/nt.asm intro/settings.asm
+$(OUT)/intro-p.o: $(INCS-1) intro/intro.asm intro/famistudio_ca65.s intro/intro.inc  intro/nt.asm intro/settings.asm
 	$(AS) $(AFLAGS) -l $(OUT)/intro-p.map -D ORG=1 -D PAL=1 intro/intro.asm -o $@
 
 $(OUT)/sm1main.o: $(INCS-1) smb1/sm1main.asm
@@ -115,7 +115,7 @@ smb1-pal.nes: $(OBJECTS-P)
 $(OUT)/ines.o: $(INCS-2) common/ines.asm
 	$(AS) $(AFLAGS) -l $(OUT)/ines.map common/ines.asm -o $@
 
-$(OUT)/intro-l.o: $(INCS-2) intro/intro.asm intro/faxsound.asm intro/intro.inc intro/smlsound.asm intro/nt.asm intro/settings.asm
+$(OUT)/intro-l.o: $(INCS-2) intro/intro.asm intro/famistudio_ca65.s intro/intro.inc  intro/nt.asm intro/settings.asm
 	$(AS) $(AFLAGS) -l $(OUT)/intro-l.map -D LOST=1 intro/intro.asm -o $@
 
 $(OUT)/sm2main.o: $(INCS-2) $(WRAM) smb2/sm2main.asm
@@ -144,7 +144,7 @@ smb2.nes: $(OBJECTS-L)
 
 #-----------------------------------------------------------------------------------------------------------------------------------
 
-$(OUT)/intro-n.o: $(INCS-2) intro/intro.asm intro/faxsound.asm intro/intro.inc intro/smlsound.asm intro/nt.asm intro/settings.asm
+$(OUT)/intro-n.o: $(INCS-2) intro/intro.asm intro/famistudio_ca65.s intro/intro.inc  intro/nt.asm intro/settings.asm
 	$(AS) $(AFLAGS) -l $(OUT)/intro-n.map -D ANN=1 intro/intro.asm -o $@
 
 $(OUT)/nsmmain.o: $(INCS-2) $(WRAM) smb2/sm2main.asm

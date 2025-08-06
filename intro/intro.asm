@@ -61,6 +61,7 @@ HEART_SPRITE = $18
 	.include "text.inc"
 
 	.include "intro.inc"
+	.include "famistudio.inc"
 
 	.org $8000
 	.segment "bank1"
@@ -450,11 +451,14 @@ enter_loader:
 		jsr screen_off
 		lda #SEL_START_Y
 		sta CursorY
-		lda #0 ; for sml_export_init
+		lda #0 ; for famistudio_init
 		sta SEL_INDEX
 		sta LDR_MODE
-		tax
-		;jsr sml_export_init
+		ldy #>music_data_
+		ldx #<music_data_
+		jsr famistudio_init
+		lda #0
+		jsr famistudio_music_play
 		;
 		; Install nametable
 		;
@@ -560,7 +564,7 @@ dont_update_cursor:
 		;
 		lda WRAM_DisableMusic
 		bne @disabled
-		;jsr sml_export_play
+		jsr famistudio_update
 @disabled:
 		lda SavedJoypadBits
 		cmp LAST_INPUT
@@ -646,6 +650,8 @@ dont_update_cursor:
 		lda #$00
 @start_game:
 		sta WRAM_AdvRNG
+		jsr famistudio_music_stop ; halt music
+		jsr famistudio_update
 		lda bank_table, x
 		jmp StartBank
 @settings:
@@ -749,7 +755,7 @@ bank_table:
 .endif
 		
 	.include "settings.asm"
-	.include "smlsound.asm"
-	.include "faxsound.asm"
+	.include "famistudio_ca65.s"
+	.include "star_maze.s"
 
 	.res $C000 - *, $FF

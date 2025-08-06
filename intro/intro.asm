@@ -510,7 +510,7 @@ next_palette_entry:
 			lda #BANK_ORG
 			jmp StartBank
 	@wait_more:
-			;jsr fax_update
+			jsr famistudio_update
 			rti
 .endif
 NonMaskableInterrupt:
@@ -593,12 +593,16 @@ dont_update_cursor:
 		ldx SEL_INDEX
 		bne @resetcode
 .ifdef ORG
-		ldx #$4F
+		ldx #45
 		stx ContraSoundFrames
 .endif
+		jsr famistudio_music_stop
+		ldy #>sounds
+		ldx #<sounds
+		jsr famistudio_sfx_init
 		ldx #0
-		lda #41
-		;jsr fax_load_song
+		txa
+		jsr famistudio_sfx_play
 		jmp exit_nmi
 @resetcode:
 .ifdef ORG
@@ -760,5 +764,6 @@ bank_table:
 	.include "settings.asm"
 	.include "famistudio_ca65.s"
 	.include "star_maze.s"
+	.include "konami_pause.s"
 
 	.res $C000 - *, $FF

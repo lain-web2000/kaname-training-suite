@@ -1338,22 +1338,16 @@ begin_save:
 		inc DisableScreenFlag
 		lda WRAM_DelaySaveFrames
 		sta SaveFramesLeft
-.ifndef ORG 						;SMB1 uses a sprite 0 hit for status bar split.
+.ifndef ORG
 		lda IRQUpdateFlag
-		sta WRAM_IRQUpdateFlag
-.endif
-
-.ifdef PAL
+.else
 		lda Sprite0HitDetectFlag
-		sta WRAM_IRQUpdateFlag
 .endif
-
+		sta WRAM_IRQUpdateFlag
 		lda #0
 .ifndef ORG 
 		sta IRQUpdateFlag
-.endif
-
-.ifdef PAL
+.else
 		sta Sprite0HitDetectFlag
 .endif
 		sta SND_MASTERCTRL_REG
@@ -1375,9 +1369,7 @@ begin_load:
 		lda #$00
 .ifndef ORG
 		sta IRQUpdateFlag
-.endif
-
-.ifdef PAL
+.else
 		sta Sprite0HitDetectFlag
 .endif
 		sta SND_MASTERCTRL_REG
@@ -1721,13 +1713,10 @@ LoadState:
 		;sta WRAM_PracticeFlags
 		lda #0
 		sta DisableScreenFlag
+		lda WRAM_IRQUpdateFlag
 .ifndef ORG
-		lda WRAM_IRQUpdateFlag
 		sta IRQUpdateFlag
-.endif
-
-.ifdef PAL
-		lda WRAM_IRQUpdateFlag
+.else
 		sta Sprite0HitDetectFlag
 .endif
 		; Controllers will be read again this frame. Reset them (very buggy otherwise ;)).
@@ -1839,13 +1828,10 @@ SaveState:
 		sta GamePauseStatus
 		lda #0
 		sta DisableScreenFlag
+		lda WRAM_IRQUpdateFlag
 .ifndef ORG
-		lda WRAM_IRQUpdateFlag
 		sta IRQUpdateFlag
-.endif
-
-.ifdef PAL
-		lda WRAM_IRQUpdateFlag
+.else
 		sta Sprite0HitDetectFlag
 .endif
 		rts

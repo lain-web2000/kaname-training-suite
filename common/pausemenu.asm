@@ -269,15 +269,7 @@ prepare_draw_row:
 draw_prepared_row:
 		lda $00
 		pha
-		lda Mirror_PPU_CTRL_REG1
-.ifndef ORG
         lda NameTableSelect
-.endif
-
-.ifdef PAL
-        lda NameTableSelect
-.endif
-
 @okok:
 		and #3
 		beq @ntbase_selected

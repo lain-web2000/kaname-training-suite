@@ -435,15 +435,9 @@ screen_off:
 		stx PPU_SCROLL_REG ; No scrolling
 		stx PPU_SCROLL_REG
 		stx PPU_CTRL_REG2 ; No rendering
-.ifndef ORG
+		
 		lda #$00
-		sta MMC3_IRQDisable
-.endif
-
-.ifdef PAL
-		lda #$00
-		sta MMC3_IRQDisable
-.endif
+		sta MMC3_IRQDisable ; No IRQ
 
 		lda MirrorPPUCTRL
 		and #$7F

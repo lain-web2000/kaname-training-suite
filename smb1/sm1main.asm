@@ -13802,7 +13802,7 @@ InitCHRBanks:
 	DelS: 	dey
 			bne DelS
 .else
-			ldy #$c0                 ;delay for right part of scanline 31
+			ldy #$ce                 ;delay for right part of scanline 31
 	DelS: 	dey
 			bne DelS
 .endif

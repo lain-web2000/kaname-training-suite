@@ -1402,21 +1402,24 @@ PracticeOnFrameInner:
 .endif
 
 @read_keypads:
-		lda SavedJoypad1Bits
-;		ora SavedJoypadBits+1
+		lda SavedJoypadBits
 		ora JoypadBitMask
 		sta LastInputBits
+		lda SavedJoypadBits+1
+		sta LastInputBits+1
 		jsr ReadJoypads
-		lda JoypadBitMask
-		ora SavedJoypadBits
-		ora SavedJoypadBits+1
+		lda SavedJoypadBits
+		ora JoypadBitMask
+		tax
+		cpx LastInputBits
+		bne @check_snes
+		lda SavedJoypadBits+1
+		cmp LastInputBits+1
 		beq pause_things_stub
-;		cmp LastInputBits
-;		beq pause_things_stub
-		ldy SNES_Pad
+@check_snes:
+		lda SNES_Pad
 		beq NES_Controller
 		ldy SavedJoypadBits+1
-		ldx SavedJoypadBits
 		lda WRAM_SaveButtons_SNES
 		ora WRAM_SaveButtons_SNES+1
 		beq @no_begin_save

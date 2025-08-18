@@ -18,7 +18,7 @@ SaveFramesLeft = $013a
 UserFramesLeft = $013b
 FrameruleNumber = $07d7 ;replaced by rule numbers
 
-LastInputBits				= $075a ; Previously NumberOfLives
+LastInputBits				= $0766
 FrameRuleData				= $07df ; Previously in score somewhere
 
 SavedRule = $07d9

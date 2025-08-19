@@ -1473,7 +1473,7 @@ PracticeOnFrameInner:
 		lda BANK_SELECTED
 		jmp StartBank		
 NES_Controller:
-		tax ;evasion
+		ldx SavedJoypadBits
 		lda WRAM_SaveButtons
 		beq @no_begin_save
 		txa

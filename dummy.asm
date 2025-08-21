@@ -15,6 +15,7 @@
 HeldButtons = $0C
 Procedure     = $7FF
 ProcedureAddr = $7FD
+VerticalScroll = $0F
 
 ; this code will run at startup, or when reset is pressed.
 Start_I:
@@ -172,7 +173,7 @@ ClearState:
     sta $36
     sta $37
     sta $38
-    lda #$20
+    lda #$23
     sta $C0
     lda #$21
     sta $C1
@@ -211,6 +212,7 @@ DoStuff:
     inc InputCounter
     lda #0
     sta PPU_SCROLL_REG
+	lda VerticalScroll
     sta PPU_SCROLL_REG
     rts
 
@@ -227,11 +229,11 @@ IncrementLine:
     cmp #$23
     bne @done
     lda $C1
-    cmp #$A1
+    cmp #$C1
     bne @done
     lda #$20
     sta $C0
-    lda #$21
+    lda #$01
     sta $C1
 @done:
     rts
@@ -253,6 +255,14 @@ PrepareInputText:
     inx
     cpx #8
     bne @NextInput
+	lda VerticalScroll
+	clc
+	adc #$08
+	cmp #$f0
+	bcc @scroll_thingy
+	lda #$00
+@scroll_thingy:
+	sta VerticalScroll
     rts
 
 
@@ -284,14 +294,31 @@ ShowSequenceValue:
     rts
 
 ClearNextLine:
+	lda #$80
     clc
-    lda $C1
-    adc #$20
-    pha
+    adc $C1
+    sta $01
     lda $C0
     adc #0
+	sta $00
+	cmp #$23
+	bcc @bypass20
+	bne @adjustaddr
+	lda $01
+	cmp #$C1
+	bcc @bypass20
+@adjustaddr:
+	lda $01
+	sec
+	sbc #$c0
+	sta $01
+	lda $00
+	sbc #$03
+	sta $00
+@bypass20:
+	lda $00
     sta PPU_ADDRESS
-    pla
+	lda $01
     sta PPU_ADDRESS
     lda #$24
     sta PPU_DATA
@@ -334,8 +361,6 @@ ShowSequenceCounter:
     adc #6
 :   sta PPU_DATA
     ldy #$2e
-    jsr PlaceArrow
-    rts
 
 PlaceArrow:
     lda $C0

@@ -448,8 +448,10 @@ IncMsgCounter: lda SecondaryMsgCounter
                sta PrimaryMsgCounter
                cmp #$07                      ;check primary counter one more time
 SetEndTimer:   bcc ExitMsgs                  ;if not reached value yet, branch to leave
+			   lda WRAM_EnabledFrameCounterUpdateFlags+6
+			   beq @no_ret
                jsr Enter_RedrawAll
-               lda #$06
+@no_ret:       lda #$06
                sta WorldEndTimer             ;otherwise set world end timer
 IncModeTask_A: inc OperMode_Task             ;move onto next task in mode
 ExitMsgs:      rts                           ;leave
@@ -4634,6 +4636,10 @@ StatusBarNybbles:
       .byte $02, $13
 
 GiveOneCoin:
+	  lda WRAM_EnabledFrameCounterUpdateFlags+$0b
+	  beq @no_c
+	  jsr Enter_RedrawFrameNumbers
+@no_c:
       lda #$01               ;set digit modifier to add 1 coin
       sta DigitModifier+5    ;to the current player's coin tally
       ldx #$00			     ;get current player on the screen
@@ -4680,6 +4686,10 @@ HandlePipeEntry:
          lda #$28                  ;PAL diff: Faster timer to accomodate FPS difference
 .endif
          sta ChangeAreaTimer       ;set timer for change of area
+         lda WRAM_EnabledFrameCounterUpdateFlags+6
+         beq @no_pipe
+         jsr Enter_RedrawAll
+@no_pipe:
          lda #$03
          sta GameEngineSubroutine  ;set to run vertical pipe entry routine on next frame
          jsr Enter_RedrawAll
@@ -5480,7 +5490,9 @@ DrawFlagSetTimer:
       jsr DrawStarFlag          ;do sub to draw star flag
       lda #$06
       sta EnemyIntervalTimer,x  ;set interval timer here
-      jsr Enter_RedrawAll
+      lda WRAM_EnabledFrameCounterUpdateFlags+7
+      beq IncrementSFTask2
+	  jsr Enter_RedrawAll
 	  
 IncrementSFTask2:
       inc StarFlagTaskControl   ;move onto next task
@@ -10128,8 +10140,10 @@ ChkGERtn: lda GameEngineSubroutine   ;get number of game engine routine running
           bne ExCSM
           lda #$02
           sta GameEngineSubroutine   ;otherwise set sideways pipe entry routine to run
-          jsr Enter_RedrawAll
-          rts                        ;and leave
+		  lda WRAM_EnabledFrameCounterUpdateFlags+6
+		  beq @no_pipe
+		  jmp Enter_RedrawAll
+@no_pipe: rts                        ;and leave
 
 ;--------------------------------
 ;$02 - high nybble of vertical coordinate from block buffer
@@ -10157,8 +10171,10 @@ HandleAxeMetatile:
        sta OperMode_Task   ;reset secondary mode
        lda #$02
        sta OperMode        ;set primary mode to autoctrl mode
-       jsr Enter_RedrawAll
-       lda #$18
+	   lda WRAM_EnabledFrameCounterUpdateFlags+8
+	   beq @no_a
+	   jsr Enter_RedrawAll
+@no_a: lda #$18
        sta Player_X_Speed  ;set horizontal speed and continue to erase axe metatile
 ErACM: ldy $02             ;load vertical high nybble offset for block buffer
        lda #$00            ;load blank metatile

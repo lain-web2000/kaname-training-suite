@@ -55,18 +55,17 @@ WRAM_EnabledFrameCounterUpdateFlags:
 	.res $10, $00
 	
 	;$00 - Jumping
-	;$01 - Enemy Stomp
-	;$02 - Powerup Grab
-	;$03 - JumpSpring
-	;$04 - B-Press (Off, On B-Press, Fireball shots only)
-	;$05 - Bowser Spawn
-	;$06 - RetainerMsg Countdown
-	;$07 - Pipe Entry
-	;$08 - Star Flag
-	;$09 - Axe Grab
-	;$0a - mod21 Check
-	;$0b - Start of Wind
-	;$0c - Coin Collection
+	;$01 - Enemy Stomp/Power-Up Grab
+	;$02 - JumpSpring
+	;$03 - B-Press (Off, On B-Press, Fireball shots only)
+	;$04 - Bowser Spawn
+	;$05 - RetainerMsg Countdown
+	;$06 - Pipe Entry
+	;$07 - Star Flag
+	;$08 - Axe Grab
+	;$09 - mod21 Check
+	;$0a - Start of Wind
+	;$0b - Coin Collection
 	
 WRAM_EnabledFrameCounterUpdateFlags_End:
 

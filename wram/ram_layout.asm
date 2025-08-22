@@ -3,7 +3,7 @@
 
 WRAM_StartAddress:
 WRAM_Magic:
-	.res $0a, $00
+	.res $0b, $00
 SNES_Pad:
 	.byte $00
 WRAM_MenuIndex:
@@ -50,6 +50,25 @@ WRAM_TitleButtons_SNES:
 	.byte $00, $00
 WRAM_RestartButtons_SNES:
 	.byte $00, $00
+
+WRAM_EnabledFrameCounterUpdateFlags:
+	.res $10, $00
+	
+	;$00 - Jumping
+	;$01 - Enemy Stomp
+	;$02 - Powerup Grab
+	;$03 - JumpSpring
+	;$04 - B-Press (Off, On B-Press, Fireball shots only)
+	;$05 - Bowser Spawn
+	;$06 - RetainerMsg Countdown
+	;$07 - Pipe Entry
+	;$08 - Star Flag
+	;$09 - Axe Grab
+	;$0a - mod21 Check
+	;$0b - Start of Wind
+	;$0c - Coin Collection
+	
+WRAM_EnabledFrameCounterUpdateFlags_End:
 
 WRAM_IRQUpdateFlag:
 	.byte $00

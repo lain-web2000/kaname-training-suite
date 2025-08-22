@@ -15,7 +15,7 @@
 HeldButtons = $0C
 Procedure     = $7FF
 ProcedureAddr = $7FD
-VerticalScroll = $0F
+VerticalScroll_INP = $0F
 
 ; this code will run at startup, or when reset is pressed.
 Start_I:
@@ -212,7 +212,7 @@ DoStuff:
     inc InputCounter
     lda #0
     sta PPU_SCROLL_REG
-	lda VerticalScroll
+	lda VerticalScroll_INP
     sta PPU_SCROLL_REG
     rts
 
@@ -255,14 +255,14 @@ PrepareInputText:
     inx
     cpx #8
     bne @NextInput
-	lda VerticalScroll
+	lda VerticalScroll_INP
 	clc
 	adc #$08
 	cmp #$f0
 	bcc @scroll_thingy
 	lda #$00
 @scroll_thingy:
-	sta VerticalScroll
+	sta VerticalScroll_INP
     rts
 
 

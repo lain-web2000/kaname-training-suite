@@ -691,7 +691,9 @@ DecNumTimer:  dec FloateyNum_Timer,x       ;decrement value here
               bne LoadNumTiles             ;branch ahead if not found
               lda #Sfx_ExtraLife
               sta Square2SoundQueue        ;and play the 1-up sound
-LoadNumTiles: jsr Enter_RedrawFrameNumbers
+LoadNumTiles: lda WRAM_EnabledFrameCounterUpdateFlags+2
+			  beq ChkTallEnemy
+			  jsr Enter_RedrawFrameNumbers
 ChkTallEnemy: ldy Enemy_SprDataOffset,x    ;get OAM data offset for enemy object
               lda Enemy_ID,x               ;get enemy object identifier
               cmp #Spiny
@@ -4800,8 +4802,10 @@ ProcJumping:
            lda Player_Y_Speed         ;check player's vertical speed
            bpl InitJS                 ;if player's vertical speed motionless or down, branch
            jmp X_Physics              ;if timer at zero and player still rising, do not swim
-InitJS:    jsr Enter_RedrawFrameNumbers
-		   lda #$20                   ;set jump/swim timer
+InitJS:    lda WRAM_EnabledFrameCounterUpdateFlags
+           beq @no_fc
+           jsr Enter_RedrawFrameNumbers
+@no_fc:    lda #$20                   ;set jump/swim timer
            sta JumpSwimTimer
            ldy #$00                   ;initialize vertical force and dummy variable
            sty Player_YMF_Dummy
@@ -5039,7 +5043,11 @@ ProcFireball_Bubble:
       sty FireballThrowingTimer  ;into fireball throwing timer
       dey
       sty PlayerAnimTimer        ;decrement and store in player's animation timer
+	  lda WRAM_EnabledFrameCounterUpdateFlags+4
+	  cmp #$02
+	  bne @no_fc	  
 	  jsr Enter_RedrawFrameNumbers
+@no_fc:
       inc FireballCounter        ;increment fireball counter
 
 ProcFireballs:
@@ -5395,8 +5403,10 @@ PosJSpr:   lda Jumpspring_FixedYPos,x  ;get permanent vertical position
            bne BounceJS                ;skip to next part if so
            tya
            pha
+		   lda WRAM_EnabledFrameCounterUpdateFlags+3
+		   beq @no_fc
 		   jsr Enter_RedrawFrameNumbers
-           lda #$f4                    ;set jumpspring force for red jumpsprings
+@no_fc:    lda #$f4                    ;set jumpspring force for red jumpsprings
 .ifdef ANN
            ldy HardWorldFlag
            beq SetJSF
@@ -9084,8 +9094,10 @@ GetPRCmp:  lda FrameCounter           ;get frame counter
            lda Enemy_X_Position,x
            cmp BowserOrigXPos         ;if bowser not at original horizontal position,
            bne GetDToO                ;branch to skip this part
+		   lda WRAM_EnabledFrameCounterUpdateFlags+5
+		   beq @no_fc
            jsr Enter_RedrawFrameNumbers
-           lda PseudoRandomBitReg,x
+@no_fc:    lda PseudoRandomBitReg,x
            and #%00000011             ;get pseudorandom offset
            tay
            lda PRandomRange,y         ;load value using pseudorandom offset
@@ -15441,7 +15453,7 @@ SuperPlayerMsg:
     .byte $00
 .endif
 
-.res $F000 - *, $EA
+.res $FD00 - *, $EA
 
 .export StartBank
 .export ReturnBank

@@ -2206,15 +2206,18 @@ RedrawSockTimer:
 
 MagicalBytes:
 .ifdef ORG
-		.byte $6D, $61, $64, $6F, $70, $6C, $75, $73, $68, $99 ;madoplush
+		.byte $6D, $61, $64, $6F, $70, $6C, $75, $73, $68, $99, $04 ;madoplush
 .elseif .defined(LOST)
-		.byte $73, $61, $79, $61, $70, $6C, $75, $73, $68, $99 ;sayaplush
+		.byte $73, $61, $79, $61, $70, $6C, $75, $73, $68, $99, $04 ;sayaplush
 .else
-		.byte $6B, $79, $6F, $75, $70, $6C, $75, $73, $68, $99 ;kyouplush
+		.byte $6B, $79, $6F, $75, $70, $6C, $75, $73, $68, $99, $04 ;kyouplush
 .endif
 
+Default_WRAM_FrameCounter:
+		.byte $01, $01, $01, $01, $02, $01, $01, $01, $01, $01, $01, $01, $00, $00, $00, $00
+
 ValidWRAMMagic:
-		ldx #$0a
+		ldx #$0b
 @WRAMLoop:
 		lda WRAM_Magic-1,x
 		cmp MagicalBytes-1,x
@@ -2239,7 +2242,7 @@ SetDefaultWRAM:
 		lda MagicalBytes,x
 		sta WRAM_Magic,x
 		inx
-		cpx #$0a
+		cpx #$0b
 		bcc @WRAMLoop	
 		lda #<Player_Rel_XPos
 		sta WRAM_UserVarA
@@ -2255,7 +2258,15 @@ SetDefaultWRAM:
 		sta WRAM_DelaySaveFrames
 		lda #8
 		sta WRAM_DelayUserFrames
-
+		
+		ldx #$00
+@FCLoop:
+		lda Default_WRAM_FrameCounter,x
+		sta WRAM_EnabledFrameCounterUpdateFlags,x
+		inx
+		cpx #$10
+		bcc @FCLoop
+		
 		lda #RESTART_LEVEL_BUTTONS
 		sta WRAM_RestartButtons
 		sta WRAM_RestartButtons_SNES

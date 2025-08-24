@@ -1277,14 +1277,21 @@ PracticeTitleMenu:
 		lda JoypadBitMask
 		ora SavedJoypadBits
 		beq nuke_timer
-.ifndef ORG
+
 		cmp #A_Button+Start_Button
 		bne @no_bypass
+.ifndef ORG
 		lda #$09
+.else
+		lda #$07
+.endif
 		sta WorldNumber
 		inc OperMode_Task
-		jmp ReturnBank
+.ifndef LOST
+		inc PrimaryHardMode
 .endif
+		jmp ReturnBank
+
 @no_bypass:
 		ldx SelectTimer
 		bne @dec_timer
@@ -1968,6 +1975,8 @@ InputDisplayPacket:
     .byte $20,$51,$06,$1E,$15,$0D,$1B,$24,$0B,$0A,$FF
 	
 RequestRestartLevel:
+		lda OperMode
+		beq @exit
 		lda #$80 ; REMOVE 0x80?
 		sta GamePauseStatus
 		ldx #0
@@ -2000,6 +2009,7 @@ RequestRestartLevel:
 		lda WRAM_CoinDisplay+1
 		sta CoinDisplay+1
 		inc FetchNewGameTimerFlag
+@exit:
 		rts
 
 RestartLevel:

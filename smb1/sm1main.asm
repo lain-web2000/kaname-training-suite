@@ -63,8 +63,8 @@ EndlessLoop: jmp EndlessLoop              ;endless loop, need I say more?
 ;-----------------------------------------------------------------
 
 	NMIHandler:
-	   lda Mirror_PPU_CTRL_REG1  ;alter name table address to be $2800
-	   and #%01111110            ;(essentially $2000) and disable another NMI
+	   lda Mirror_PPU_CTRL_REG1  ;alter name table address to be $2800 <- WHY!?
+	   and #%01111100            ;(essentially $2000) and disable another NMI 
 	   sta Mirror_PPU_CTRL_REG1  ;from interrupting this one
 	   sta PPU_CTRL_REG1
 	   sei

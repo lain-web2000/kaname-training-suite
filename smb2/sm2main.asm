@@ -87,8 +87,8 @@ VRAM_Buffer_Offset:
 ;-------------------------------------------------------------------------------------
 
 NMIHandler:
-   lda Mirror_PPU_CTRL       ;alter name table address to be $2800
-   and #%01111110            ;(essentially $2000) and disable another NMI
+   lda Mirror_PPU_CTRL       ;alter name table address to be $2800 <- not really :/
+   and #%01111100            ;(essentially $2000) and disable another NMI
    sta Mirror_PPU_CTRL       ;from interrupting this one
    sta PPU_CTRL
    sei
@@ -15780,6 +15780,8 @@ InitCHRBanks:
 		ldx #$ff
 		txs
 		lda #$00
+		sta PPU_CTRL_REG1
+		sta PPU_CTRL_REG2			; disable NMI's for the timebeing
 		sta MMC3_Mirroring          ; vertical mirroring
 		lda #%10000000
 		sta MMC3_PRGRAMProtect      ; enable PRG-RAM
@@ -15803,7 +15805,7 @@ InterruptRequest:
 DelS: 	dey
 		bne DelS
 		lda Mirror_PPU_CTRL_REG1
-		and #$ef                 ;mask out sprite address high reg of ctrl reg mirror
+		and #%11101111           ;mask out sprite address high reg of ctrl reg mirror
 		ora NameTableSelect      ;mask in whatever's set here
 		sta Mirror_PPU_CTRL_REG1 ;update the register and its mirror
 		sta PPU_CTRL_REG1

@@ -456,7 +456,6 @@ enter_loader:
 		jsr famistudio_init
 		lda #0
 		jsr famistudio_music_play
-		jsr InitializeNameTables
 		;
 		; Install nametable
 		;

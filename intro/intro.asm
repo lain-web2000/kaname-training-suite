@@ -1,9 +1,6 @@
 .export NonMaskableInterrupt
 
-HEAP_SPRITE_OFF = 17*4
-PRINCESS_SPRITE_OFF = 53*4
-HAND_SPRITE_OFF = 52*4
-HEART_SPRITE_OFF = 59*4
+SEL_OPTIONS = 4
 
 LoaderFrameCounter = $30
 CurrentHead = $31
@@ -25,12 +22,11 @@ RECORDS_TMP_HI = $70B
 bcdNum = $70C
 ; bcdNum+1 = $70D
 .ifdef ORG
-	ContraCodeX = $710
-	ContraSoundFrames = $711
+	KonamiCodeX = $710
+	KonamiSoundFrames = $711
 .endif
 
-CreditsIndex = $712
-
+RedrawOptionsFlag = $712
 FCEUX_Fail = $714
 
 MirrorPPUCTRL = $720
@@ -150,21 +146,10 @@ load_chr:
 		ldx #CHR_INTRO_SPR
 		jsr LoadChrDataFromX
 		lda FCEUX_Fail
-		bne WarningScreen
-		jsr ReadJoypads
-		lda SavedJoypadBits
-		cmp #Start_Button+Select_Button
-		bne NoCredits
-WarningScreen:
+		beq DetectControllerType
 		jmp PracticeCredits
-NoCredits:
+DetectControllerType:
 		jsr ReadJoypads
-		lda SavedJoypadBits
-		cmp #A_Button+B_Button
-		bne @No_InputLog
-		lda #BANK_CHR
-		jsr StartBank
-@No_InputLog:
 		lda JOYPAD_PORT
 		lsr
 		bcc @NES_Controller
@@ -182,7 +167,7 @@ NoCredits:
 		ldx #$00
 		stx PPU_SCROLL_REG ; No scrolling
 		stx PPU_SCROLL_REG
-		stx WRAM_IsContraMode ; Reset contra mode on restart
+		stx WRAM_IsKonamiMode ; Reset Konami mode on restart
 		
 		;
 		; Enable NMI
@@ -195,27 +180,35 @@ hang:
 
 MenuPage1:
 m_start:
-	.byte "START"
+	.byte "START   "
 m_setting:
 	.byte "SETTINGS"
 MenuPage2:
 m_input:
 	.byte "INPUTLOG"
+m_credits:
+	.byte "CREDITS "
 m_blank:
-	.byte $24, $24, $24, $24, $24, $24, $24, $24
+    .byte "        "
 	
 MenuLength:
 	.byte m_setting-m_start
 	.byte m_input-m_setting
-	.byte m_blank-m_input
+	.byte m_credits-m_input
+	.byte m_blank-m_credits
+	.byte MenuLength-m_blank
 
 MenuOffset:
 	.byte m_start-m_start
 	.byte m_setting-m_start
 	.byte m_input-m_start
+	.byte m_credits-m_start
 	.byte m_blank-m_start
 
 draw_menu:
+        lda RedrawOptionsFlag
+		beq @done
+; first line
 		lda PPU_STATUS
 		;
 		; Copycopycopycopy
@@ -226,21 +219,19 @@ draw_menu:
 		lda #$8C
 		sta PPU_ADDRESS
 
-		ldx CreditsIndex
+		ldx SEL_INDEX
 		ldy MenuLength, x
 		lda MenuOffset, x
 		tax
-@more:
+@more1:
 		lda m_start, x
 		sta PPU_DATA
 		inx
 		dey
-		bne @more
+		bne @more1
 		sty PPU_SCROLL_REG ; No scrolling
 		sty PPU_SCROLL_REG
-		ldx #$01
-		stx CreditsIndex
-draw_menu_2:
+; second line
 		lda PPU_STATUS
 		;
 		; Copycopycopycopy
@@ -251,21 +242,21 @@ draw_menu_2:
 		lda #$CC
 		sta PPU_ADDRESS
 
-		ldx CreditsIndex
+		ldx SEL_INDEX
+		inx
 		ldy MenuLength, x
 		lda MenuOffset, x
 		tax
-@more:
+@more2:
 		lda m_start, x
 		sta PPU_DATA
 		inx
 		dey
-		bne @more
+		bne @more2
 		sty PPU_SCROLL_REG ; No scrolling
 		sty PPU_SCROLL_REG
-		ldx #$00
+		dec RedrawOptionsFlag
 @done:
-		stx CreditsIndex
 		rts
 		
 CreditsTextYadaYada:
@@ -317,7 +308,7 @@ wedone:
 			  sta PPU_CTRL_REG1
 			  lda #%00001110
 			  sta PPU_CTRL_REG2
-			  jmp hang
+			  jmp wait_for_input
 	
 DoAnotherLine:
 			  lda FCEUXWarningText,x
@@ -337,19 +328,22 @@ MoreText:
 			  bne MoreText
 
 load_warning:
-			  lda #$00
-			  sta PPU_SCROLL_REG
-			  sta PPU_SCROLL_REG
+			lda #$00
+			sta PPU_SCROLL_REG
+			sta PPU_SCROLL_REG
 			lda #%00001000
 			sta PPU_CTRL_REG1
 			lda #%00001110
 			sta PPU_CTRL_REG2
-@wait_for_input:
+wait_for_input:
 			jsr ReadJoypads
 			lda SavedJoypadBits
-			cmp #Start_Button
-			bne @wait_for_input
-			jmp NoCredits
+			cmp LAST_INPUT
+			beq wait_for_input
+			lda SavedJoypadBits
+			and #Start_Button
+			beq wait_for_input
+			jmp DetectControllerType
 			  
 FCEUXWarningText:
 	.byte $20, $ad, "WARNING", $FF
@@ -448,11 +442,16 @@ enter_loader:
 		jsr screen_off
 		lda #SEL_START_Y
 		sta CursorY
-		lda #0 ; for famistudio_init
+		lda #$00
 		sta SEL_INDEX
 		sta LDR_MODE
-		ldy #>music_data_
-		ldx #<music_data_
+.ifndef PAL
+		lda #0 ; for famistudio_init
+.else
+        lda #1 ; for famistudio_init
+.endif
+		ldy #>music_data_star_maze
+		ldx #<music_data_star_maze
 		jsr famistudio_init
 		lda #0
 		jsr famistudio_music_play
@@ -463,6 +462,7 @@ enter_loader:
 		;
 		; Copy static sprite-data over
 		;
+		inc RedrawOptionsFlag
 		jsr draw_menu
 		ldx #$00
 copy_more_sprites:
@@ -492,15 +492,15 @@ next_palette_entry:
 		
 		rts
 .ifdef ORG
-	ContraCode:
-		.byte Up_Dir, Up_Dir, Down_Dir, Down_Dir, Left_Dir, Right_Dir, Left_Dir, Right_Dir, B_Button, A_Button, Start_Button
-	ContraCodeEnd:
+	KonamiCode:
+		.byte Up_Dir, Up_Dir, Down_Dir, Down_Dir, Left_Dir, Right_Dir, Left_Dir, Right_Dir, B_Button, A_Button
+	KonamiCodeEnd:
 
-	ContraFinishSound:
+	KonamiFinishSound:
 			dex
-			stx ContraSoundFrames
+			stx KonamiSoundFrames
 			bne @wait_more
-			inc WRAM_IsContraMode
+			inc WRAM_IsKonamiMode
 			lda #BANK_ORG
 			jmp StartBank
 	@wait_more:
@@ -509,8 +509,8 @@ next_palette_entry:
 .endif
 NonMaskableInterrupt:
 .ifdef ORG
-		ldx ContraSoundFrames
-		bne ContraFinishSound
+		ldx KonamiSoundFrames
+		bne KonamiFinishSound
 .endif
 		inc LoaderFrameCounter
 		lda MirrorPPUCTRL
@@ -529,9 +529,13 @@ NonMaskableInterrupt:
 		sta PPU_SPR_ADDR
 		lda #$02
 		sta SPR_DMA
+		;
+		; Copy static sprite-data over
+		;
+		jsr draw_menu
 
 		jsr ReadJoypads
-
+@disabled:
 		ldx LDR_MODE
 		beq @run_menu
 		dex
@@ -556,54 +560,30 @@ NonMaskableInterrupt:
 hide_cursor:
 		sta $201
 dont_update_cursor:
-		;
-		; Update sound
-		;
-		lda WRAM_DisableMusic
-		bne @disabled
-		jsr famistudio_update
-@disabled:
 		lda SavedJoypadBits
 		cmp LAST_INPUT
 		bne @has_input
 		jmp exit_nmi
 @has_input:
+.ifdef ORG
 		cmp #0
 		beq @handlein
 		;
-		; Check contra code
+		; Check Konami code
 		;
-.ifdef ORG
-		ldx ContraCodeX
-		cmp ContraCode, X
-.endif
+		ldx KonamiCodeX
+		cpx #(KonamiCodeEnd-KonamiCode)
+		beq @handlein
+		cmp KonamiCode, X
 		bne @resetcode
 		inx
-.ifdef ORG
-		stx ContraCodeX
-		cpx #(ContraCodeEnd-ContraCode)
-.endif
+		stx KonamiCodeX
 		bne @handlein
-		ldx SEL_INDEX
-		bne @resetcode
-.ifdef ORG
-		ldx #45
-		stx ContraSoundFrames
-.endif
-		jsr famistudio_music_stop
-		ldy #>sounds
-		ldx #<sounds
-		jsr famistudio_sfx_init
-		ldx #0
-		txa
-		jsr famistudio_sfx_play
-		jmp exit_nmi
 @resetcode:
-.ifdef ORG
 		ldx #0
-		stx ContraCodeX
-.endif
+		stx KonamiCodeX
 @handlein:
+.endif
 		cmp #Select_Button
 		beq @go_down
 		cmp #Down_Dir
@@ -612,36 +592,39 @@ dont_update_cursor:
 		lda CursorY
 		ldx SEL_INDEX
 		inx 
-		cpx #2
-		bne @no_loop_around
+		cpx #SEL_OPTIONS
+		bcc @move_cursor
 		ldx #0
-		lda #SEL_START_Y-16
-@no_loop_around:
-		clc
-		adc #16
+		;clc
+		;adc #16
 @move_cursor:
 		sta CursorY
 		stx SEL_INDEX
-		jmp exit_nmi
+		inc RedrawOptionsFlag
+		bne exit_nmi
 @check_up:
 		cmp #Up_Dir
 		bne @check_start
 		lda CursorY
 		ldx SEL_INDEX
 		dex
-		bpl @no_underflow
-		ldx #1
-		lda #SEL_START_Y+(2*16)
-@no_underflow:
-		sec
-		sbc #16
+		bpl @move_cursor
+		ldx #SEL_OPTIONS-1
+		;sec
+		;sbc #16
 		jmp @move_cursor
 @check_start:
 		and #Start_Button
 		beq exit_nmi
+		jsr famistudio_music_stop ; halt music
+		jsr famistudio_update
 		ldx SEL_INDEX
 		cpx #1
 		beq @settings
+		cpx #2
+		beq @enter_bank
+		cpx #3
+		beq @load_credits
 		lda SavedJoypadBits
 		cmp #Start_Button+A_Button
 		bne @normal_rules
@@ -651,17 +634,39 @@ dont_update_cursor:
 		lda #$00
 @start_game:
 		sta WRAM_AdvRNG
-		jsr famistudio_music_stop ; halt music
-		jsr famistudio_update
+.ifdef ORG
+        ldx KonamiCodeX
+		cpx #(KonamiCodeEnd-KonamiCode)
+		bne @enter_bank
+        ldx #45
+		stx KonamiSoundFrames
+		jsr famistudio_music_stop
+		ldy #>sounds
+		ldx #<sounds
+		jsr famistudio_sfx_init
+		ldx #0
+		txa
+		jsr famistudio_sfx_play
+		jmp exit_nmi
+.endif
+@enter_bank:
 		lda bank_table, x
 		jmp StartBank
+@load_credits:
+        jmp PracticeCredits
 @settings:
 		jsr enter_settings
 exit_nmi:
 		;
+		; Update sound
+		;
+		lda WRAM_DisableMusic
+		bne :+
+		jsr famistudio_update
+		;
 		; Reset
 		;
-		lda PPU_STATUS
+:		lda PPU_STATUS
 		;
 		; Undo scrolling
 		;
@@ -746,7 +751,6 @@ palette_star_shuffle:
 		.byte $0f, $0f, $0f, $0f
 
 bank_table:
-
 .ifdef ORG
 		.byte BANK_ORG
 .elseif .defined(LOST)
@@ -754,10 +758,14 @@ bank_table:
 .else
 		.byte BANK_ANN
 .endif
-		
+		.byte $ff ; dummy
+		.byte BANK_CHR
+		.byte $ff ; dummy
+
 	.include "settings.asm"
 	.include "famistudio_ca65.s"
 	.include "star_maze.s"
+	.include "metal.s"
 	.include "konami_pause.s"
 
 	.res $C000 - *, $FF

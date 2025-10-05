@@ -418,7 +418,7 @@ pm_toggle_size:
 		jmp playerstatus_to_savestate
 
 pm_toggle_hero:
-		lda WRAM_IsContraMode
+		lda WRAM_IsKonamiMode
 		beq @okchange
 		rts
 @okchange:
@@ -836,7 +836,7 @@ RunPauseMenu:
 PauseMenu:
 		lda GamePauseStatus
 		lsr
-		bcc @not_paused
+		bcc @continue
 		lsr
 		jsr RunPauseMenu
 		jmp @continue

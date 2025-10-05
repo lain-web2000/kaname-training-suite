@@ -42,10 +42,14 @@ ColdBoot:    jsr InitializeMemory         ;clear memory using pointer in Y
 
              ldx #CHR_SM1CHAR1
              jsr LoadChrDataFromX
-             ldy WRAM_IsContraMode
-             beq @not_peach
+             ldy WRAM_IsKonamiMode
+             beq :+
              ldx #CHR_SM1CHAR2
-			 jsr LoadChrDataFromX
+             jsr LoadChrDataFromX
+:            ldy WRAM_Charset
+             beq @not_peach
+             ldx #CHR_SM2CHARSET
+             jsr LoadChrDataFromX
 @not_peach:
              lda #%00001111
              sta SND_MASTERCTRL_REG       ;enable all sound channels except dmc
@@ -63,8 +67,8 @@ EndlessLoop: jmp EndlessLoop              ;endless loop, need I say more?
 ;-----------------------------------------------------------------
 
 	NMIHandler:
-	   lda Mirror_PPU_CTRL_REG1  ;alter name table address to be $2800 <- WHY!?
-	   and #%01111100            ;(essentially $2000) and disable another NMI 
+	   lda Mirror_PPU_CTRL_REG1  ;alter name table address to be $2800
+	   and #%01111110            ;(essentially $2000) and disable another NMI
 	   sta Mirror_PPU_CTRL_REG1  ;from interrupting this one
 	   sta PPU_CTRL_REG1
 	   sei
@@ -448,10 +452,8 @@ IncMsgCounter: lda SecondaryMsgCounter
                sta PrimaryMsgCounter
                cmp #$07                      ;check primary counter one more time
 SetEndTimer:   bcc ExitMsgs                  ;if not reached value yet, branch to leave
-			   lda WRAM_EnabledFrameCounterUpdateFlags+6
-			   beq @no_ret
                jsr Enter_RedrawAll
-@no_ret:       lda #$06
+               lda #$06
                sta WorldEndTimer             ;otherwise set world end timer
 IncModeTask_A: inc OperMode_Task             ;move onto next task in mode
 ExitMsgs:      rts                           ;leave
@@ -475,12 +477,11 @@ PlayerEndWorld:
                lda #GameModeValue
                sta OperMode               ;set mode of operation to game mode
 EndExitOne:    rts                        ;and leave
-EndChkBButton: 
-               lda SavedJoypad1Bits
+EndChkBButton: lda SavedJoypad1Bits
                ora SavedJoypad2Bits       ;check to see if B button was pressed on
                and #B_Button              ;either controller
-               beq EndExitOne
-               jmp Start ; hackreset
+               beq EndExitOne             ;branch to leave if not
+               jmp TerminateGame          ;do sub to continue other player or end game
 
 ;-------------------------------------------------------------------------------------
 
@@ -526,9 +527,7 @@ DecNumTimer:  dec FloateyNum_Timer,x       ;decrement value here
               bne LoadNumTiles             ;branch ahead if not found
               lda #Sfx_ExtraLife
               sta Square2SoundQueue        ;and play the 1-up sound
-LoadNumTiles: lda WRAM_EnabledFrameCounterUpdateFlags+2
-			  beq ChkTallEnemy
-			  jsr Enter_RedrawFrameNumbers
+LoadNumTiles: jsr Enter_RedrawFrameNumbers
 ChkTallEnemy: ldy Enemy_SprDataOffset,x    ;get OAM data offset for enemy object
               lda Enemy_ID,x               ;get enemy object identifier
               cmp #Spiny
@@ -1645,7 +1644,7 @@ SetHalfway:  sta HalfwayPage          ;store as halfway page for player
 			;
 			; TODO XXX What does this do? :)
 			;
-			jsr Enter_LoadAreaPointer       ;update level pointer with
+			jsr Enter_LoadAreaPointer ;update level pointer with
 			lda #$01                  ;actual world and area numbers, then
 			sta PlayerSize            ;reset player's size, status, and
 			inc FetchNewGameTimerFlag ;set game timer flag to reload
@@ -1664,8 +1663,18 @@ SetHalfway:  sta HalfwayPage          ;store as halfway page for player
 
 ;-------------------------------------------------------------------------------------
 
+TerminateGame:
+      lda #Silence          ;silence music
+      sta EventMusicQueue
+      lda #$00
+      asl                   ;residual ASL instruction
+      sta OperMode_Task     ;reset all modes to title screen and
+      sta ScreenTimer       ;leave
+      sta OperMode
+      rts
+
 ContinueGame:
-           jsr Enter_LoadAreaPointer       ;update level pointer with
+           jsr Enter_LoadAreaPointer ;update level pointer with
            lda #$01                  ;actual world and area numbers, then
            sta PlayerSize            ;reset player's size, status, and
            inc FetchNewGameTimerFlag ;set game timer flag to reload
@@ -3786,10 +3795,9 @@ ProcJumping:
            lda Player_Y_Speed         ;check player's vertical speed
            bpl InitJS                 ;if player's vertical speed motionless or down, branch
            jmp X_Physics              ;if timer at zero and player still rising, do not swim
-InitJS:    lda WRAM_EnabledFrameCounterUpdateFlags
-           beq @no_fc
+InitJS:    
            jsr Enter_RedrawFrameNumbers
-@no_fc:    lda #$20                   ;set jump/swim timer
+           lda #$20                   ;set jump/swim timer
            sta JumpSwimTimer
            ldy #$00                   ;initialize vertical force and dummy variable
            sty Player_YMF_Dummy
@@ -4052,11 +4060,7 @@ ProcFireball_Bubble:
       sty FireballThrowingTimer  ;into fireball throwing timer
       dey
       sty PlayerAnimTimer        ;decrement and store in player's animation timer
-	  lda WRAM_EnabledFrameCounterUpdateFlags+4
-	  cmp #$02
-	  bne @no_fc	  
 	  jsr Enter_RedrawFrameNumbers
-@no_fc:
       inc FireballCounter        ;increment fireball counter
 
 ProcFireballs:
@@ -4636,10 +4640,6 @@ StatusBarNybbles:
       .byte $02, $13
 
 GiveOneCoin:
-	  lda WRAM_EnabledFrameCounterUpdateFlags+$0b
-	  beq @no_c
-	  jsr Enter_RedrawFrameNumbers
-@no_c:
       lda #$01               ;set digit modifier to add 1 coin
       sta DigitModifier+5    ;to the current player's coin tally
       ldx #$00			     ;get current player on the screen
@@ -4686,10 +4686,6 @@ HandlePipeEntry:
          lda #$28                  ;PAL diff: Faster timer to accomodate FPS difference
 .endif
          sta ChangeAreaTimer       ;set timer for change of area
-         lda WRAM_EnabledFrameCounterUpdateFlags+6
-         beq @no_pipe
-         jsr Enter_RedrawAll
-@no_pipe:
          lda #$03
          sta GameEngineSubroutine  ;set to run vertical pipe entry routine on next frame
          jsr Enter_RedrawAll
@@ -5490,9 +5486,7 @@ DrawFlagSetTimer:
       jsr DrawStarFlag          ;do sub to draw star flag
       lda #$06
       sta EnemyIntervalTimer,x  ;set interval timer here
-      lda WRAM_EnabledFrameCounterUpdateFlags+7
-      beq IncrementSFTask2
-	  jsr Enter_RedrawAll
+      jsr Enter_RedrawAll
 	  
 IncrementSFTask2:
       inc StarFlagTaskControl   ;move onto next task
@@ -8333,10 +8327,8 @@ GetPRCmp:  lda FrameCounter           ;get frame counter
            lda Enemy_X_Position,x
            cmp BowserOrigXPos         ;if bowser not at original horizontal position,
            bne GetDToO                ;branch to skip this part
-		   lda WRAM_EnabledFrameCounterUpdateFlags+5
-		   beq @no_fc
            jsr Enter_RedrawFrameNumbers
-@no_fc:    lda PseudoRandomBitReg,x
+           lda PseudoRandomBitReg,x
            and #%00000011             ;get pseudorandom offset
            tay
            lda PRandomRange,y         ;load value using pseudorandom offset
@@ -10140,10 +10132,8 @@ ChkGERtn: lda GameEngineSubroutine   ;get number of game engine routine running
           bne ExCSM
           lda #$02
           sta GameEngineSubroutine   ;otherwise set sideways pipe entry routine to run
-		  lda WRAM_EnabledFrameCounterUpdateFlags+6
-		  beq @no_pipe
-		  jmp Enter_RedrawAll
-@no_pipe: rts                        ;and leave
+          jsr Enter_RedrawAll
+          rts                        ;and leave
 
 ;--------------------------------
 ;$02 - high nybble of vertical coordinate from block buffer
@@ -10171,10 +10161,8 @@ HandleAxeMetatile:
        sta OperMode_Task   ;reset secondary mode
        lda #$02
        sta OperMode        ;set primary mode to autoctrl mode
-	   lda WRAM_EnabledFrameCounterUpdateFlags+8
-	   beq @no_a
-	   jsr Enter_RedrawAll
-@no_a: lda #$18
+       jsr Enter_RedrawAll
+       lda #$18
        sta Player_X_Speed  ;set horizontal speed and continue to erase axe metatile
 ErACM: ldy $02             ;load vertical high nybble offset for block buffer
        lda #$00            ;load blank metatile
@@ -13143,7 +13131,7 @@ ChkFiery:
             bne StartClrGet          ;if fiery, load alternate offset for fiery player
             ldy #$08
 StartClrGet:
-            lda WRAM_IsContraMode
+            lda WRAM_IsKonamiMode
             beq @ok_copy
             ldy #(PeachColors - PlayerColors)
             lda PlayerStatus
@@ -13227,10 +13215,7 @@ PosJSpr:   lda Jumpspring_FixedYPos,x  ;get permanent vertical position
            bne BounceJS                ;skip to next part if so
 		   tya
 		   pha
-		   lda WRAM_EnabledFrameCounterUpdateFlags+3
-		   beq @no_fc
 		   jsr Enter_RedrawFrameNumbers
-@no_fc:
 		   pla
 		   tay
 .ifndef PAL
@@ -13529,7 +13514,7 @@ NoHammer: ldx ObjectOffset         ;get original enemy object offset
           clc                      ;return with carry clear
           rts
 
-.res $FD00 - *, $EA
+.res $F000 - *, $EA
 
 .export StartBank
 .export ReturnBank
@@ -13807,6 +13792,8 @@ InitCHRBanks:
 		ldx #$ff
 		txs
 		lda #$00
+		sta PPU_CTRL_REG1
+		sta PPU_CTRL_REG2			; disable NMI's for the timebeing
 		sta MMC3_Mirroring          ; vertical mirroring
 		lda #%10000000
 		sta MMC3_PRGRAMProtect      ; enable PRG-RAM
@@ -13830,7 +13817,7 @@ InitCHRBanks:
 	DelS: 	dey
 			bne DelS
 .else
-			ldy #$ce                 ;delay for right part of scanline 31
+			ldy #$cc                 ;delay for right part of scanline 31
 	DelS: 	dey
 			bne DelS
 .endif

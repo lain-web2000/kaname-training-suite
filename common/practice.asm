@@ -610,7 +610,7 @@ GetSelectedValue:
 		lda PowerUps
 		rts
 @get_player:
-		lda WRAM_IsContraMode ;
+		lda WRAM_IsKonamiMode ;
 		beq @not_peach
 		lda #$19
 		rts
@@ -705,7 +705,20 @@ draw_menu:
 		iny
 		cmp #0
 		bne @more_bytes
-		dey
+		lda WRAM_AdvRNG
+		beq @leave
+		; print "SOCK" instead of "SLOT" if advanced RNG enabled
+		lda VRAM_Buffer1_Offset
+		clc
+		adc #34 ; hardcoded location of "SLOT" string
+		tax
+		lda #'O'
+		sta VRAM_Buffer1,x
+		lda #'C'
+		sta VRAM_Buffer1+1,x
+		lda #'K'
+		sta VRAM_Buffer1+2,x
+@leave: dey
 		sty VRAM_Buffer1_Offset
 		rts
 @redraw_extra:
@@ -937,7 +950,7 @@ menu_input:
 		sta WRAM_EntrySockTimer
 		rts
 @hero_selected:
-		lda WRAM_IsContraMode
+		lda WRAM_IsKonamiMode
 		bne @keep_peach
 		lda CurrentPlayer
 		clc
@@ -1274,10 +1287,8 @@ next_task_proxy:
 PracticeTitleMenu:
 		jsr WriteRulePointer
 		jsr draw_menu
-		lda JoypadBitMask
-		ora SavedJoypadBits
+		lda SavedJoypadBits
 		beq nuke_timer
-
 		cmp #A_Button+Start_Button
 		bne @no_bypass
 .ifndef ORG
@@ -1286,12 +1297,14 @@ PracticeTitleMenu:
 		lda #$07
 .endif
 		sta WorldNumber
+		lda #$00
+		sta LevelNumber
 		inc OperMode_Task
 .ifndef LOST
 		inc PrimaryHardMode
 .endif
 		jmp ReturnBank
-
+		
 @no_bypass:
 		ldx SelectTimer
 		bne @dec_timer
@@ -2102,9 +2115,7 @@ ProcessLevelLoad:
 		cmp #$01
 		beq @aisson
 .elseif .defined(LOST)
-		lda BANK_SELECTED
-		cmp #BANK_SMBLL
-		beq @warpless_2j
+		jmp @warpless_2j
 .endif
 @done:
 		jmp ReturnBank
@@ -2162,8 +2173,6 @@ ProcessLevelLoad:
 
 PracticeInit:
 		lda #0
-		sta WRAM_Timer
-		sta WRAM_Timer+1
 		sta WRAM_MenuIndex
 		sta vramBufferOffset_Prac
 		lda #$ff
@@ -2216,15 +2225,13 @@ RedrawSockTimer:
 
 MagicalBytes:
 .ifdef ORG
-		.byte $6D, $61, $64, $6F, $70, $6C, $75, $73, $68, $99, $04 ;madoplush
+		.byte $6D, $61, $64, $6F, $70, $6C, $75, $73, $68, $99, $99 ;madoplush
 .elseif .defined(LOST)
-		.byte $73, $61, $79, $61, $70, $6C, $75, $73, $68, $99, $04 ;sayaplush
+		.byte $73, $61, $79, $61, $70, $6C, $75, $73, $68, $99, $99 ;sayaplush
 .else
-		.byte $6B, $79, $6F, $75, $70, $6C, $75, $73, $68, $99, $04 ;kyouplush
+		.byte $6B, $79, $6F, $75, $70, $6C, $75, $73, $68, $99, $99 ;kyouplush
 .endif
-
-Default_WRAM_FrameCounter:
-		.byte $01, $01, $01, $02, $01, $01, $01, $01, $01, $01, $01, $00, $00, $00, $00, $00
+MagicalBytesEnd:
 
 ValidWRAMMagic:
 		ldx #$0b
@@ -2252,7 +2259,7 @@ SetDefaultWRAM:
 		lda MagicalBytes,x
 		sta WRAM_Magic,x
 		inx
-		cpx #$0b
+		cpx #(MagicalBytesEnd-MagicalBytes)
 		bcc @WRAMLoop	
 		lda #<Player_Rel_XPos
 		sta WRAM_UserVarA
@@ -2268,14 +2275,9 @@ SetDefaultWRAM:
 		sta WRAM_DelaySaveFrames
 		lda #8
 		sta WRAM_DelayUserFrames
-		
-		ldx #$00
-@FCLoop:
-		lda Default_WRAM_FrameCounter,x
-		sta WRAM_EnabledFrameCounterUpdateFlags,x
-		inx
-		cpx #$10
-		bcc @FCLoop
+
+		lda #0
+		sta WRAM_Charset
 		
 		lda #RESTART_LEVEL_BUTTONS
 		sta WRAM_RestartButtons

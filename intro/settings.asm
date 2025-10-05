@@ -3,9 +3,9 @@
 ;
 SETTINGS_MENU_PPU = $1FF3
 .ifndef ORG
-	MAX_SETTING = 10
+	MAX_SETTING = 11
 .else
-	MAX_SETTING = 12
+	MAX_SETTING = 13
 .endif
 
 .macro draw_simple_at at, txt
@@ -24,6 +24,9 @@ SETTINGS_MENU_PPU = $1FF3
 		inx
 		dey
 		bne @copy
+		lda #$00
+		sta PPU_SCROLL_REG
+		sta PPU_SCROLL_REG
 		rts
 @s:
 		.byte txt
@@ -52,6 +55,9 @@ SETTINGS_MENU_PPU = $1FF3
 		lda ($00), y
 		and #$0F
 		sta PPU_DATA
+		lda #$00
+		sta PPU_SCROLL_REG
+		sta PPU_SCROLL_REG
 		rts
 .endmacro
 
@@ -124,6 +130,9 @@ draw_buttons:
 		jmp @finalize
 @done:
 		pla
+		lda #$00
+		sta PPU_SCROLL_REG
+		sta PPU_SCROLL_REG
 		rts
 		
 draw_buttons_snes:
@@ -182,6 +191,9 @@ draw_buttons_snes:
 		add_button ' '
 		jmp @finalize
 @done:
+		lda #$00
+		sta PPU_SCROLL_REG
+		sta PPU_SCROLL_REG
 		rts
 		
 _music_on: draw_simple_at 6, "ON "
@@ -190,6 +202,8 @@ _music_off: draw_simple_at 6, "OFF"
 _draw_music_opt:
 		lda WRAM_DisableMusic
 		beq @on
+		lda #$00 ; hacky, disable music
+		sta SND_MASTERCTRL_REG
 		jmp _music_off
 @on:
 		jmp _music_on
@@ -245,8 +259,23 @@ _draw_savedelay_opt:
 		draw_hexopt_at 11, 0
 
 .ifdef ORG
-	_char_fds: draw_simple_at 12, "DISK"
-	_char_nes: draw_simple_at 12, "CART"
+	_charset0: draw_simple_at 12, "SMB1"
+	_charset1: draw_simple_at 12, "SMB2"
+.else
+	_charset0: draw_simple_at 12, "SMB2"
+	_charset1: draw_simple_at 12, "SMB1"
+.endif
+
+_draw_charset_opt:
+		lda WRAM_Charset
+		beq @chr0
+		jmp _charset1
+	@chr0:
+		jmp _charset0
+	
+.ifdef ORG
+	_char_fds: draw_simple_at 13, "DISK"
+	_char_nes: draw_simple_at 13, "CART"
 
 	_draw_minusworld_opt:
 			lda WRAM_MinusWorld
@@ -255,21 +284,23 @@ _draw_savedelay_opt:
 	@fds:
 			jmp _char_fds
 			
-	_char_none: draw_simple_at 13, "NONE  "
-	_char_aisson: draw_simple_at 13, "AISSON"
-	_char_stageo: draw_simple_at 13, "STAGEO"
-	_char_pigoap: draw_simple_at 13, "PIGOAP"
+	_char_none: draw_simple_at 14, "NONE  "
+	_char_aisson: draw_simple_at 14, "AISSON"
+	_char_stageo: draw_simple_at 14, "STAGEO"
+	_char_pigoap: draw_simple_at 14, "PIGOAP"
 	
 	_draw_gamegenie_opt:
 			lda WRAM_GameGenie
 			beq @none
 			cmp #$01
-			beq _char_aisson
+			beq @aisson
 			cmp #$02
 			beq _char_stageo
 			jmp _char_pigoap
 	@none:
 			jmp _char_none
+	@aisson:
+	        jmp _char_aisson
 .endif
 		
 _draw_button_restart_opt:
@@ -287,9 +318,9 @@ _draw_button_restart_opt:
 		ora WRAM_RestartButtons_SNES+1
 @draw:
 .ifndef ORG
-		draw_button_opt 12
+		draw_button_opt 13
 .else
-		draw_button_opt 14
+		draw_button_opt 15
 .endif
 
 _draw_button_title_opt:
@@ -307,9 +338,9 @@ _draw_button_title_opt:
 		ora WRAM_TitleButtons_SNES+1
 @draw:
 .ifndef ORG
-		draw_button_opt 13
+		draw_button_opt 14
 .else
-		draw_button_opt 15
+		draw_button_opt 16
 .endif
 
 _draw_button_save_opt:
@@ -327,9 +358,9 @@ _draw_button_save_opt:
 		ora WRAM_SaveButtons_SNES+1
 @draw:
 .ifndef ORG
-		draw_button_opt 14
+		draw_button_opt 15
 .else
-		draw_button_opt 16
+		draw_button_opt 17
 .endif
 
 _draw_button_load_opt:
@@ -347,16 +378,16 @@ _draw_button_load_opt:
 		ora WRAM_LoadButtons_SNES+1
 @draw:
 .ifndef ORG
-		draw_button_opt 15
+		draw_button_opt 16
 .else
-		draw_button_opt 17
+		draw_button_opt 18
 .endif
 
 _draw_reset_wram_opt:
 .ifndef ORG
-		draw_simple_at 16, "NO YES"
+		draw_simple_at 17, "NO YES"
 .else
-		draw_simple_at 18, "NO YES"
+		draw_simple_at 19, "NO YES"
 .endif
 
 
@@ -367,6 +398,7 @@ settings_renderers:
 		.word _draw_user1org_opt
 		.word _draw_userdelay_opt
 		.word _draw_savedelay_opt
+		.word _draw_charset_opt
 .ifdef ORG
 		.word _draw_minusworld_opt
 		.word _draw_gamegenie_opt
@@ -531,6 +563,7 @@ select_option:
 		.word _select_value
 		.word _select_value
 		.word _select_value
+		.word _select_minusworld
 .ifdef ORG
 		.word _select_minusworld
 		.word _select_gamegenie
@@ -605,6 +638,16 @@ enter_settings:
 		tax
 		dex
 		bpl @next
+.ifndef PAL
+		lda #0 ; for famistudio_init
+.else
+        lda #1 ; for famistudio_init
+.endif
+		ldy #>music_data_metal_slader_glory
+		ldx #<music_data_metal_slader_glory
+		jsr famistudio_init
+		lda #0
+		jsr famistudio_music_play
 		jmp selection_changed
 
 _music_input:
@@ -625,6 +668,15 @@ _sound_input:
 @nope:
 		rts
 
+_charset_input:
+		and #(B_Button|A_Button)
+		beq @nope
+		lda WRAM_Charset
+		eor #1
+		sta WRAM_Charset
+@nope:
+		rts
+		
 _user_input:
 		cmp #Right_Dir
 		bne @checkleft
@@ -961,6 +1013,7 @@ option_inputs:
 		.word _user_input
 		.word _drawdelay_input
 		.word _savedelay_input
+		.word _charset_input
 .ifdef ORG
 		.word _minusworld_input
 		.word _gamegenie_input

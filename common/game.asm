@@ -87,7 +87,7 @@ SetMarioPalette:
 		bne @draw_pal
 		ldx #$0E
 @draw_pal:
-		lda WRAM_IsContraMode
+		lda WRAM_IsKonamiMode
 		beq @normal
 		lda mario_colors_peach, x
 		jmp @write_it 

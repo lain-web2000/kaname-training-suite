@@ -15,134 +15,18 @@ UserFramesLeft = $013b
 	sta WRAM_PracticeFlags
 .endmacro
 
-.macro MACRO_ThrowFrameImpl
-ThrowFrame:
-		lda Mirror_PPU_CTRL_REG2
-		sta PPU_CTRL_REG2
-		lda Mirror_PPU_CTRL_REG1
-		and #$FC
-		sta Mirror_PPU_CTRL_REG1
-		sta PPU_CTRL_REG1 ; Force NT-0 (in case no button was pressed)
-
-		;
-		; Wait for sprite 0
-		;
-		lda Sprite0HitDetectFlag  ;check for flag here
-		beq @SkipSprite0
-		ldx #0
-		stx PPU_SPR_ADDR
-		lda Sprite0Data
-		sta PPU_SPR_DATA
-		lda Sprite0Data+1
-		sta PPU_SPR_DATA
-		lda Sprite0Data+2
-		sta PPU_SPR_DATA
-		lda Sprite0Data+3
-		sta PPU_SPR_DATA
-		lda PPU_STATUS
-		stx PPU_SCROLL_REG
-		stx PPU_SCROLL_REG
-@Sprite0Clr:
-		lda PPU_STATUS
-		and #$40
-		bne @Sprite0Clr
-@Sprite0Hit:
-		lda PPU_STATUS
-		and #$40
-		beq @Sprite0Hit
-		ldy #$14
-@HBlankDelay:
-		dey
-		bne @HBlankDelay
-@SkipSprite0:
-		lda PPU_STATUS
-		lda HorizontalScroll
-		sta PPU_SCROLL_REG
-		lda VerticalScroll
-		sta PPU_SCROLL_REG
-
-		lda ScreenLeft_PageLoc
-		lsr Mirror_PPU_CTRL_REG1
-		and #$01
-		ror
-		rol Mirror_PPU_CTRL_REG1
-		lda Mirror_PPU_CTRL_REG1
-		sta PPU_CTRL_REG1
-
-		lda WRAM_SlowMotion
-		cmp #4
-		bne @done
-		;
-		; Latch controllers.
-		;
-		ldx #1
-		stx $4016
-		dex
-		stx $4016
-		;
-		; Check A
-		;
-		lda $4017
-		lsr
-		bcs @done ; A pressed. Advance next frame
-		lda $4017 ; B
-		lda $4017 ; Select
-		lda $4017 ; Start
-		lsr
-		bcc @VBlank0
-		;
-		; Start pressed - Exit frame advance mode.
-		;
-		stx WRAM_SlowMotion
-		jmp @done ; Exit out of this.
-@VBlank0:
-		lda PPU_STATUS ; Wait for VBlank
-		bpl @VBlank0
-		jmp ThrowFrame
-@done:
-		lda Mirror_PPU_CTRL_REG1
-		ora #$80 ; NMI
-		sta PPU_CTRL_REG1
-		jmp Enter_SoundEngine
-.endmacro
-
-.macro MACRO_RunSlowMo gm
-		dec WRAM_SlowMotionLeft
-		bmi @allow_frame
-		lda DisableScreenFlag
-		bne @allow_frame
-		lda GamePauseStatus
-		and #3
-		bne @allow_frame
-		ldx OperMode
-		dex
-		bne @allow_frame
-		lda OperMode_Task
-		cmp #gm
-		bne @allow_frame
-		jsr ThrowFrame
-		rti
-@allow_frame:
-		lda WRAM_SlowMotion
-		sta WRAM_SlowMotionLeft
-.endmacro
-
 TITLE_INIT		= $01
 
 	BANK_LOADER		= 0
-.ifdef ORG
 	BANK_COMMON		= 4
 	BANK_CHR		= 8
+.ifdef ORG
 	BANK_ORGDATA	= 10
 	BANK_ORG		= 12
 .elseif .defined(LOST)
-	BANK_COMMON		= 4
-	BANK_CHR		= 8
 	BANK_LLDATA		= 10
 	BANK_SMBLL		= 12
 .else
-	BANK_COMMON		= 4
-	BANK_CHR		= 8
 	BANK_ANNDATA	= 10
 	BANK_ANN		= 12
 .endif
@@ -152,9 +36,11 @@ CHR_INTRO_SPR = 1
 .ifdef ORG
 	CHR_SM1CHAR1 = 2
 	CHR_SM1CHAR2 = 3
+	CHR_SM2CHARSET = 4
 .else
 	CHR_SM2CHAR1 = 2
 	CHR_SM2CHAR2 = 3
+	CHR_SM1CHARSET = 4
 .endif
 
 SavedRule = $07d9

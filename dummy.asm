@@ -427,9 +427,11 @@ CHRSourceAddress:
 .ifdef ORG
     .word sm1char1_start
     .word sm1char2_start
+	.word sm2charset
 .else
     .word sm2char1_start
     .word sm2char2_start
+	.word sm1charset
 .endif
 
 CHRDestinationAddress:
@@ -441,7 +443,8 @@ CHRDestinationAddress:
 .else
     .word $1760
 .endif
-
+	.word $0000
+	
 EndOfFileTerminator:
     .byte $45, $4F, $46
 

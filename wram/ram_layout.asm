@@ -10,9 +10,10 @@ WRAM_MenuIndex:
 	.byte $00
 WRAM_SelectedSlot:
 	.byte $00
-WRAM_AdvRNG:
-	.byte $00
 
+WRAM_Charset:
+	.byte $00
+	
 WRAM_MinusWorld:
 	.byte $00
 WRAM_GameGenie:
@@ -51,29 +52,13 @@ WRAM_TitleButtons_SNES:
 WRAM_RestartButtons_SNES:
 	.byte $00, $00
 
-WRAM_EnabledFrameCounterUpdateFlags:
-	.res $10, $00
-	
-	;$00 - Jumping
-	;$01 - Enemy Stomp/Power-Up Grab
-	;$02 - JumpSpring
-	;$03 - B-Press (Off, On B-Press, Fireball shots only)
-	;$04 - Bowser Spawn
-	;$05 - RetainerMsg Countdown
-	;$06 - Pipe Entry
-	;$07 - Star Flag
-	;$08 - Axe Grab
-	;$09 - mod21 Check
-	;$0a - Start of Wind
-	;$0b - Coin Collection
-	
-WRAM_EnabledFrameCounterUpdateFlags_End:
-
 WRAM_IRQUpdateFlag:
 	.byte $00
 
 WRAM_ToSaveFile:
 WRAM_PracticeFlags:
+	.byte $00
+WRAM_AdvRNG:
 	.byte $00
 WRAM_LoadedLevel:
 	.byte $00
@@ -115,7 +100,7 @@ WRAM_EnemyData:
 	.res $100, $00
 WRAM_LevelData:
 	.res $100, $00
-WRAM_IsContraMode:
+WRAM_IsKonamiMode:
 	.word 0
 
 WRAM_Temp:

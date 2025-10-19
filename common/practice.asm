@@ -1588,6 +1588,14 @@ ForceUpdateSockHashInner:
 		lda $2
 		adc #2
 		sta $2
+		pla
+something_or_other:
+		sta $04
+		asl
+		asl
+		adc $04
+		adc $2
+		sta $2
 		lda SprObject_Y_Position
 		and #$03         
 		asl
@@ -1598,14 +1606,6 @@ ForceUpdateSockHashInner:
 		lda $2
 		and #$0f
 		ora $04       
-		sta $2
-		pla
-something_or_other:
-		sta $04
-		asl
-		asl
-		adc $04
-		adc $2
 		sta $2
 		ldx vramBufferOffset_Prac
 		bne skip_sock_hash

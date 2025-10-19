@@ -260,10 +260,11 @@ draw_menu:
 		rts
 		
 CreditsTextYadaYada:
-	.byte $20, $6a, "DEVELOPERS", $FF
-	.byte $20, $88, "--------------", $FF
-	.byte $20, $cc, "WEB2000", $FF
-	.byte $21, $08, "SIMPLISTIC6502", $FF
+	.byte $20, $4a, "DEVELOPERS", $FF
+	.byte $20, $68, "--------------", $FF
+	.byte $20, $ac, "WEB2000", $FF
+	.byte $20, $e8, "SIMPLISTIC6502", $FF
+	.byte $21, $2d, "108PI", $FF
 	.byte $21, $89, "ORIGINAL DEVS", $FF
 	.byte $21, $a8, "---------------", $FF
 	.byte $21, $eb, "PELLSSON", $FF

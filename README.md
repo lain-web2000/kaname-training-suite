@@ -84,9 +84,17 @@ This sets up wrong-warps for Worlds 8-1 and C-1, and allows you to enter 9-1 fro
 - SNES Controller support for hotkeys, all buttons are supported. SNES hotkeys are stored independently from NES hotkeys.
 - Holding A + Start on SMB1 NTSC or PAL will take you to 8-1 on second quest difficulty and bypass all Framerule/RNG logic to replicate vanilla behaviour.</li>
 - Holding A + Start on SMB2J or ANNSMB will take you to A-1 and bypass all Framerule/RNG logic to replicate vanilla behaviour.
+  
+- Updated Sockfolder's calculation with improvements by 108Pi to better account for Y-Positioning.
+
+Previously, there were 4 Y pixels with the same sockfolder value, leading to situations where the same value could give different results (such as FF0 save and frame late FF0 save both being D70).
+
+In the new notation, the leading digit is the lowest 2 bits of Mario's Y position. This acts as a vertical offset within the sockfolder value. This doesn't change while mario is falling because he falls at 4 pixels per frame. In addition, this notation is backwards-compatible with the old notation because the last 3 digits are the same.
+
+With regular D70 FPG inputs, the value is now 1D70. A good FF0 save becomes 3D70, and a frame late FF0 save becomes 0D70. Top step setups that give 2D70 also work, so 0D70 is the only value that can't get FPG.
 
 # Credits
-- Developers: web2000, Simplistic6502
+- Developers: web2000, Simplistic6502, 108Pi
 - Original Developers: Threecreepio, pellsson
 - Sprites for Peach shamelessly stolen from [Super Mario Bros.: Peach Edition](https://www.romhacking.net/hacks/1229)
 

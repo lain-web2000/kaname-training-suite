@@ -1588,6 +1588,17 @@ ForceUpdateSockHashInner:
 		lda $2
 		adc #2
 		sta $2
+		lda SprObject_Y_Position
+		and #$03         
+		asl
+		asl              
+		asl
+		asl
+		sta $04  
+		lda $2
+		and #$0f
+		ora $04       
+		sta $2
 		pla
 something_or_other:
 		sta $04

@@ -51,7 +51,7 @@ A collection of speedrun practice ROMs for Super Mario Bros. (NTSC & PAL), Super
     - ANNSMB: All Stages
 - Infinite lives, so you never have to worry about getting a game over.
 - 5 selectable save slots for framerules.
-- Integrated [Inputlog by Threecreepio](https://github.com/threecreepio/nes-inputlog). This can be accessed by holding the A and B buttons while resetting. 
+- Integrated [Inputlog by Threecreepio](https://github.com/threecreepio/nes-inputlog). This can be from the main menu. 
 
 ## Super Mario Bros.:
 - Integrated Game Genie code support for select Category Extensions, which can be selected in the settings menu.
@@ -80,6 +80,10 @@ This sets up wrong-warps for Worlds 8-1 and C-1, and allows you to enter 9-1 fro
 - Remainders now display on the intermediate screen when starting from the title screen or exiting a warp zone.
 - Each game has its own ROM now, and each ROM uses the [MMC3 mapper](https://www.nesdev.org/wiki/MMC3) to maximize compatibility.
 - Updated VRAM buffer system using the [Popslide](https://forums.nesdev.org/viewtopic.php?t=15440) library to allow for additional practice information to be displayed.
+- Hotkeys are less strict; you can hold other buttons while performing your hotkey combination.
+- SNES Controller support for hotkeys, all buttons are supported. SNES hotkeys are stored independently from NES hotkeys.
+- Holding A + Start on SMB1 NTSC or PAL will take you to 8-1 on second quest difficulty and bypass all Framerule/RNG logic to replicate vanilla behaviour.</li>
+- Holding A + Start on SMB2J or ANNSMB will take you to A-1 and bypass all Framerule/RNG logic to replicate vanilla behaviour.
 
 # Credits
 - Developers: web2000, Simplistic6502
@@ -93,4 +97,3 @@ This sets up wrong-warps for Worlds 8-1 and C-1, and allows you to enter 9-1 fro
 - https://github.com/threecreepio/smbann-disassembly
 - https://github.com/threecreepio/nes-inputlog
 - https://github.com/MrWint/smb-dis
-

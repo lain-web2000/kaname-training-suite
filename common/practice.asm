@@ -1626,25 +1626,7 @@ draw_sock_hash:
 		lda #$07
 		sta vramBufferOffset_Prac
 skip_sock_hash:
-		lda $1b
-		cmp #$30
-		bne :++
-		lda $079f
-		and #%10000000
-		beq :++
-		lda $2
-		and #%00001111
-		cmp #$0d
-		bne @exit
-		lda $3
-		cmp #$70
-		bne @exit
-		lda #$ff
-		bmi :+
-@exit:
-		lda #$00
-:		sta $079f
-:		rts
+		rts
 
 ForceUpdateSockHash:
 		jsr ForceUpdateSockHashInner

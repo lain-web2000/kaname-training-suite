@@ -1592,6 +1592,7 @@ ChkSwimE: ldy AreaType                ;if level not water-type,
 SetPESub: lda #$07                    ;set to run player entrance subroutine
           sta GameEngineSubroutine    ;on the next frame of game engine
           jsr Enter_RedrawFrameNumbers ; i am sorry for commiting sins with this jsr + rts combo
+		  jsr Enter_CompString
 .ifndef PAL
 		  lda WRAM_AdvRNG
 		  bne @no_rule
@@ -13566,7 +13567,12 @@ NoHammer: ldx ObjectOffset         ;get original enemy object offset
 		lda #BANK_COMMON
 		jsr SetBankFromA
 		jmp PracticeTitleMenu
-
+		
+	Enter_CompString:
+		lda #BANK_COMMON
+		jsr SetBankFromA
+		jmp DoSomethingOnAreaStart_Walk
+		
 	Enter_UpdateFrameRule:
 		lda #BANK_COMMON
 		jsr SetBankFromA

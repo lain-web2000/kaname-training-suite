@@ -205,6 +205,12 @@ WRAM_AdvRNGSlot:
 	
 WRAM_Timer:
 	.word 0
+
+XAlignmentWalking:
+	.byte $00
+XAlignmentRunning:
+	.byte $00
+
 ;
 ; Number of stars collected
 ;

@@ -2269,6 +2269,7 @@ ChkSwimE: ldy AreaType                ;if level not water-type,
 SetPESub: lda #$07                    ;set to run player entrance subroutine
           sta GameEngineSubroutine    ;on the next frame of game engine
 		  jsr Enter_RedrawFrameNumbers
+		  jsr Enter_CompString
 		  lda WRAM_AdvRNG
 		  bne @no_rule
 		  jmp Enter_RedrawFramerule
@@ -15548,6 +15549,11 @@ SuperPlayerMsg:
 		lda #BANK_COMMON
 		jsr SetBankFromA
 		jmp ProcessLevelLoad
+		
+	Enter_CompString:
+		lda #BANK_COMMON
+		jsr SetBankFromA
+		jmp DoSomethingOnAreaStart_Walk
 		
 .ifdef LOST
 	Enter_LL_GetAreaDataAddrs:

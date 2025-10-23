@@ -1421,6 +1421,37 @@ PracticeOnFrameInner:
 		jsr LL_SoundEngine
 .endif
 
+FindAlignmentThruLevel:
+		lda Player_X_Speed
+		clc
+		adc XAlignmentWalking
+		bmi abababababababa
+	:	cmp #$18
+		bcc alabelattheveryend
+		sec
+		sbc #$18
+		bpl :-
+abababababababa:
+		clc
+		adc #$18
+		bmi abababababababa
+alabelattheveryend:
+		sta XAlignmentWalking
+		
+		lda Player_X_Speed
+		clc
+		adc XAlignmentRunning
+		bmi :++
+	:	cmp #$28
+		bcc alabelattheveryend_2
+		sec
+		sbc #$28
+		bpl :-
+	:	clc
+		adc #$28
+		bmi :-
+alabelattheveryend_2:
+		sta XAlignmentRunning
 @read_keypads:
 		lda SavedJoypadBits
 		ora JoypadBitMask
@@ -1566,7 +1597,7 @@ DontUpdateSockHash:
 ForceUpdateSockHashInner:
 		lda GameEngineSubroutine
 		cmp #$0b
-		beq skip_sock_hash
+		beq DontUpdateSockHash
 		lda WRAM_PracticeFlags
         and #PF_DisablePracticeInfo
         bne DontUpdateSockHash
@@ -1607,6 +1638,29 @@ something_or_other:
 		and #$0f
 		ora $04       
 		sta $2
+		lda $3
+		lsr_by 4
+		sta $3
+		lda $2
+		asl
+		asl
+		asl
+		asl
+		ora $3
+		sta $3
+		lda $2
+		and #$f0
+		sta $2
+		lda Player_X_Speed
+		cmp #$19
+		bcc DoWalking
+		lda XAlignmentRunning
+		bpl :+
+DoWalking:
+		lda XAlignmentWalking
+:		lsr_by 3
+		ora $2
+		sta $2
 		ldx vramBufferOffset_Prac
 		bne skip_sock_hash
 draw_sock_hash:
@@ -1628,6 +1682,83 @@ draw_sock_hash:
 skip_sock_hash:
 		rts
 
+NTSCWalking:
+		.byte $10, $08, $00 ;If AltEntranceControl = 0 or 3
+		.byte $00, $10, $08 ;If AltEntranceControl = 1
+		.byte $08, $00, $10 ;If AltEntranceControl = 2
+		
+NTSCRunning:
+		.byte $00, $10, $20, $08, $18 ;If AltEntranceControl = 0 or 3
+		.byte $18, $00, $10, $14, $08 ;If AltEntranceControl = 1
+		.byte $10, $20, $08, $18, $00 ;If AltEntranceControl = 2
+		
+PALWalking:
+		.byte $18, $04, $0C, $14, $00, $08, $10 ;If AltEntranceControl = 0 or 3
+		.byte $14, $00, $08, $10, $18, $04, $0C ;If AltEntranceControl = 1
+		.byte $00, $08, $10, $18, $04, $0C, $14 ;If AltEntranceControl = 2
+		
+PALRunning:
+		.byte $10, $20, $00 ;If AltEntranceControl = 0 or 3
+		.byte $00, $10, $20 ;If AltEntranceControl = 1
+		.byte $20, $00, $10 ;If AltEntranceControl = 2
+		
+DoSomethingOnAreaStart_Walk:
+		lda #$03
+		sta $01
+		lda Player_PageLoc
+		jsr SubtractByHoweverManyValuesNeeded
+		sta $02
+		lda AltEntranceControl
+		cmp #$03
+		bcc huh
+		lda #$00
+huh:
+		sta $00
+		ldx #$03
+		jsr AddsByHoweverManyValuesNeeded
+		clc
+		adc $02
+		tax
+		lda NTSCWalking,x
+		sta XAlignmentWalking
+		
+DoSomethingOnAreaStart_Run:
+		lda #$05
+		sta $01
+		lda Player_PageLoc
+		jsr SubtractByHoweverManyValuesNeeded
+		sta $02
+		lda AltEntranceControl
+		cmp #$03
+		bcc huh_2
+		lda #$00
+huh_2:
+		sta $00
+		ldx #$05
+		jsr AddsByHoweverManyValuesNeeded
+		clc
+		adc $02
+		tax
+		lda NTSCRunning,x
+		sta XAlignmentRunning
+		jmp ReturnBank
+		
+AddsByHoweverManyValuesNeeded:
+		lda $00
+:		clc
+		adc $00
+		dex
+		bne :-
+		rts
+		
+SubtractByHoweverManyValuesNeeded:
+		cmp $01
+		bcc @exit
+		sbc $01
+		bne SubtractByHoweverManyValuesNeeded
+@exit:
+		rts
+	
 ForceUpdateSockHash:
 		jsr ForceUpdateSockHashInner
 		jmp ReturnBank

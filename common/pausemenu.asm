@@ -695,7 +695,7 @@ do_coins_input:
 
 get_user_selected:
 		ldx WRAM_MenuIndex
-		cpx #6
+		cpx #7
 		beq @is_org_0
 		lda #<WRAM_UserVarB
 		ldx #>WRAM_UserVarB

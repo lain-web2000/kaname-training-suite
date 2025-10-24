@@ -1395,9 +1395,7 @@ begin_load:
 		sta SND_MASTERCTRL_REG
 @invalid_save:
 		rts
-pause_things_stub:
-		jmp pause_things
-		
+
 run_save_load:
 		and #PF_SaveState
 		beq @load_state
@@ -1409,6 +1407,83 @@ PracticeOnFrame:
 		jsr PracticeOnFrameInner
 		jmp ReturnBank
 
+FindAlignmentThruLevel:
+		lda SprObject_X_MoveForce
+		sec
+		sbc PrevFXSubPX
+		sta $00
+		lda Player_X_Position
+		sbc PrevFXPX
+		asl
+		asl
+		asl
+		asl
+		sta $01
+		lda $00
+		lsr_by 4
+		ora $01
+		sta $00
+		clc
+		adc XAlignmentWalking
+		bmi abababababababa
+.ifndef PAL
+	:	cmp #$18	; NTSC Walking Speed
+.else
+	:	cmp #$1c	; PAL Walking Speed
+.endif
+		bcc alabelattheveryend
+		sec
+.ifndef PAL
+		sbc #$18
+.else
+		sbc #$1c
+.endif
+		bpl :-
+abababababababa:
+		clc
+.ifndef PAL
+		adc #$18
+.else
+		adc #$1c
+.endif
+		bmi abababababababa
+alabelattheveryend:
+		sta XAlignmentWalking
+		lda $00
+		clc
+		adc XAlignmentRunning
+		bmi :++
+.ifndef PAL
+	:	cmp #$28	; NTSC Running Speed
+.else
+	:	cmp #$30	; PAL Running Speed
+.endif
+		bcc alabelattheveryend_2
+		sec
+.ifndef PAL
+		sbc #$28
+.else
+		sbc #$30
+.endif
+		bpl :-
+	:	clc
+.ifndef PAL
+		adc #$28
+.else
+		adc #$30
+.endif
+		bmi :-
+alabelattheveryend_2:
+		sta XAlignmentRunning
+		lda Player_X_Position
+		sta PrevFXPX
+		lda SprObject_X_MoveForce
+		sta PrevFXSubPX
+		rts
+		
+pause_things_stub:
+		jmp pause_things
+		
 PracticeOnFrameInner:
 		lda WRAM_PracticeFlags
 		and #PF_SaveState|PF_LoadState
@@ -1420,38 +1495,7 @@ PracticeOnFrameInner:
 .else
 		jsr LL_SoundEngine
 .endif
-
-FindAlignmentThruLevel:
-		lda Player_X_Speed
-		clc
-		adc XAlignmentWalking
-		bmi abababababababa
-	:	cmp #$18
-		bcc alabelattheveryend
-		sec
-		sbc #$18
-		bpl :-
-abababababababa:
-		clc
-		adc #$18
-		bmi abababababababa
-alabelattheveryend:
-		sta XAlignmentWalking
-		
-		lda Player_X_Speed
-		clc
-		adc XAlignmentRunning
-		bmi :++
-	:	cmp #$28
-		bcc alabelattheveryend_2
-		sec
-		sbc #$28
-		bpl :-
-	:	clc
-		adc #$28
-		bmi :-
-alabelattheveryend_2:
-		sta XAlignmentRunning
+		jsr FindAlignmentThruLevel
 @read_keypads:
 		lda SavedJoypadBits
 		ora JoypadBitMask
@@ -1682,6 +1726,7 @@ draw_sock_hash:
 skip_sock_hash:
 		rts
 
+.ifndef PAL
 NTSCWalking:
 		.byte $10, $08, $00 ;If AltEntranceControl = 0 or 3
 		.byte $00, $10, $08 ;If AltEntranceControl = 1
@@ -1691,7 +1736,7 @@ NTSCRunning:
 		.byte $00, $10, $20, $08, $18 ;If AltEntranceControl = 0 or 3
 		.byte $18, $00, $10, $14, $08 ;If AltEntranceControl = 1
 		.byte $10, $20, $08, $18, $00 ;If AltEntranceControl = 2
-		
+.else
 PALWalking:
 		.byte $18, $04, $0C, $14, $00, $08, $10 ;If AltEntranceControl = 0 or 3
 		.byte $14, $00, $08, $10, $18, $04, $0C ;If AltEntranceControl = 1
@@ -1701,9 +1746,14 @@ PALRunning:
 		.byte $10, $20, $00 ;If AltEntranceControl = 0 or 3
 		.byte $00, $10, $20 ;If AltEntranceControl = 1
 		.byte $20, $00, $10 ;If AltEntranceControl = 2
-		
+.endif
+
 DoSomethingOnAreaStart_Walk:
+.ifndef PAL
 		lda #$03
+.else
+		lda #$07
+.endif
 		sta $01
 		lda Player_PageLoc
 		jsr SubtractByHoweverManyValuesNeeded
@@ -1714,16 +1764,28 @@ DoSomethingOnAreaStart_Walk:
 		lda #$00
 huh:
 		sta $00
+.ifndef PAL
 		ldx #$03
+.else
+		ldx #$07
+.endif
 		jsr AddsByHoweverManyValuesNeeded
 		clc
 		adc $02
 		tax
+.ifndef PAL
 		lda NTSCWalking,x
+.else
+		lda PALWalking,x
+.endif
 		sta XAlignmentWalking
 		
 DoSomethingOnAreaStart_Run:
+.ifndef PAL
 		lda #$05
+.else
+		lda #$03
+.endif
 		sta $01
 		lda Player_PageLoc
 		jsr SubtractByHoweverManyValuesNeeded
@@ -1734,12 +1796,20 @@ DoSomethingOnAreaStart_Run:
 		lda #$00
 huh_2:
 		sta $00
+.ifndef PAL
 		ldx #$05
+.else
+		ldx #$03
+.endif
 		jsr AddsByHoweverManyValuesNeeded
 		clc
 		adc $02
 		tax
+.ifndef PAL
 		lda NTSCRunning,x
+.else
+		lda PALRunning,x
+.endif
 		sta XAlignmentRunning
 		jmp ReturnBank
 		

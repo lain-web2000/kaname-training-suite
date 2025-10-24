@@ -94,6 +94,14 @@ WRAM_LevelRandomData:
 	.res $07, $00
 WRAM_LevelFrameRuleData:
 	.res $04, $00
+WRAM_XAlignmentWalking:
+	.byte $00
+WRAM_XAlignmentRunning:
+	.byte $00
+WRAM_PrevFXPX:
+	.byte $00
+WRAM_PrevFXSubPX:
+	.byte $00
 WRAM_ToSaveFile_End:
 
 WRAM_EnemyData:
@@ -209,6 +217,12 @@ WRAM_Timer:
 XAlignmentWalking:
 	.byte $00
 XAlignmentRunning:
+	.byte $00
+PrevFPageLoc:
+	.byte $00
+PrevFXPX:
+	.byte $00
+PrevFXSubPX:
 	.byte $00
 
 ;

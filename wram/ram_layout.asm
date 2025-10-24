@@ -94,13 +94,13 @@ WRAM_LevelRandomData:
 	.res $07, $00
 WRAM_LevelFrameRuleData:
 	.res $04, $00
-WRAM_XAlignmentWalking:
+XAlignmentWalking:
 	.byte $00
-WRAM_XAlignmentRunning:
+XAlignmentRunning:
 	.byte $00
-WRAM_PrevFXPX:
+PrevFXPX:
 	.byte $00
-WRAM_PrevFXSubPX:
+PrevFXSubPX:
 	.byte $00
 WRAM_ToSaveFile_End:
 
@@ -213,17 +213,6 @@ WRAM_AdvRNGSlot:
 	
 WRAM_Timer:
 	.word 0
-
-XAlignmentWalking:
-	.byte $00
-XAlignmentRunning:
-	.byte $00
-PrevFPageLoc:
-	.byte $00
-PrevFXPX:
-	.byte $00
-PrevFXSubPX:
-	.byte $00
 
 ;
 ; Number of stars collected

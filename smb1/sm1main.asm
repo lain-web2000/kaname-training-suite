@@ -117,7 +117,7 @@ DrawBuffer:
 .ifdef PAL
 	   lda #31                   ;count 31 scanlines (plus the pre-render scanline)
 .else
-	   lda #22
+	   lda #21
 .endif
 	   sta MMC3_IRQLatch
 	   sta MMC3_IRQReload
@@ -1325,8 +1325,8 @@ StatusBarData:
       .byte $f0, $06 ; top score display on title screen
       .byte $62, $06 ; player score
       .byte $62, $06
-      .byte $6d, $02 ; coin tally
-      .byte $6d, $02
+      .byte $6e, $02 ; coin tally
+      .byte $6e, $02
       .byte $7a, $03 ; game timer
 
 StatusBarOffset:
@@ -1422,7 +1422,7 @@ DefaultSprOffsets:
 
 .ifndef PAL
 	Sprite0Data:
-		  .byte $18, $ff, $23, $58
+		  .byte $17, $ff, $20, $60
 .endif
 
 ;-------------------------------------------------------------------------------------

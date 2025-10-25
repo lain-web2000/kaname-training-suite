@@ -450,7 +450,7 @@ pm_low_coins:
 		ldx VRAM_Buffer1_Offset
 		lda #$20
 		sta VRAM_Buffer1,x
-		lda #$6e ; addr
+		lda #$6f ; addr
 		sta VRAM_Buffer1+1,x
 		lda #$01 ; len
 		sta VRAM_Buffer1+2,x
@@ -484,7 +484,7 @@ pm_toggle_info:
 		ldx VRAM_Buffer1_Offset
 		lda #$20
 		sta VRAM_Buffer1,x
-		lda #$64 ; addr
+		lda #$65 ; addr
 		sta VRAM_Buffer1+1,x
 		lda #$06 ; len
 		sta VRAM_Buffer1+2,x
@@ -497,7 +497,7 @@ pm_toggle_info:
 		sta VRAM_Buffer1+8, x
 		lda #$20
 		sta VRAM_Buffer1+9, x
-		lda #$4d
+		lda #$4e
 		sta VRAM_Buffer1+10, x
 		lda #$03
 		sta VRAM_Buffer1+11, x
@@ -524,7 +524,7 @@ pm_toggle_info:
 		ldx VRAM_Buffer1_Offset
 		lda #$20
 		sta VRAM_Buffer1,x
-		lda #$69 ; addr
+		lda #$6a ; addr
 		sta VRAM_Buffer1+1,x
 		lda #$01 ; len
 		sta VRAM_Buffer1+2,x
@@ -673,7 +673,7 @@ do_coins_input:
 		ldy VRAM_Buffer1_Offset
 		lda #$20
 		sta VRAM_Buffer1,y
-		lda #$6d ; addr
+		lda #$6e ; addr
 		sta VRAM_Buffer1+1,y
 		lda #$01 ; len
 		sta VRAM_Buffer1+2,y

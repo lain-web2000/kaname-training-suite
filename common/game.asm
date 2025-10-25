@@ -402,7 +402,7 @@ UpdateGameTimer:
 		ldx VRAM_Buffer1_Offset
 		lda #$20
 		sta VRAM_Buffer1,x
-		lda #$7B
+		lda #$7A
 		sta VRAM_Buffer1+1,x
 		lda #$03
 		sta VRAM_Buffer1+2,x

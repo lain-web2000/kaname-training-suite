@@ -336,13 +336,13 @@ WritePracticeTop:
 		sta VRAM_Buffer1,y                           ;
 		jmp ReturnBank 
 		
-@TopStatusText:	
-		.byte $20, $42, $0c, $1b, $29, $24, $24, $24, $24, $24, $24, $29, $24, $0f, $29
-		.byte $20, $52, $0c, $24, $0a, $24, $24, $24, $0b, $24, $24, $1d, $12, $16, $0e
-		.byte $20, $62, $02, $1c, $29		
-		.byte $20, $6c, $02, $2e, $29                ; score trailing digit and coin display
+@TopStatusText:
+		.byte $20, $42, $0b, $1b, $29, $24, $24, $24, $24, $24, $24, $24, $0f, $29
+		.byte $20, $51, $0c, $24, $0a, $24, $24, $24, $0b, $24, $24, $1d, $12, $16, $0e
+		.byte $20, $62, $02, $1c, $29			
+		.byte $20, $6b, $02, $2e, $29                ; score trailing digit and coin display
 		.byte $23, $c0, $7f, $aa                     ; attribute table data, clears name table 0 to palette 2
-		.byte $23, $c3, $01, $aa                     ; set palette for the flashing coin ; attribute table data, used for coin icon in status bar
+		.byte $23, $c2, $01, $ea                     ; set palette for the flashing coin ; attribute table data, used for coin icon in status bar
 @TopStatusTextEnd:
 		.byte $00
 
@@ -357,7 +357,7 @@ RedrawFramesRemainingInner:
 		sta VRAM_Buffer1_Offset                      ; store the new offset
 		lda #$20                                     ; write the ppu address to update
 		sta VRAM_Buffer1+0, y                        ;
-		lda #$5A                                     ;
+		lda #$59                                     ;
 		sta VRAM_Buffer1+1, y                        ;
 		lda #$04                                     ; we are writing 4 bytes
 		sta VRAM_Buffer1+2, y                        ;
@@ -378,7 +378,7 @@ HideRemainingFrames:
 		ldy VRAM_Buffer1_Offset
 		lda #$20
 		sta VRAM_Buffer1, y
-		lda #$5A
+		lda #$59
 		sta VRAM_Buffer1+1, y
 		lda #$04
 		sta VRAM_Buffer1+2, y
@@ -419,7 +419,7 @@ RedrawFrameNumbersInner:
 		sta VRAM_Buffer1_Offset                      ; save new vram offset
 		lda #$20                                     ; store the ppu location of the frame number
 		sta VRAM_Buffer1,y                           ;
-		lda #$4e                                     ;
+		lda #$4d                                     ;
 		sta VRAM_Buffer1+1,y                         ;
 		lda #$03                                     ; store the number of digits to draw
 		sta VRAM_Buffer1+2,y                         ;
@@ -1671,27 +1671,23 @@ something_or_other:
 		adc $04
 		adc $2
 		sta $2
+		sta $1
 		lda SprObject_Y_Position
 		and #$03         
 		asl
 		asl              
 		asl
 		asl
-		sta $04  
+		sta $04
 		lda $2
 		and #$0f
 		ora $04       
 		sta $2
-		lda $3
-		lsr_by 4
-		sta $3
 		lda $2
 		asl
 		asl
 		asl
 		asl
-		ora $3
-		sta $3
 		lda $2
 		and #$f0
 		sta $2
@@ -1712,18 +1708,18 @@ draw_sock_hash:
 		sta vramBuffer
 		lda #$64 ;
 		sta vramBuffer+1
-		lda #$04 ; len
+		lda #$05 ; len
 		sta vramBuffer+2
 		ldx #0
 		lda $2
 		jsr PrintHexByte
+		lda $1
+		jsr PrintHexByte
 		lda $3
 		jsr PrintHexByte
-		lda #$00
-		sta vramBuffer+3, x
 		lda #$ff
-		sta vramBuffer+4, x
-		lda #$08
+		sta vramBuffer+3, x
+		lda #$09
 		sta vramBufferOffset_Prac
 skip_sock_hash:
 		rts
@@ -1878,10 +1874,10 @@ LoadState:
 		lda #$3F
 		sta PPU_ADDRESS
 		lda #$00
+		tax
 		sta PPU_ADDRESS
 		lda PPU_DATA ; Internal buffer; throw
 
-		ldx #$0
 		ldy #$20
 @copy_pal:
 		lda WRAM_SavePAL, x
@@ -1913,9 +1909,8 @@ LoadState:
 		lda #$20
 		sta PPU_ADDRESS
 		lda #$00
+		tax
 		sta PPU_ADDRESS
-
-		ldx #0
 @copy_nt:
 		lda WRAM_SaveNT, x
 		sta PPU_DATA
@@ -1976,10 +1971,10 @@ SaveState:
 		lda #$3F
 		sta PPU_ADDRESS
 		lda #$00
+		tax
 		sta PPU_ADDRESS
 		lda PPU_DATA ; Internal buffer; throw
 
-		ldx #$0
 		ldy #$20
 @copy_pal:
 		lda PPU_DATA
@@ -2028,10 +2023,9 @@ SaveState:
 		lda #$20
 		sta PPU_ADDRESS
 		lda #$00
+		tax
 		sta PPU_ADDRESS
 		lda PPU_DATA ; Internal buffer; throw
-		
-		ldx #0
 @copy_nt:
 		lda PPU_DATA
 		sta WRAM_SaveNT, x
@@ -2111,7 +2105,7 @@ RedrawUserVars:
 		bne noredraw
 		lda #$20
 		sta vramBuffer
-		lda #$72
+		lda #$71
 		sta vramBuffer+1
 		lda #$06
 		sta vramBuffer+2
@@ -2199,7 +2193,7 @@ UpdateStatusInput:
     jmp ReturnBank
 
 InputDisplayPacket:
-    .byte $20,$52,$06,$1E,$15,$0D,$1B,$24,$0B,$0A,$FF
+    .byte $20,$51,$06,$1E,$15,$0D,$1B,$24,$0B,$0A,$FF
 	
 RequestRestartLevel:
 		lda OperMode
@@ -2407,10 +2401,12 @@ RedrawSockTimer:
 		ldx vramBufferOffset_Prac
 		lda #$20
 		sta vramBuffer,x
-		lda #$6a
+		lda #$48
       	sta vramBuffer+1,x
-      	lda #$00
+      	lda #$01
       	sta vramBuffer+2,x
+		lda #$28
+		sta vramBuffer+3,x
       	lda WRAM_PracticeFlags
       	and #PF_LevelEntrySaved
       	bne @already_saved
@@ -2427,9 +2423,10 @@ RedrawSockTimer:
 		lda IntervalTimerControl
 @write_it:
 		sta WRAM_AreaSockTimer
-		sta vramBuffer+3,x
-		lda #$ff
 		sta vramBuffer+4,x
+		lda #$ff
+		sta vramBuffer+5,x
+		inx
 		inx
 		inx
 		inx

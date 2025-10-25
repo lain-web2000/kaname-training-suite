@@ -117,7 +117,7 @@ DrawBuffer:
 .ifdef PAL
 	   lda #31                   ;count 31 scanlines (plus the pre-render scanline)
 .else
-	   lda #21
+	   lda #22
 .endif
 	   sta MMC3_IRQLatch
 	   sta MMC3_IRQReload
@@ -1015,9 +1015,6 @@ SetVRAMCtrl: lda #$06
 ColorRotatePalette:
        .byte $27, $27, $27, $17, $07, $17
 
-ColorRotateSprite0:
-       .byte $21, $21, $21, $23, $20, $23
-
 BlankPalette:
        .byte $3f, $0c, $04, $ff, $ff, $ff, $ff, $00
 
@@ -1059,8 +1056,6 @@ GetAreaPal:   lda Palette3Data,y       ;fetch palette to be written based on are
               ldy ColorRotateOffset    ;get color cycling offset
               lda ColorRotatePalette,y
               sta VRAM_Buffer1+4,x     ;get and store current color in second slot of palette
-              lda ColorRotateSprite0,Y
-              sta Sprite_Data+2
               lda VRAM_Buffer1_Offset
               clc                      ;add seven bytes to vram buffer offset
               adc #$07
@@ -1330,8 +1325,8 @@ StatusBarData:
       .byte $f0, $06 ; top score display on title screen
       .byte $62, $06 ; player score
       .byte $62, $06
-      .byte $6e, $02 ; coin tally
-      .byte $6e, $02
+      .byte $6d, $02 ; coin tally
+      .byte $6d, $02
       .byte $7a, $03 ; game timer
 
 StatusBarOffset:
@@ -1427,7 +1422,7 @@ DefaultSprOffsets:
 
 .ifndef PAL
 	Sprite0Data:
-		  .byte $17, $ff, $20, $60
+		  .byte $18, $ff, $23, $58
 .endif
 
 ;-------------------------------------------------------------------------------------

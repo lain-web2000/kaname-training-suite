@@ -450,7 +450,7 @@ pm_low_coins:
 		ldx VRAM_Buffer1_Offset
 		lda #$20
 		sta VRAM_Buffer1,x
-		lda #$6f ; addr
+		lda #$6e ; addr
 		sta VRAM_Buffer1+1,x
 		lda #$01 ; len
 		sta VRAM_Buffer1+2,x
@@ -484,7 +484,7 @@ pm_toggle_info:
 		ldx VRAM_Buffer1_Offset
 		lda #$20
 		sta VRAM_Buffer1,x
-		lda #$65 ; addr
+		lda #$64 ; addr
 		sta VRAM_Buffer1+1,x
 		lda #$06 ; len
 		sta VRAM_Buffer1+2,x
@@ -497,7 +497,7 @@ pm_toggle_info:
 		sta VRAM_Buffer1+8, x
 		lda #$20
 		sta VRAM_Buffer1+9, x
-		lda #$4e
+		lda #$4d
 		sta VRAM_Buffer1+10, x
 		lda #$03
 		sta VRAM_Buffer1+11, x
@@ -509,7 +509,7 @@ pm_toggle_info:
 		sta VRAM_Buffer1+15,x
 		lda #$44 ; addr
 		sta VRAM_Buffer1+16,x
-		lda #$44 ; len
+		lda #$46 ; len
 		sta VRAM_Buffer1+17,x
 		lda #$24 ; blank
 		sta VRAM_Buffer1+18, x
@@ -524,17 +524,19 @@ pm_toggle_info:
 		ldx VRAM_Buffer1_Offset
 		lda #$20
 		sta VRAM_Buffer1,x
-		lda #$6a ; addr
+		lda #$48 ; addr
 		sta VRAM_Buffer1+1,x
-		lda #$01 ; len
+		lda #$02 ; len
 		sta VRAM_Buffer1+2,x
+		lda #$28
+		sta VRAM_Buffer1+3,x
 		lda WRAM_AreaSockTimer
-		sta VRAM_Buffer1+3, x
-		lda #$00
 		sta VRAM_Buffer1+4, x
+		lda #$00
+		sta VRAM_Buffer1+5, x
 		lda VRAM_Buffer1_Offset
 		clc
-		adc #$04
+		adc #$05
 		sta VRAM_Buffer1_Offset
         jsr RedrawFrameNumbersInner
 		jmp RedrawFramerulePauseMenu
@@ -673,7 +675,7 @@ do_coins_input:
 		ldy VRAM_Buffer1_Offset
 		lda #$20
 		sta VRAM_Buffer1,y
-		lda #$6e ; addr
+		lda #$6d ; addr
 		sta VRAM_Buffer1+1,y
 		lda #$01 ; len
 		sta VRAM_Buffer1+2,y

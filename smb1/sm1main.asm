@@ -1015,6 +1015,9 @@ SetVRAMCtrl: lda #$06
 ColorRotatePalette:
        .byte $27, $27, $27, $17, $07, $17
 
+ColorRotateSprite0:
+       .byte $21, $21, $21, $23, $20, $23
+
 BlankPalette:
        .byte $3f, $0c, $04, $ff, $ff, $ff, $ff, $00
 
@@ -1056,6 +1059,8 @@ GetAreaPal:   lda Palette3Data,y       ;fetch palette to be written based on are
               ldy ColorRotateOffset    ;get color cycling offset
               lda ColorRotatePalette,y
               sta VRAM_Buffer1+4,x     ;get and store current color in second slot of palette
+              lda ColorRotateSprite0,Y
+              sta Sprite_Data+2
               lda VRAM_Buffer1_Offset
               clc                      ;add seven bytes to vram buffer offset
               adc #$07

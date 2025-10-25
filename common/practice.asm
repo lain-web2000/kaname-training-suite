@@ -342,7 +342,7 @@ WritePracticeTop:
 		.byte $20, $62, $02, $1c, $29		
 		.byte $20, $6c, $02, $2e, $29                ; score trailing digit and coin display
 		.byte $23, $c0, $7f, $aa                     ; attribute table data, clears name table 0 to palette 2
-		.byte $23, $c2, $01, $aa                     ; set palette for the flashing coin ; attribute table data, used for coin icon in status bar
+		.byte $23, $c3, $01, $aa                     ; set palette for the flashing coin ; attribute table data, used for coin icon in status bar
 @TopStatusTextEnd:
 		.byte $00
 

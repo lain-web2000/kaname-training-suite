@@ -937,6 +937,7 @@ DisplayIntermediate:
 PlayerInter:   jsr DrawPlayer_Intermediate  ;put player in appropriate place for
                lda #$01                     ;lives display, then output lives display to buffer
 OutputInter:   jsr OtherInter
+               jsr Enter_RedrawFramerule
 .ifdef ANN
                jmp IncSubtask
 .else

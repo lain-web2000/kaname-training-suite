@@ -954,7 +954,7 @@ menu_input:
 		bne @keep_peach
 		lda CurrentPlayer
 		clc
-		adc $01
+		adc #$01
 		and #$01
 		sta CurrentPlayer
 		jmp LL_UpdatePlayerChange
@@ -1622,6 +1622,12 @@ pause_things:
 		jmp PauseMenu
 @exit:
 		rts
+		
+DoPiFolder:
+		and #$0f
+		sta vramBuffer+3,x
+		inx
+		rts
 
 PrintHexByte:
 		sta $0
@@ -1671,25 +1677,11 @@ something_or_other:
 		adc $04
 		adc $2
 		sta $2
-		sta $1
 		lda SprObject_Y_Position
 		and #$03         
-		asl
-		asl              
-		asl
-		asl
-		sta $04
+		sta $1
 		lda $2
 		and #$0f
-		ora $04       
-		sta $2
-		lda $2
-		asl
-		asl
-		asl
-		asl
-		lda $2
-		and #$f0
 		sta $2
 		lda Player_X_Speed
 		cmp #$19
@@ -1699,6 +1691,11 @@ something_or_other:
 DoWalking:
 		lda XAlignmentWalking
 :		lsr_by 3
+		and #$0f
+		asl
+		asl
+		asl
+		asl
 		ora $2
 		sta $2
 		ldx vramBufferOffset_Prac
@@ -1713,10 +1710,13 @@ draw_sock_hash:
 		ldx #0
 		lda $2
 		jsr PrintHexByte
-		lda $1
-		jsr PrintHexByte
 		lda $3
 		jsr PrintHexByte
+		lda #$28
+		sta vramBuffer+3, x
+		inx
+		lda $1
+		jsr DoNibble
 		lda #$ff
 		sta vramBuffer+3, x
 		lda #$09

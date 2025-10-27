@@ -117,7 +117,7 @@ DrawBuffer:
 .ifdef PAL
 	   lda #31                   ;count 31 scanlines (plus the pre-render scanline)
 .else
-	   lda #22
+	   lda #23
 .endif
 	   sta MMC3_IRQLatch
 	   sta MMC3_IRQReload
@@ -667,7 +667,8 @@ DisplayIntermediate:
                bne NoInter                  ;and jump to specific task, otherwise
 PlayerInter:   jsr DrawPlayer_Intermediate  ;put player in appropriate place for
                lda #$01                     ;lives display, then output lives display to buffer
-OutputInter:   jsr WriteGameText	   
+OutputInter:   jsr WriteGameText
+               jsr Enter_RedrawFramerule	   
                jsr ResetScreenTimer
                lda #$00
                sta DisableScreenFlag        ;reenable screen output
@@ -13823,7 +13824,7 @@ InitCHRBanks:
 	DelS: 	dey
 			bne DelS
 .else
-			ldy #$cc                 ;delay for right part of scanline 31
+			ldy #$b5                 ;delay for right part of scanline 31
 	DelS: 	dey
 			bne DelS
 .endif

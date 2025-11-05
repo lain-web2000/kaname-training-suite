@@ -1526,6 +1526,8 @@ PracticeOnFrameInner:
 		and WRAM_SaveButtons_SNES+1
 		cmp WRAM_SaveButtons_SNES+1
 		bne @no_begin_save
+		lda DisableScreenFlag
+		bne @no_begin_save
 		jmp begin_save
 @no_begin_save:
 		lda WRAM_LoadButtons_SNES
@@ -1574,6 +1576,8 @@ NES_Controller:
 		txa
 		and WRAM_SaveButtons
 		cmp WRAM_SaveButtons
+		bne @no_begin_save
+		lda DisableScreenFlag
 		bne @no_begin_save
 		jmp begin_save
 @no_begin_save:

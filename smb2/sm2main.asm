@@ -4798,6 +4798,7 @@ CheckForJumping:
 NoJump: jmp X_Physics             ;otherwise, jump to something else
 
 ProcJumping:
+           jsr Enter_RedrawFrameNumbers
            lda Player_State           ;check player state
            beq InitJS                 ;if on the ground, branch
            lda SwimmingFlag           ;if swimming flag not set, jump to do something else
@@ -4806,9 +4807,8 @@ ProcJumping:
            bne InitJS
            lda Player_Y_Speed         ;check player's vertical speed
            bpl InitJS                 ;if player's vertical speed motionless or down, branch
-           jmp X_Physics              ;if timer at zero and player still rising, do not swim
-InitJS:    jsr Enter_RedrawFrameNumbers
-		   lda #$20                   ;set jump/swim timer
+           jmp X_Physics              ;if timer at zero and player still rising, do not swim    
+InitJS:	   lda #$20                   ;set jump/swim timer
            sta JumpSwimTimer
            ldy #$00                   ;initialize vertical force and dummy variable
            sty Player_YMF_Dummy

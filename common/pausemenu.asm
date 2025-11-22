@@ -509,7 +509,7 @@ pm_toggle_info:
 		sta VRAM_Buffer1+15,x
 		lda #$44 ; addr
 		sta VRAM_Buffer1+16,x
-		lda #$44 ; len
+		lda #$46 ; len
 		sta VRAM_Buffer1+17,x
 		lda #$24 ; blank
 		sta VRAM_Buffer1+18, x
@@ -524,17 +524,19 @@ pm_toggle_info:
 		ldx VRAM_Buffer1_Offset
 		lda #$20
 		sta VRAM_Buffer1,x
-		lda #$69 ; addr
+		lda #$48 ; addr
 		sta VRAM_Buffer1+1,x
-		lda #$01 ; len
+		lda #$02 ; len
 		sta VRAM_Buffer1+2,x
+		lda #$28
+		sta VRAM_Buffer1+3,x
 		lda WRAM_AreaSockTimer
-		sta VRAM_Buffer1+3, x
-		lda #$00
 		sta VRAM_Buffer1+4, x
+		lda #$00
+		sta VRAM_Buffer1+5, x
 		lda VRAM_Buffer1_Offset
 		clc
-		adc #$04
+		adc #$05
 		sta VRAM_Buffer1_Offset
         jsr RedrawFrameNumbersInner
 		jmp RedrawFramerulePauseMenu

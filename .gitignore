@@ -14,3 +14,4 @@ smb.tmp
 *.tmp
 *.dbg
 *.bak
+*.orig

@@ -937,6 +937,7 @@ DisplayIntermediate:
 PlayerInter:   jsr DrawPlayer_Intermediate  ;put player in appropriate place for
                lda #$01                     ;lives display, then output lives display to buffer
 OutputInter:   jsr OtherInter
+               jsr Enter_RedrawFramerule
 .ifdef ANN
                jmp IncSubtask
 .else
@@ -2269,6 +2270,7 @@ ChkSwimE: ldy AreaType                ;if level not water-type,
 SetPESub: lda #$07                    ;set to run player entrance subroutine
           sta GameEngineSubroutine    ;on the next frame of game engine
 		  jsr Enter_RedrawFrameNumbers
+		  jsr Enter_CompString
 		  lda WRAM_AdvRNG
 		  bne @no_rule
 		  jmp Enter_RedrawFramerule
@@ -4535,6 +4537,7 @@ ChkStop:  lda Player_CollisionBits  ;get player collision bits
           lda StarFlagTaskControl   ;if star flag task control already set,
           bne InCastle              ;go ahead with the rest of the code
           inc StarFlagTaskControl   ;otherwise set task control now (this gets ball rolling!)
+		  jsr Enter_RedrawFrameNumbers
 InCastle: lda #%00100000            ;set player's background priority bit to
           sta Player_SprAttrib      ;give illusion of being inside the castle
 RdyNextA: lda StarFlagTaskControl
@@ -4796,6 +4799,7 @@ CheckForJumping:
 NoJump: jmp X_Physics             ;otherwise, jump to something else
 
 ProcJumping:
+           jsr Enter_RedrawFrameNumbers
            lda Player_State           ;check player state
            beq InitJS                 ;if on the ground, branch
            lda SwimmingFlag           ;if swimming flag not set, jump to do something else
@@ -4805,8 +4809,7 @@ ProcJumping:
            lda Player_Y_Speed         ;check player's vertical speed
            bpl InitJS                 ;if player's vertical speed motionless or down, branch
            jmp X_Physics              ;if timer at zero and player still rising, do not swim
-InitJS:    jsr Enter_RedrawFrameNumbers
-		   lda #$20                   ;set jump/swim timer
+InitJS:    lda #$20                   ;set jump/swim timer
            sta JumpSwimTimer
            ldy #$00                   ;initialize vertical force and dummy variable
            sty Player_YMF_Dummy
@@ -11150,6 +11153,7 @@ FlagpoleCollision:
       lda GameEngineSubroutine
       cmp #$04                  ;check for flagpole slide routine running
       beq RunFR                 ;if running, branch to end of flagpole code here
+	  jsr Enter_RedrawFrameNumbers
       lda #BulletBill_CannonVar ;load identifier for bullet bills (cannon variant)
       jsr KillEnemies           ;get rid of them
       lda #Silence
@@ -15548,6 +15552,11 @@ SuperPlayerMsg:
 		lda #BANK_COMMON
 		jsr SetBankFromA
 		jmp ProcessLevelLoad
+		
+	Enter_CompString:
+		lda #BANK_COMMON
+		jsr SetBankFromA
+		jmp DoSomethingOnAreaStart_Walk
 		
 .ifdef LOST
 	Enter_LL_GetAreaDataAddrs:

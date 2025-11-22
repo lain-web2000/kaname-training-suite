@@ -173,9 +173,9 @@ ClearState:
     sta $36
     sta $37
     sta $38
-    lda #$23
+    lda #$22
     sta $C0
-    lda #$21
+    lda #$C1
     sta $C1
     rts
 
@@ -294,7 +294,7 @@ ShowSequenceValue:
     rts
 
 ClearNextLine:
-	lda #$80
+	lda #$e0
     clc
     adc $C1
     sta $01

@@ -337,7 +337,7 @@ WritePracticeTop:
 		jmp ReturnBank 
 		
 @TopStatusText:
-		.byte $20, $42, $0b, $1b, $29, $24, $24, $24, $24, $24, $29, $24, $0f, $29
+		.byte $20, $42, $0b, $1b, $29, $24, $24, $24, $24, $24, $24, $24, $0f, $29
 		.byte $20, $51, $0c, $24, $0a, $24, $24, $24, $0b, $24, $24, $1d, $12, $16, $0e
 		.byte $20, $62, $02, $1c, $29			
 		.byte $20, $6b, $02, $2e, $29                ; score trailing digit and coin display
@@ -954,7 +954,7 @@ menu_input:
 		bne @keep_peach
 		lda CurrentPlayer
 		clc
-		adc $01
+		adc #$01
 		and #$01
 		sta CurrentPlayer
 		jmp LL_UpdatePlayerChange
@@ -1395,9 +1395,7 @@ begin_load:
 		sta SND_MASTERCTRL_REG
 @invalid_save:
 		rts
-pause_things_stub:
-		jmp pause_things
-		
+
 run_save_load:
 		and #PF_SaveState
 		beq @load_state
@@ -1409,6 +1407,83 @@ PracticeOnFrame:
 		jsr PracticeOnFrameInner
 		jmp ReturnBank
 
+FindAlignmentThruLevel:
+		lda SprObject_X_MoveForce
+		sec
+		sbc PrevFXSubPX
+		sta $00
+		lda Player_X_Position
+		sbc PrevFXPX
+		asl
+		asl
+		asl
+		asl
+		sta $01
+		lda $00
+		lsr_by 4
+		ora $01
+		sta $00
+		clc
+		adc XAlignmentWalking
+		bmi abababababababa
+.ifndef PAL
+	:	cmp #$18	; NTSC Walking Speed
+.else
+	:	cmp #$1c	; PAL Walking Speed
+.endif
+		bcc alabelattheveryend
+		sec
+.ifndef PAL
+		sbc #$18
+.else
+		sbc #$1c
+.endif
+		bpl :-
+abababababababa:
+		clc
+.ifndef PAL
+		adc #$18
+.else
+		adc #$1c
+.endif
+		bmi abababababababa
+alabelattheveryend:
+		sta XAlignmentWalking
+		lda $00
+		clc
+		adc XAlignmentRunning
+		bmi :++
+.ifndef PAL
+	:	cmp #$28	; NTSC Running Speed
+.else
+	:	cmp #$30	; PAL Running Speed
+.endif
+		bcc alabelattheveryend_2
+		sec
+.ifndef PAL
+		sbc #$28
+.else
+		sbc #$30
+.endif
+		bpl :-
+	:	clc
+.ifndef PAL
+		adc #$28
+.else
+		adc #$30
+.endif
+		bmi :-
+alabelattheveryend_2:
+		sta XAlignmentRunning
+		lda Player_X_Position
+		sta PrevFXPX
+		lda SprObject_X_MoveForce
+		sta PrevFXSubPX
+		rts
+		
+pause_things_stub:
+		jmp pause_things
+		
 PracticeOnFrameInner:
 		lda WRAM_PracticeFlags
 		and #PF_SaveState|PF_LoadState
@@ -1420,7 +1495,7 @@ PracticeOnFrameInner:
 .else
 		jsr LL_SoundEngine
 .endif
-
+		jsr FindAlignmentThruLevel
 @read_keypads:
 		lda SavedJoypadBits
 		ora JoypadBitMask
@@ -1551,6 +1626,12 @@ pause_things:
 		jmp PauseMenu
 @exit:
 		rts
+		
+DoPiFolder:
+		and #$0f
+		sta vramBuffer+3,x
+		inx
+		rts
 
 PrintHexByte:
 		sta $0
@@ -1570,7 +1651,7 @@ DontUpdateSockHash:
 ForceUpdateSockHashInner:
 		lda GameEngineSubroutine
 		cmp #$0b
-		beq skip_sock_hash
+		beq DontUpdateSockHash
 		lda WRAM_PracticeFlags
         and #PF_DisablePracticeInfo
         bne DontUpdateSockHash
@@ -1602,14 +1683,24 @@ something_or_other:
 		sta $2
 		lda SprObject_Y_Position
 		and #$03         
-		asl
-		asl              
-		asl
-		asl
-		sta $04  
+		sta $1
 		lda $2
 		and #$0f
-		ora $04       
+		sta $2
+		lda Player_X_Speed
+		cmp #$19
+		bcc DoWalking
+		lda XAlignmentRunning
+		bpl :+
+DoWalking:
+		lda XAlignmentWalking
+:		lsr_by 3
+		and #$0f
+		asl
+		asl
+		asl
+		asl
+		ora $2
 		sta $2
 		ldx vramBufferOffset_Prac
 		bne skip_sock_hash
@@ -1618,20 +1709,128 @@ draw_sock_hash:
 		sta vramBuffer
 		lda #$64 ;
 		sta vramBuffer+1
-		lda #$03 ; len
+		lda #$05 ; len
 		sta vramBuffer+2
 		ldx #0
 		lda $2
 		jsr PrintHexByte
 		lda $3
 		jsr PrintHexByte
+		lda #$28
+		sta vramBuffer+3, x
+		inx
+		lda $1
+		jsr DoNibble
 		lda #$ff
 		sta vramBuffer+3, x
-		lda #$07
+		lda #$09
 		sta vramBufferOffset_Prac
 skip_sock_hash:
 		rts
 
+.ifndef PAL
+NTSCWalking:
+		.byte $10, $08, $00 ;If AltEntranceControl = 0 or 3
+		.byte $00, $10, $08 ;If AltEntranceControl = 1
+		.byte $08, $00, $10 ;If AltEntranceControl = 2
+		
+NTSCRunning:
+		.byte $00, $10, $20, $08, $18 ;If AltEntranceControl = 0 or 3
+		.byte $18, $00, $10, $14, $08 ;If AltEntranceControl = 1
+		.byte $10, $20, $08, $18, $00 ;If AltEntranceControl = 2
+.else
+PALWalking:
+		.byte $18, $04, $0C, $14, $00, $08, $10 ;If AltEntranceControl = 0 or 3
+		.byte $14, $00, $08, $10, $18, $04, $0C ;If AltEntranceControl = 1
+		.byte $00, $08, $10, $18, $04, $0C, $14 ;If AltEntranceControl = 2
+		
+PALRunning:
+		.byte $10, $20, $00 ;If AltEntranceControl = 0 or 3
+		.byte $00, $10, $20 ;If AltEntranceControl = 1
+		.byte $20, $00, $10 ;If AltEntranceControl = 2
+.endif
+
+DoSomethingOnAreaStart_Walk:
+.ifndef PAL
+		lda #$03
+.else
+		lda #$07
+.endif
+		sta $01
+		lda Player_PageLoc
+		jsr SubtractByHoweverManyValuesNeeded
+		sta $02
+		lda AltEntranceControl
+		cmp #$03
+		bcc huh
+		lda #$00
+huh:
+		sta $00
+.ifndef PAL
+		ldx #$03
+.else
+		ldx #$07
+.endif
+		jsr AddsByHoweverManyValuesNeeded
+		clc
+		adc $02
+		tax
+.ifndef PAL
+		lda NTSCWalking,x
+.else
+		lda PALWalking,x
+.endif
+		sta XAlignmentWalking
+		
+DoSomethingOnAreaStart_Run:
+.ifndef PAL
+		lda #$05
+.else
+		lda #$03
+.endif
+		sta $01
+		lda Player_PageLoc
+		jsr SubtractByHoweverManyValuesNeeded
+		sta $02
+		lda AltEntranceControl
+		cmp #$03
+		bcc huh_2
+		lda #$00
+huh_2:
+		sta $00
+.ifndef PAL
+		ldx #$05
+.else
+		ldx #$03
+.endif
+		jsr AddsByHoweverManyValuesNeeded
+		clc
+		adc $02
+		tax
+.ifndef PAL
+		lda NTSCRunning,x
+.else
+		lda PALRunning,x
+.endif
+		sta XAlignmentRunning
+		jmp ReturnBank
+		
+AddsByHoweverManyValuesNeeded:
+		lda $00
+:		clc
+		adc $00
+		dex
+		bne :-
+		rts
+		
+SubtractByHoweverManyValuesNeeded:
+		cmp $01
+		bcc @exit
+		sbc $01
+		bne SubtractByHoweverManyValuesNeeded
+@exit:
+		rts
+	
 ForceUpdateSockHash:
 		jsr ForceUpdateSockHashInner
 		jmp ReturnBank
@@ -1679,10 +1878,10 @@ LoadState:
 		lda #$3F
 		sta PPU_ADDRESS
 		lda #$00
+		tax
 		sta PPU_ADDRESS
 		lda PPU_DATA ; Internal buffer; throw
 
-		ldx #$0
 		ldy #$20
 @copy_pal:
 		lda WRAM_SavePAL, x
@@ -1714,9 +1913,8 @@ LoadState:
 		lda #$20
 		sta PPU_ADDRESS
 		lda #$00
+		tax
 		sta PPU_ADDRESS
-
-		ldx #0
 @copy_nt:
 		lda WRAM_SaveNT, x
 		sta PPU_DATA
@@ -1777,10 +1975,10 @@ SaveState:
 		lda #$3F
 		sta PPU_ADDRESS
 		lda #$00
+		tax
 		sta PPU_ADDRESS
 		lda PPU_DATA ; Internal buffer; throw
 
-		ldx #$0
 		ldy #$20
 @copy_pal:
 		lda PPU_DATA
@@ -1829,10 +2027,9 @@ SaveState:
 		lda #$20
 		sta PPU_ADDRESS
 		lda #$00
+		tax
 		sta PPU_ADDRESS
 		lda PPU_DATA ; Internal buffer; throw
-		
-		ldx #0
 @copy_nt:
 		lda PPU_DATA
 		sta WRAM_SaveNT, x
@@ -2208,10 +2405,12 @@ RedrawSockTimer:
 		ldx vramBufferOffset_Prac
 		lda #$20
 		sta vramBuffer,x
-		lda #$69
+		lda #$48
       	sta vramBuffer+1,x
-      	lda #$00
+      	lda #$01
       	sta vramBuffer+2,x
+		lda #$28
+		sta vramBuffer+3,x
       	lda WRAM_PracticeFlags
       	and #PF_LevelEntrySaved
       	bne @already_saved
@@ -2228,9 +2427,10 @@ RedrawSockTimer:
 		lda IntervalTimerControl
 @write_it:
 		sta WRAM_AreaSockTimer
-		sta vramBuffer+3,x
-		lda #$ff
 		sta vramBuffer+4,x
+		lda #$ff
+		sta vramBuffer+5,x
+		inx
 		inx
 		inx
 		inx

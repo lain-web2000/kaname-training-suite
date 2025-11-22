@@ -1,6 +1,6 @@
 AS = ca65
 LD = ld65
-AFLAGS = -W0 -U -I inc -g --create-dep "$@.dep"
+AFLAGS = --cpu 6502X -W0 -U -I inc -g --create-dep "$@.dep"
 OUT = build
 OBJECTS-O = $(OUT)/intro-o.o \
           $(OUT)/sm1main.o \

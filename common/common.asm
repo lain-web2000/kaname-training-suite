@@ -56,5 +56,6 @@ NonMaskableInterrupt: ; Dummy
 	.export SetDefaultWRAM
 	.export FactoryResetWRAM
 	.export UpdateGameTimer
+	.export DoSomethingOnAreaStart_Walk
 
 	.res $C000 - *, $FF

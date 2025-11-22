@@ -4537,6 +4537,7 @@ ChkStop:  lda Player_CollisionBits  ;get player collision bits
           lda StarFlagTaskControl   ;if star flag task control already set,
           bne InCastle              ;go ahead with the rest of the code
           inc StarFlagTaskControl   ;otherwise set task control now (this gets ball rolling!)
+		  jsr Enter_RedrawFrameNumbers
 InCastle: lda #%00100000            ;set player's background priority bit to
           sta Player_SprAttrib      ;give illusion of being inside the castle
 RdyNextA: lda StarFlagTaskControl
@@ -4807,8 +4808,8 @@ ProcJumping:
            bne InitJS
            lda Player_Y_Speed         ;check player's vertical speed
            bpl InitJS                 ;if player's vertical speed motionless or down, branch
-           jmp X_Physics              ;if timer at zero and player still rising, do not swim    
-InitJS:	   lda #$20                   ;set jump/swim timer
+           jmp X_Physics              ;if timer at zero and player still rising, do not swim
+InitJS:    lda #$20                   ;set jump/swim timer
            sta JumpSwimTimer
            ldy #$00                   ;initialize vertical force and dummy variable
            sty Player_YMF_Dummy
@@ -11152,6 +11153,7 @@ FlagpoleCollision:
       lda GameEngineSubroutine
       cmp #$04                  ;check for flagpole slide routine running
       beq RunFR                 ;if running, branch to end of flagpole code here
+	  jsr Enter_RedrawFrameNumbers
       lda #BulletBill_CannonVar ;load identifier for bullet bills (cannon variant)
       jsr KillEnemies           ;get rid of them
       lda #Silence

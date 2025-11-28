@@ -1191,9 +1191,12 @@ toggle_second_quest:
 		inx
 		inx
 		stx VRAM_Buffer1_Offset
+no_toggle:
 		rts
 		
 toggle_rng_offset:
+		lda WRAM_AdvRNG
+		bne no_toggle
 		ldy CategorySelect
 		iny
 	.ifndef LOST

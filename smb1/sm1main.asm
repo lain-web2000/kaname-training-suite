@@ -13573,7 +13573,7 @@ NoHammer: ldx ObjectOffset         ;get original enemy object offset
 	Enter_CompString:
 		lda #BANK_COMMON
 		jsr SetBankFromA
-		jmp DoSomethingOnAreaStart_Walk
+		jmp CompString
 		
 	Enter_UpdateFrameRule:
 		lda #BANK_COMMON

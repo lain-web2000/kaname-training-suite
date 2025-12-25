@@ -15556,7 +15556,7 @@ SuperPlayerMsg:
 	Enter_CompString:
 		lda #BANK_COMMON
 		jsr SetBankFromA
-		jmp DoSomethingOnAreaStart_Walk
+		jmp CompString
 		
 .ifdef LOST
 	Enter_LL_GetAreaDataAddrs:

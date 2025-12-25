@@ -1411,10 +1411,11 @@ PracticeOnFrame:
 		jmp ReturnBank
 
 FindAlignmentThruLevel:
+        ; determine how many subpixels player moved on previous frame
 		lda SprObject_X_MoveForce
 		sec
 		sbc PrevFXSubPX
-		sta $00
+		pha
 		lda Player_X_Position
 		sbc PrevFXPX
 		asl
@@ -1422,62 +1423,38 @@ FindAlignmentThruLevel:
 		asl
 		asl
 		sta $01
-		lda $00
+		pla
 		lsr_by 4
 		ora $01
-		sta $00
+		sta $01
+
+		; update walking speed alignment
+.ifndef PAL
+        ldx #$18 ; NTSC Walking Speed
+.else
+        ldx #$1c ; PAL Walking Speed
+.endif
+        stx $00
+		pha
 		clc
 		adc XAlignmentWalking
-		bmi abababababababa
-.ifndef PAL
-	:	cmp #$18	; NTSC Walking Speed
-.else
-	:	cmp #$1c	; PAL Walking Speed
-.endif
-		bcc alabelattheveryend
-		sec
-.ifndef PAL
-		sbc #$18
-.else
-		sbc #$1c
-.endif
-		bpl :-
-abababababababa:
-		clc
-.ifndef PAL
-		adc #$18
-.else
-		adc #$1c
-.endif
-		bmi abababababababa
-alabelattheveryend:
+		jsr ModuloSignedA
 		sta XAlignmentWalking
-		lda $00
+
+		; update running speed alignment
+.ifndef PAL
+        ldx #$28 ; NTSC Walking Speed
+.else
+        ldx #$30 ; PAL Walking Speed
+.endif
+        stx $00
+		pla
 		clc
 		adc XAlignmentRunning
-		bmi :++
-.ifndef PAL
-	:	cmp #$28	; NTSC Running Speed
-.else
-	:	cmp #$30	; PAL Running Speed
-.endif
-		bcc alabelattheveryend_2
-		sec
-.ifndef PAL
-		sbc #$28
-.else
-		sbc #$30
-.endif
-		bpl :-
-	:	clc
-.ifndef PAL
-		adc #$28
-.else
-		adc #$30
-.endif
-		bmi :-
-alabelattheveryend_2:
+		jsr ModuloSignedA
 		sta XAlignmentRunning
+
+		; save previous position for next frame
 		lda Player_X_Position
 		sta PrevFXPX
 		lda SprObject_X_MoveForce
@@ -1731,107 +1708,73 @@ draw_sock_hash:
 skip_sock_hash:
 		rts
 
+; X alignment lookups for walking speed and running speed
 .ifndef PAL
-NTSCWalking:
-		.byte $10, $08, $00 ;If AltEntranceControl = 0 or 3
-		.byte $00, $10, $08 ;If AltEntranceControl = 1
-		.byte $08, $00, $10 ;If AltEntranceControl = 2
-		
-NTSCRunning:
-		.byte $00, $10, $20, $08, $18 ;If AltEntranceControl = 0 or 3
-		.byte $18, $00, $10, $14, $08 ;If AltEntranceControl = 1
-		.byte $10, $20, $08, $18, $00 ;If AltEntranceControl = 2
+Walking_AlignmentLookup:
+		.byte $00, $10, $08
+Running_AlignmentLookup:
+		.byte $18, $00, $10, $14, $08
 .else
-PALWalking:
-		.byte $18, $04, $0C, $14, $00, $08, $10 ;If AltEntranceControl = 0 or 3
-		.byte $14, $00, $08, $10, $18, $04, $0C ;If AltEntranceControl = 1
-		.byte $00, $08, $10, $18, $04, $0C, $14 ;If AltEntranceControl = 2
-		
-PALRunning:
-		.byte $10, $20, $00 ;If AltEntranceControl = 0 or 3
-		.byte $00, $10, $20 ;If AltEntranceControl = 1
-		.byte $20, $00, $10 ;If AltEntranceControl = 2
+Walking_AlignmentLookup:
+		.byte $14, $00, $08, $10, $18, $04, $0c
+Running_AlignmentLookup:
+		.byte $00, $10, $20
 .endif
 
-DoSomethingOnAreaStart_Walk:
+CompString:
+        ; get appropriate walking speed lookup
 .ifndef PAL
-		lda #$03
+        lda #3 ; NTSC walking lookup has 3 entries
 .else
-		lda #$07
+        lda #7 ; PAL walking lookup has 7 entries
 .endif
-		sta $01
-		lda Player_PageLoc
-		jsr SubtractByHoweverManyValuesNeeded
-		sta $02
-		lda AltEntranceControl
-		cmp #$03
-		bcc huh
-		lda #$00
-huh:
-		sta $00
-.ifndef PAL
-		ldx #$03
-.else
-		ldx #$07
-.endif
-		jsr AddsByHoweverManyValuesNeeded
+        sta $00
+        lda Player_X_Position
+		sec
+		sbc #$18
+		lsr_by 4
 		clc
-		adc $02
+		adc Player_PageLoc
+		pha
+		jsr ModuloSignedA
 		tax
-.ifndef PAL
-		lda NTSCWalking,x
-.else
-		lda PALWalking,x
-.endif
+		lda Walking_AlignmentLookup,x
 		sta XAlignmentWalking
-		
-DoSomethingOnAreaStart_Run:
+
+		; get appropriate running speed lookup
 .ifndef PAL
-		lda #$05
+        lda #5 ; NTSC running lookup has 5 entries
 .else
-		lda #$03
+        lda #3 ; PAL running lookup has 3 entries
 .endif
-		sta $01
-		lda Player_PageLoc
-		jsr SubtractByHoweverManyValuesNeeded
-		sta $02
-		lda AltEntranceControl
-		cmp #$03
-		bcc huh_2
-		lda #$00
-huh_2:
-		sta $00
-.ifndef PAL
-		ldx #$05
-.else
-		ldx #$03
-.endif
-		jsr AddsByHoweverManyValuesNeeded
-		clc
-		adc $02
+        sta $00
+        pla
+		jsr ModuloSignedA
 		tax
-.ifndef PAL
-		lda NTSCRunning,x
-.else
-		lda PALRunning,x
-.endif
+		lda Running_AlignmentLookup,x
 		sta XAlignmentRunning
+
+		; init previous frame's position for delta calculation
+		lda Player_X_Position
+		sta PrevFXPX
+		lda SprObject_X_MoveForce
+		sta PrevFXSubPX
 		jmp ReturnBank
-		
-AddsByHoweverManyValuesNeeded:
-		lda $00
-:		clc
+
+; Returns A mod $00 in the accumulator, where A is a signed input
+ModuloSignedA:
+        cmp #$00
+        bpl :+
+@negative_num:
+		clc
 		adc $00
-		dex
-		bne :-
+		cmp $00
+		bcs @negative_num
 		rts
-		
-SubtractByHoweverManyValuesNeeded:
-		cmp $01
-		bcc @exit
-		sbc $01
-		bne SubtractByHoweverManyValuesNeeded
-@exit:
+@positive_num:
+		sbc $00
+:		cmp $00
+		bcs @positive_num
 		rts
 	
 ForceUpdateSockHash:

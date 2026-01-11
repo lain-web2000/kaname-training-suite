@@ -9,11 +9,7 @@ A collection of speedrun practice ROMs for Super Mario Bros. (NTSC & PAL), Super
 - Super Mario Bros. 2: `20E50128742162EE47561DB9E82B2836399C880C`
 - All Night Nippon Super Mario Bros.: `F30BDD3C556604D7EAA6D0F4864D5566E519B5D4`
 
-**Please note that ROMs with an iNES header will produce a different checksum than what the BPS patch expects, it will still function correctly when patched but some software may not generate a patched ROM with a mismatched checksum.**
-
-**If you wish to convert your iNES ROM to NES 2.0, please replace the first 16 bytes in the ROM with the following using a hex editor such as HxD:**
-- For SMB1 NTSC ROM: `4E 45 53 1A 02 01 01 08 00 00 00 00 02 00 00 01`
-- For SMB1 PAL ROM: `4E 45 53 1A 02 01 01 08 00 00 00 00 01 00 00 01`
+You can patch the NES/FDS files using the [Kaname Training Suite Patcher](https://web-2000.neocities.org/practicerom/patcher/) by 108Pi, based on [ROM Patcher JS](https://www.marcrobledo.com/RomPatcher.js/) by Marc Robledo.
 
 # Features
 ## All Games

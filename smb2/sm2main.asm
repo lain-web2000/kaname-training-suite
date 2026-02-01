@@ -1804,7 +1804,7 @@ JumpEngine:
        sta $05
        iny
        lda ($04),y  ;load pointer from indirect
-       sta $06      ;note that if an RTS is performed in next routine
+       sta $06      ;note that if an rts is performed in next routine
        iny          ;it will return to the execution before the sub
        lda ($04),y  ;that called this routine
        sta $07

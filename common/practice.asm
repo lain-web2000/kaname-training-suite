@@ -1789,6 +1789,9 @@ LoadState:
 		sta GamePauseStatus
 		rts
 @do_loadstate:
+		lda Mirror_PPU_CTRL_REG1
+		and #%01111111
+		sta PPU_CTRL_REG1 ;turn off NMI for real
 		ldx #(WRAM_ToSaveFile_End - WRAM_ToSaveFile)-1
 @load_wram:
 		lda WRAM_SaveWRAM, x
@@ -1904,6 +1907,8 @@ LoadState:
 		; Controllers will be read again this frame. Reset them (very buggy otherwise ;)).
 		sta SavedJoypad1Bits
 		sta JoypadBitMask
+		lda Mirror_PPU_CTRL_REG1
+		sta PPU_CTRL_REG1 ; Turn back on NMI
 		rts
 
 SaveState:
@@ -1914,6 +1919,16 @@ SaveState:
 		sta GamePauseStatus
 		rts
 @do_savestate:
+		lda Mirror_PPU_CTRL_REG1
+		and #%01111111
+		sta PPU_CTRL_REG1 ; Turn off NMI for real
+		clc
+    	lda LevelTimerLow ; Subtract save delay from level timer
+    	sbc WRAM_DelaySaveFrames
+    	sta LevelTimerLow
+    	lda LevelTimerHigh
+    	sbc #0
+    	sta LevelTimerHigh
         lda WRAM_PracticeFlags
 		and #PF_SaveState^$FF
 		sta WRAM_PracticeFlags
@@ -2015,6 +2030,8 @@ SaveState:
 .else
 		sta Sprite0HitDetectFlag
 .endif
+		lda Mirror_PPU_CTRL_REG1
+		sta PPU_CTRL_REG1 ;turn back on NMI
 		rts
 
 

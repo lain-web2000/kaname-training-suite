@@ -1917,6 +1917,7 @@ SaveState:
 		lda GamePauseStatus
 		ora #02
 		sta GamePauseStatus
+		sta SavesUsedFlag
 		rts
 @do_savestate:
 		lda Mirror_PPU_CTRL_REG1

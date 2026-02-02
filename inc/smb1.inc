@@ -535,7 +535,7 @@ AltRegContentFlag     = $07ca
 
 NameTableSelect       = $077a
 IRQAckFlag            = $077b
-TimerRunningFlag      = $077c
+SavesUsedFlag         = $077c
 LevelTimerLow         = $077d
 LevelTimerHigh        = $077e
 

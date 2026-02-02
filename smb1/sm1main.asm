@@ -5369,9 +5369,11 @@ DoTimerStart:
         beq EndDTS
         lda AltEntranceControl
         bne EndDTS
-        lda #$FF
-        sta LevelTimerLow
-        sta LevelTimerHigh
+        ldy #$FF
+        sty LevelTimerLow
+        sty LevelTimerHigh
+        iny
+        sty SavesUsedFlag
 EndDTS: rts
 ;--------------------------------
 
@@ -10290,11 +10292,10 @@ DecLoop:
         adc WRAM_Temp+10+2
         sta WRAM_Temp+7+2
         sta WRAM_Temp+10+3 ;saved high byte
+        lda #0
         bcc NoMulOverflow
         lda #1
-        .byte $2c          ;bit opcode
 NoMulOverflow:
-        lda #0
         sta WRAM_Temp+13
 
         lda #0
@@ -10432,6 +10433,10 @@ DoneDiv:
         lda WRAM_Temp+15+2
         sta VRAM_Buffer1+15,x
         lda #$24
+        ldy SavesUsedFlag
+        beq SavesNotUsed
+        lda #$29
+SavesNotUsed:
         sta VRAM_Buffer1+16,x
         lda #$00
         sta VRAM_Buffer1+17,x

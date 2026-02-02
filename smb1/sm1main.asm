@@ -67,18 +67,7 @@ EndlessLoop: jmp EndlessLoop              ;endless loop, need I say more?
 
 ;-----------------------------------------------------------------
 
-DoRunTimer:
-        clc
-        inc LevelTimerLow
-        bne EndDRT
-        inc LevelTimerHigh
-EndDRT: rts
-
-      NoNMI: rti
 	NMIHandler:
-         jsr DoRunTimer
-         lda NMIFlag
-         beq NoNMI
 	   lda Mirror_PPU_CTRL_REG1  ;alter name table address to be $2800
 	   and #%11111110            ;(essentially $2000) and disable another NMI
 	   sta Mirror_PPU_CTRL_REG1  ;from interrupting this one
@@ -14007,7 +13996,21 @@ done:
 .import NonMaskableInterrupt
 .import INP_NMI
 
+DoRunTimer:
+        clc
+        inc LevelTimerLow
+        bne EndDRT
+        inc LevelTimerHigh
+EndDRT: rts
+
+NoNMI: pla
+       rti
 NonMaskableInterrupt_Fixed:
+            pha
+            jsr DoRunTimer
+            lda NMIFlag
+            beq NoNMI
+            pla
 		lda BANK_SELECTED
 		cmp #BANK_ORG
 		beq @org_nmi

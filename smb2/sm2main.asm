@@ -62,6 +62,7 @@ ColdBoot:
 		lda Mirror_PPU_CTRL_REG1
 		ora #%10000000
 		jsr WritePPUReg1
+		sta NMIFlag
 		cli
 EndlessLoop:
 		lda $00                     ;endless loop
@@ -93,9 +94,11 @@ VRAM_Buffer_Offset:
 
 NMIHandler:
    lda Mirror_PPU_CTRL       ;alter name table address to be $2800
-   and #%01111110            ;(essentially $2000) and disable another NMI
+   and #%11111110            ;(essentially $2000) and disable another NMI
    sta Mirror_PPU_CTRL       ;from interrupting this one
    sta PPU_CTRL
+   lda #$00
+   sta NMIFlag
    sei
    lda Mirror_PPU_MASK
    and #%11100110            ;disable OAM and background display by default
@@ -218,11 +221,8 @@ WaitForIRQ:
    lda IRQAckFlag            ;wait for IRQ
    bne WaitForIRQ
    jsr Enter_RedrawUserVars
-   lda PPU_STATUS
-   lda Mirror_PPU_CTRL_REG1       ;reenable NMIs
-   ora #$80
-   sta Mirror_PPU_CTRL_REG1       ;then park it at endless loop until next NMI
-   sta PPU_CTRL_REG1
+   lda #$01
+   sta NMIFlag
    lda GamePauseStatus
    and #%11111101
    sta GamePauseStatus
@@ -938,6 +938,7 @@ PlayerInter:   jsr DrawPlayer_Intermediate  ;put player in appropriate place for
                lda #$01                     ;lives display, then output lives display to buffer
 OutputInter:   jsr OtherInter
                jsr Enter_RedrawFramerule
+			   jsr DoTimerEnd
 .ifdef ANN
                jmp IncSubtask
 .else
@@ -1885,10 +1886,10 @@ WriteBufferToScreen:
                lda ($00),y               ;load next byte (second)
                sta PPU_ADDRESS           ;store low byte of vram address
                iny
-               ldx #%00001000
+               ldx #%10001000
                lda ($00),y               ;load next byte (third)
                bpl SetupWrite
-               ldx #%00001100
+               ldx #%10001100
 SetupWrite:    stx PPU_CTRL_REG1
                and #%01111111
                cmp #%01000000
@@ -1924,8 +1925,8 @@ UpdateAddr:    sec
 UpdateScreen:  ldy #$00                  ;load first byte from indirect as a pointer
                lda ($00),y  
                bne WriteBufferToScreen   ;if byte is zero we have no further updates to make here
-InitScroll:    sta PPU_SCROLL            ;store contents of A into scroll registers
-               sta PPU_SCROLL            ;and end whatever subroutine led us here
+InitScroll:    sta PPU_SCROLL_REG        ;store contents of A into scroll registers
+               sta PPU_SCROLL_REG        ;and end whatever subroutine led us here
                rts
 
 ;------------------------------------------------------------------------------------
@@ -2099,6 +2100,17 @@ DoneInitArea:  lda #Silence             ;silence music
                rts
 .endif
 
+DoTimerStart:
+        lda OperMode
+        beq EndDTS
+        lda AltEntranceControl
+        bne EndDTS
+        ldy #$FF
+        sty LevelTimerLow
+        sty LevelTimerHigh
+        iny
+        sty SavesUsedFlag
+EndDTS: rts
 ;-------------------------------------------------------------------------------------
 
 SecondaryGameSetup:
@@ -2269,6 +2281,7 @@ ChkSwimE: ldy AreaType                ;if level not water-type,
           jsr SetupBubble             ;otherwise, execute sub to set up air bubbles
 SetPESub: lda #$07                    ;set to run player entrance subroutine
           sta GameEngineSubroutine    ;on the next frame of game engine
+		  jsr DoTimerStart
 		  jsr Enter_RedrawFrameNumbers
 		  jsr Enter_CompString
 		  lda WRAM_AdvRNG
@@ -11104,11 +11117,276 @@ HandleAxeMetatile:
 	   jsr Enter_RedrawAll
        lda #$18
        sta Player_X_Speed  ;set horizontal speed and continue to erase axe metatile
+	   jsr DoTimerEnd
 ErACM: ldy $02             ;load vertical high nybble offset for block buffer
        lda #$00            ;load blank metatile
        sta ($06),y         ;store to remove old contents from block buffer
        jmp RemoveCoin_Axe  ;update the screen accordingly
 
+DoTimerEnd:
+       ldx #23
+       lda #$00
+ClearTempLoop:
+       sta WRAM_Temp,x
+       dex
+       bpl ClearTempLoop
+
+       lda LevelTimerLow   ;copy frame count into temp
+       sta WRAM_Temp
+       lda LevelTimerHigh
+       sta WRAM_Temp+1
+
+       lda #15             ;multiply by 2^15
+       sta WRAM_Temp+10    ;used as numerator
+ShiftLoop:
+       asl WRAM_Temp
+       rol WRAM_Temp+1
+       rol WRAM_Temp+2
+       rol WRAM_Temp+3
+
+       dec WRAM_Temp+10
+       bne ShiftLoop
+
+       lda #$A6            ;used as denominator
+       sta WRAM_Temp+4
+       lda #$0C
+       sta WRAM_Temp+4+1
+       lda #$1E
+       sta WRAM_Temp+4+2
+         
+        ldy #32
+DivLoop:                   ;32 by 24 bit division
+        asl WRAM_Temp
+        rol WRAM_Temp+1
+        rol WRAM_Temp+2
+        rol WRAM_Temp+3
+
+        rol WRAM_Temp+7
+        rol WRAM_Temp+7+1
+        rol WRAM_Temp+7+2
+
+        lda WRAM_Temp+7    ;remainder - divisor
+        sec
+        sbc WRAM_Temp+4
+        sta WRAM_Temp+10   ;temp low
+
+        lda WRAM_Temp+7+1
+        sbc WRAM_Temp+4+1
+        sta WRAM_Temp+10+1 ;temp mid
+
+        lda WRAM_Temp+7+2
+        sbc WRAM_Temp+4+2
+        bcc NoSubtract     ;borrow
+
+        sta WRAM_Temp+7+2  ;subtraction successful
+        lda WRAM_Temp+10+1
+        sta WRAM_Temp+7+1
+        lda WRAM_Temp+10
+        sta WRAM_Temp+7
+
+        inc WRAM_Temp
+NoSubtract:
+        dey                ;move to next digit
+        bne DivLoop
+        ldy #0
+
+DecLoop:
+        asl WRAM_Temp+7    ;remainder *= 10
+        rol WRAM_Temp+7+1
+        rol WRAM_Temp+7+2
+
+        lda WRAM_Temp+7
+        sta WRAM_Temp+10
+        lda WRAM_Temp+7+1
+        sta WRAM_Temp+10+1
+        lda WRAM_Temp+7+2
+        sta WRAM_Temp+10+2
+
+        asl WRAM_Temp+7
+        rol WRAM_Temp+7+1
+        rol WRAM_Temp+7+2
+        asl WRAM_Temp+7
+        rol WRAM_Temp+7+1
+        rol WRAM_Temp+7+2
+
+        clc
+        lda WRAM_Temp+7
+        adc WRAM_Temp+10
+        sta WRAM_Temp+7
+        lda WRAM_Temp+7+1
+        adc WRAM_Temp+10+1
+        sta WRAM_Temp+7+1
+        lda WRAM_Temp+7+2
+        adc WRAM_Temp+10+2
+        sta WRAM_Temp+7+2
+        sta WRAM_Temp+10+3 ;saved high byte
+        lda #0
+        bcc NoMulOverflow
+        lda #1
+NoMulOverflow:
+        sta WRAM_Temp+13
+
+        lda #0
+        sta WRAM_Temp+14
+        ldx #10            ;digits 0-9
+DigitDivision:
+        lda WRAM_Temp+7    ;trial subtraction
+        sec
+        sbc WRAM_Temp+4
+        sta WRAM_Temp+10
+
+        lda WRAM_Temp+7+1
+        sbc WRAM_Temp+4+1
+        sta WRAM_Temp+10+1
+
+        lda WRAM_Temp+7+2
+        sbc WRAM_Temp+4+2
+        sta WRAM_Temp+10+2
+
+        lda WRAM_Temp+13   ;extra bit from overflow
+        sbc #0             
+        bcc DigitSkip       
+
+        sta WRAM_Temp+13   
+        lda WRAM_Temp+10+2
+        sta WRAM_Temp+7+2
+        lda WRAM_Temp+10+1
+        sta WRAM_Temp+7+1
+        lda WRAM_Temp+10
+        sta WRAM_Temp+7
+
+        inc WRAM_Temp+14
+DigitSkip:
+        dex
+        bne DigitDivision
+
+        lda WRAM_Temp+14   ;store digit
+        sta WRAM_Temp+15,y
+        jmp NextDigit
+DecLoopJMP:
+        jmp DecLoop
+NextDigit:
+        iny
+        cpy #4
+        bne DecLoopJMP
+        
+        lda WRAM_Temp+15+3 ;round using 4th digit
+        cmp #5
+        bcc RoundDone
+        ldy #2    
+RoundUp:
+        lda WRAM_Temp+15,y 
+        cmp #9             ;if digit is 9
+        bne RoundInc       ;carry to next digit
+
+        lda #0
+        sta WRAM_Temp+15,y
+        dey
+        bpl RoundUp
+        jmp RoundDone  
+RoundInc:
+        clc
+        adc #1
+        sta WRAM_Temp+15,y
+RoundDone:
+        lda #$00            
+        sta WRAM_Temp+2
+        sta WRAM_Temp+3
+DivideBy60:                ;convert to minutes:seconds
+        lda WRAM_Temp+1
+        bne Sub60
+        lda WRAM_Temp
+        cmp #60
+        bcc DoneDiv
+Sub60:
+        sec     
+        lda WRAM_Temp
+        sbc #60
+        sta WRAM_Temp
+        lda WRAM_Temp+1
+        sbc #0
+        sta WRAM_Temp+1
+
+        inc WRAM_Temp+2
+        bne DivideBy60
+        inc WRAM_Temp+3
+        jmp DivideBy60
+DoneDiv:
+        lda WRAM_Temp
+        sta WRAM_Temp+7
+
+        lda WRAM_Temp+2    ;convert to decimal digits
+        jsr ToDecimal
+        sta WRAM_Temp+19+1
+        stx WRAM_Temp+19
+
+        lda WRAM_Temp+7
+        jsr ToDecimal
+        sta WRAM_Temp+19+3  
+        stx WRAM_Temp+19+2 
+
+        ldx VRAM_Buffer1_Offset ;display time on screen
+        lda #$22                ;write nametable address
+        sta VRAM_Buffer1,x
+        lda #$09                
+        sta VRAM_Buffer1+1,x
+        lda #14 ;LENGTH
+        sta VRAM_Buffer1+2,x
+
+        lda #$1D                ;write TIME
+        sta VRAM_Buffer1+3,x
+        lda #$12
+        sta VRAM_Buffer1+4,x
+        lda #$16
+        sta VRAM_Buffer1+5,x
+        lda #$0E
+        sta VRAM_Buffer1+6,x
+        lda #$24
+        sta VRAM_Buffer1+7,x
+
+        lda WRAM_Temp+19+1      ;write digits
+        sta VRAM_Buffer1+8,x
+        lda #$AF
+        sta VRAM_Buffer1+9,x
+        lda WRAM_Temp+19+2
+        sta VRAM_Buffer1+10,x
+        lda WRAM_Temp+19+3
+        sta VRAM_Buffer1+11,x
+        lda #$AF
+        sta VRAM_Buffer1+12,x
+        lda WRAM_Temp+15
+        sta VRAM_Buffer1+13,x
+        lda WRAM_Temp+15+1
+        sta VRAM_Buffer1+14,x
+        lda WRAM_Temp+15+2
+        sta VRAM_Buffer1+15,x
+        lda #$24
+        ldy SavesUsedFlag
+        beq SavesNotUsed
+        lda #$29
+SavesNotUsed:
+        sta VRAM_Buffer1+16,x
+        lda #$00
+        sta VRAM_Buffer1+17,x
+      
+        txa
+        clc
+        adc #17
+        sta VRAM_Buffer1_Offset
+EndDTE:
+        rts
+
+ToDecimal:
+        ldx #0
+TenLoop:
+        cmp #10
+        bcc DoneTen
+        sbc #10
+        inx
+        jmp TenLoop
+DoneTen:
+        rts
+		
 ;--------------------------------
 ;$02 - high nybble of vertical coordinate from block buffer
 ;$04 - low nybble of horizontal coordinate from block buffer
@@ -15624,7 +15902,7 @@ update_practice_vram:
 parse_vram_string:
       pla
       bmi done
-      ldx #%00001000
+      ldx #%10001100
       cmp #$40
       bcc set_vram_dir
       ldx #%00001100
@@ -15659,7 +15937,7 @@ done:
       sta PPU_ADDRESS
       sta PPU_ADDRESS
 	  sta vramBufferOffset_Prac
-      ldx #%00001000
+      ldx #%10001000
       stx PPU_CTRL
       sta PPU_SCROLL
       sta PPU_SCROLL
@@ -15673,8 +15951,25 @@ done:
 	.res $FF00 - *, $EA
 
 .import NonMaskableInterrupt
+.import INP_NMI
 
+
+DoRunTimer:
+        clc
+        inc LevelTimerLow
+        bne EndDRT
+        inc LevelTimerHigh
+EndDRT: rts
+
+NoNMI: pla
+       rti
+	   
 NonMaskableInterrupt_Fixed:
+		pha
+		jsr DoRunTimer
+		lda NMIFlag
+		beq NoNMI
+		pla
 		lda BANK_SELECTED
 .ifdef ANN
 		cmp #BANK_ANN
@@ -15762,7 +16057,7 @@ InitCHRBanks:
 		cld
 		ldx #$ff
 		txs
-		lda #$00
+		lda #$80
 		sta PPU_CTRL_REG1
 		sta PPU_CTRL_REG2			; disable NMI's for the timebeing
 		sta MMC3_Mirroring          ; vertical mirroring
@@ -15811,7 +16106,7 @@ DelS: 	dey
 
 StartBank:
 		sta BANK_SELECTED
-		ldx #$00
+		ldx #$80
 		stx PPU_CTRL_REG1
 		stx PPU_CTRL_REG2
 		jsr SetBankFromA

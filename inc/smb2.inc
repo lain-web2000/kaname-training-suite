@@ -56,6 +56,7 @@ NameTableSelect       = $077a
 FileListNumber        = $07f7
 
 OperMode              = $0770
+NMIFlag               = $0771
 OperMode_Task         = $0772
 ScreenRoutineTask     = $073c
 
@@ -194,6 +195,9 @@ VRAM_Buffer2_Offset   = $0340
 VRAM_Buffer2          = $0341
 VRAM_Buffer_AddrCtrl  = $0773
 IRQAckFlag			  = $077b
+SavesUsedFlag         = $077c
+LevelTimerLow         = $077d
+LevelTimerHigh        = $077e
 IRQUpdateFlag  		  = $0722
 DisableScreenFlag     = $0774
 DisableIntermediate   = $0769

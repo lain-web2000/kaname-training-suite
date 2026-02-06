@@ -15902,7 +15902,7 @@ update_practice_vram:
 parse_vram_string:
       pla
       bmi done
-      ldx #%10001100
+      ldx #%10001000
       cmp #$40
       bcc set_vram_dir
       ldx #%00001100

@@ -50,6 +50,7 @@ checkforinput:
     ; enable NMI interrupt
     lda #%10001000
     sta PPU_CTRL_REG1
+    sta NMIFlag
     ; loop until NMI
 :   jmp :-
 

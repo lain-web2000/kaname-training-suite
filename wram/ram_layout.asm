@@ -250,3 +250,6 @@ WRAM_SavePAL:
 		
 BANK_SELECTED:
 		.byte $00
+
+WRAM_DisableScreenFlag: ;thanks pellsson :)
+	.byte $00

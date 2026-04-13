@@ -1358,6 +1358,8 @@ begin_save:
 		lda WRAM_PracticeFlags
 		ora #PF_SaveState
 		sta WRAM_PracticeFlags
+		lda DisableScreenFlag
+		sta WRAM_DisableScreenFlag
 		inc DisableScreenFlag
 		lda WRAM_DelaySaveFrames
 		sta SaveFramesLeft
@@ -1386,6 +1388,8 @@ begin_load:
 		lda WRAM_PracticeFlags
 		ora #PF_LoadState
 		sta WRAM_PracticeFlags
+		lda DisableScreenFlag
+		sta WRAM_DisableScreenFlag
 		inc DisableScreenFlag
 		lda WRAM_DelaySaveFrames
 		sta SaveFramesLeft
@@ -1506,8 +1510,6 @@ PracticeOnFrameInner:
 		and WRAM_SaveButtons_SNES+1
 		cmp WRAM_SaveButtons_SNES+1
 		bne @no_begin_save
-		lda DisableScreenFlag
-		bne @no_begin_save
 		jmp begin_save
 @no_begin_save:
 		lda WRAM_LoadButtons_SNES
@@ -1556,8 +1558,6 @@ NES_Controller:
 		txa
 		and WRAM_SaveButtons
 		cmp WRAM_SaveButtons
-		bne @no_begin_save
-		lda DisableScreenFlag
 		bne @no_begin_save
 		jmp begin_save
 @no_begin_save:
@@ -1790,7 +1790,7 @@ LoadState:
 		rts
 @do_loadstate:
 		lda Mirror_PPU_CTRL_REG1
-		and #%01111111
+		and #%01111011
 		sta PPU_CTRL_REG1 ;turn off NMI for real
 		ldx #(WRAM_ToSaveFile_End - WRAM_ToSaveFile)-1
 @load_wram:
@@ -1896,7 +1896,7 @@ LoadState:
 		;lda WRAM_PracticeFlags
 		;and #PF_LoadState^$FF
 		;sta WRAM_PracticeFlags
-		lda #0
+		lda WRAM_DisableScreenFlag
 		sta DisableScreenFlag
 		lda WRAM_IRQUpdateFlag
 .ifndef ORG
@@ -1907,6 +1907,7 @@ LoadState:
 		; Controllers will be read again this frame. Reset them (very buggy otherwise ;)).
 		sta SavedJoypad1Bits
 		sta JoypadBitMask
+		lda PPU_STATUS
 		lda Mirror_PPU_CTRL_REG1
 		sta PPU_CTRL_REG1 ; Turn back on NMI
 		rts
@@ -1921,7 +1922,7 @@ SaveState:
 		rts
 @do_savestate:
 		lda Mirror_PPU_CTRL_REG1
-		and #%01111111
+		and #%01111011
 		sta PPU_CTRL_REG1 ; Turn off NMI for real
 		clc
     	lda LevelTimerLow ; Subtract save delay from level timer
@@ -2023,7 +2024,7 @@ SaveState:
 		lda GamePauseStatus
 		ora #2
 		sta GamePauseStatus
-		lda #0
+		lda WRAM_DisableScreenFlag
 		sta DisableScreenFlag
 		lda WRAM_IRQUpdateFlag
 .ifndef ORG
@@ -2031,6 +2032,7 @@ SaveState:
 .else
 		sta Sprite0HitDetectFlag
 .endif
+		lda PPU_STATUS
 		lda Mirror_PPU_CTRL_REG1
 		sta PPU_CTRL_REG1 ;turn back on NMI
 		rts

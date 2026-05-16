@@ -10195,34 +10195,68 @@ ClearTempLoop:
        bpl ClearTempLoop
 
        lda LevelTimerLow   ;copy frame count into temp
-       sta WRAM_Temp
-       lda LevelTimerHigh
-       sta WRAM_Temp+1
-
-       lda #15             ;multiply by 2^15
-       sta WRAM_Temp+10    ;used as numerator
-ShiftLoop:
-       asl WRAM_Temp
-       rol WRAM_Temp+1
-       rol WRAM_Temp+2
-       rol WRAM_Temp+3
-
-       dec WRAM_Temp+10
-       bne ShiftLoop
-
-.ifndef PAL                ;framerate * 2^15
-       lda #$A6            ;used as denominator
        sta WRAM_Temp+4
-       lda #$0C
+       lda LevelTimerHigh
+       sta WRAM_Temp+5
+
+.ifndef PAL  
+        lda #$C4           ;ntsc magic number = 11972
+        sta WRAM_Temp+10   ;very close to an integer when multiplied by the framerate
+        lda #$2E
+        sta WRAM_Temp+11
+.else
+        lda #$30           ;pal magic number = 6448
+        sta WRAM_Temp+10    
+        lda #$19
+        sta WRAM_Temp+11
+.endif
+
+       ldx #16             ;frame count * magic number
+MultLoop:                  ;used as numerator
+        lsr WRAM_Temp+11
+        ror WRAM_Temp+10
+        bcc SkipAdd
+
+        clc
+        lda WRAM_Temp
+        adc WRAM_Temp+4
+        sta WRAM_Temp
+
+        lda WRAM_Temp+1
+        adc WRAM_Temp+5
+        sta WRAM_Temp+1
+
+        lda WRAM_Temp+2
+        adc WRAM_Temp+6
+        sta WRAM_Temp+2
+
+        lda WRAM_Temp+3
+        adc WRAM_Temp+7
+        sta WRAM_Temp+3
+
+SkipAdd:
+        asl WRAM_Temp+4    ;shift left
+        rol WRAM_Temp+5
+        rol WRAM_Temp+6
+        rol WRAM_Temp+7
+
+        dex
+        bne MultLoop
+	  stx WRAM_Temp+7
+		
+.ifndef PAL                ;framerate * magic number
+       lda #$8F            ;used as denominator
+       sta WRAM_Temp+4
+       lda #$FA
        sta WRAM_Temp+4+1
-       lda #$1E
+       lda #$0A
        sta WRAM_Temp+4+2
 .else
-       lda #$E5
+       lda #$8D
        sta WRAM_Temp+4
-       lda #$00
+       lda #$EB
        sta WRAM_Temp+4+1
-       lda #$19
+       lda #$04
        sta WRAM_Temp+4+2
 .endif
          
@@ -10355,7 +10389,17 @@ RoundUp:
         sta WRAM_Temp+15,y
         dey
         bpl RoundUp
-        jmp RoundDone  
+	  inc WRAM_Temp
+	  bne RoundDone
+		
+	  inc WRAM_Temp+1
+	  bne RoundDone
+
+        inc WRAM_Temp+2
+        bne RoundDone
+
+        inc WRAM_Temp+3
+        jmp RoundDone 
 RoundInc:
         clc
         adc #1

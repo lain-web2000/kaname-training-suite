@@ -48,6 +48,7 @@ Mirror_PPU_CTRL_REG1  = $0778
 Mirror_PPU_CTRL_REG2  = $0779
 
 OperMode              = $0770
+NMIFlag               = $0771
 OperMode_Task         = $0772
 ScreenRoutineTask     = $073c
 
@@ -534,6 +535,9 @@ AltRegContentFlag     = $07ca
 
 NameTableSelect       = $077a
 IRQAckFlag            = $077b
+SavesUsedFlag         = $077c
+LevelTimerLow         = $077d
+LevelTimerHigh        = $077e
 
 ;-------------------------------------------------------------------------------------
 ;CONSTANTS

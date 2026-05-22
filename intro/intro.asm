@@ -175,6 +175,7 @@ DetectControllerType:
 		lda #%10001000
 		sta MirrorPPUCTRL
 		sta PPU_CTRL_REG1
+		sta NMIFlag
 hang:
 		jmp hang
 

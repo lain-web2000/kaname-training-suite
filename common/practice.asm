@@ -1388,8 +1388,6 @@ begin_load:
 		lda WRAM_PracticeFlags
 		ora #PF_LoadState
 		sta WRAM_PracticeFlags
-		lda DisableScreenFlag
-		sta WRAM_DisableScreenFlag
 		inc DisableScreenFlag
 		lda WRAM_DelaySaveFrames
 		sta SaveFramesLeft

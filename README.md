@@ -1,5 +1,5 @@
 # NOTICE
-### Development of Kaname Training Suite has been halted indefinitely, no bugfixes or features will be implemented in the future.
+### Development of Kaname Training Suite has been halted indefinitely following the bullying and dogpiling from some community members towards one of the projects developers. No bugfixes or features will be implemented in the future.
 
 # Kaname Training Suite 
 
